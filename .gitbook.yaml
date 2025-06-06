@@ -1,0 +1,26 @@
+root: ./docs/
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
+
+integrations:
+  github:
+    enabled: true
+
+format:
+  page-cover:
+    size: small
+  page-title:
+    visible: true
+
+pdf:
+  margin:
+    right: 72
+    left: 72
+    top: 36
+    bottom: 36
+  format: A4
+  orientation: portrait
+
+redirects: {} 
