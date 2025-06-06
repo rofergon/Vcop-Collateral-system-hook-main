@@ -51,7 +51,6 @@ help:
 	@echo ""
 	@echo "New Core System Commands"
 	@echo "-----------------------"
-	@echo "make deploy-core              - Deploy simple core lending system"
 	@echo "make deploy-unified           - Deploy complete unified system (core + VcopCollateral)"
 	@echo "make check-addresses          - Show all deployed contract addresses"
 	@echo "make check-balance            - Check deployer ETH balance"
@@ -64,7 +63,6 @@ help:
 	@echo ""
 	@echo "Core System Testing Commands"
 	@echo "---------------------------"
-	@echo "make deploy-risk-calculator   - Deploy RiskCalculator contract"
 	@echo "make test-core-loans          - Run comprehensive core lending system tests"
 	@echo "make test-eth-usdc-loan       - Test ETH collateral -> USDC loan"
 	@echo "make test-usdc-eth-loan       - Test USDC collateral -> ETH loan"
@@ -172,11 +170,6 @@ create-position:
 
 # === NEW CORE SYSTEM COMMANDS ===
 
-# Deploy simple core system (working version)
-deploy-core:
-	@echo "🚀 Deploying core system..."
-	forge script script/deploy/DeploySimpleCore.s.sol --rpc-url $(RPC_URL) --broadcast
-
 # Deploy complete unified system (core + VcopCollateral)
 deploy-unified:
 	@echo "🚀 Deploying unified VCOP system..."
@@ -229,11 +222,6 @@ check-tokens:
 	@cast call 0x9B051Dbf5bbFA94c9F18617a2D10AC9614D41d6c "balanceOf(address)" 0xA6B3D200cD34ca14d7579DAc8B054bf50a62c37c --rpc-url $(RPC_URL)
 
 # === NUEVOS COMANDOS DE PRUEBA DEL SISTEMA CORE ===
-
-# Desplegar RiskCalculator
-deploy-risk-calculator:
-	@echo "🧮 Deploying RiskCalculator..."
-	forge script script/deploy/DeployRiskCalculator.s.sol --rpc-url $(RPC_URL) --broadcast
 
 # Probar prestamos con el sistema core
 test-core-loans:
