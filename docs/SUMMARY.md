@@ -1,6 +1,7 @@
 # Table of contents
 
 * [🏠 Inicio](README.md)
+* [🔍 ¿Cómo Funciona?](COMO_FUNCIONA.md)
 * [🚀 Sistema Operativo](GUIA_SISTEMA_OPERATIVO.md)
 
 ## 🏗️ Arquitectura y Diseño

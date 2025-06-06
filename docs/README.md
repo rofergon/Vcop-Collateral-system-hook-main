@@ -17,6 +17,10 @@ VCOP Collateral es un protocolo DeFi dual que ofrece:
 
 Todos los componentes están funcionando y han sido validados en producción.
 
+> 💡 **¿Nuevo en VCOP?** Ve a [**🔍 ¿Cómo Funciona?**](COMO_FUNCIONA.md) para entender de forma sencilla cómo ganar dinero con el protocolo.
+
+---
+
 ## 📖 ÍNDICE DE DOCUMENTACIÓN
 
 ### 🚀 **SISTEMA OPERATIVO**
