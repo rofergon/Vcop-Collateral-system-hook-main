@@ -502,14 +502,14 @@ contract DeployVCOPCollateral is Script {
             console.logBytes(errorData);
             
             // In case of error, verify the hook owner
-            try hook.owner() returns (address hookOwner) {
+            try hook.owner() returns (address currentHookOwner) {
                 console.logString("Hook owner:");
-                console.logAddress(hookOwner);
+                console.logAddress(currentHookOwner);
                 
                 console.logString("Deployer address:");
                 console.logAddress(deployerAddress);
                 
-                if (hookOwner != deployerAddress) {
+                if (currentHookOwner != deployerAddress) {
                     console.logString("The hook owner is not the deployer. This must be fixed manually.");
                 }
             } catch {

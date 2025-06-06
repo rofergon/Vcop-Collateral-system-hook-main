@@ -8,6 +8,7 @@ import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {PoolSwapTest} from "v4-core/src/test/PoolSwapTest.sol";
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {Currency} from "v4-core/src/types/Currency.sol";
+import {SwapParams} from "v4-core/src/types/PoolOperation.sol";
 import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
 import {SafeCast} from "v4-core/src/libraries/SafeCast.sol";
 import {Constants} from "v4-core/test/utils/Constants.sol";
@@ -65,7 +66,7 @@ contract ExampleHookTest is Test, Deployers {
         // A positive amount means it is an exactOutput swap, so the user is only requesting that amount out of the swap.
         int256 amountSpecified = int256(amountToSwap);
 
-        IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
+        SwapParams memory params = SwapParams({
             zeroForOne: zeroForOne,
             amountSpecified: amountSpecified,
             // Note: if zeroForOne is true, the price is pushed down, otherwise its pushed up.

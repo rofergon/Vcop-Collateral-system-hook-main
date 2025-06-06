@@ -10,13 +10,15 @@ import {Currency, CurrencyLibrary} from "v4-core/src/types/Currency.sol";
 import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {VCOPPriceCalculator} from "./VCOPPriceCalculator.sol";
+import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
 
 /**
  * @title VCOPOracle
  * @notice Oracle to provide VCOP price in relation to Colombian Peso (COP) and US Dollar (USD)
  * @dev Uses 6 decimals to maintain consistency with VCOP and USDC
+ * @dev Now implements IGenericOracle to be compatible with the core lending system
  */
-contract VCOPOracle is Ownable {
+contract VCOPOracle is Ownable, IGenericOracle {
     using PoolIdLibrary for PoolKey;
     using StateLibrary for IPoolManager;
     using CurrencyLibrary for Currency;
@@ -27,6 +29,11 @@ contract VCOPOracle is Ownable {
     // Token addresses for the pool
     address public immutable vcopAddress;
     address public immutable usdcAddress;
+    
+    // Mock token addresses for price feeds
+    address public mockETH;
+    address public mockWBTC;
+    address public mockUSDC;
     
     // Pool parameters
     uint24 public immutable fee;
@@ -46,6 +53,14 @@ contract VCOPOracle is Ownable {
     
     // Price calculator (implementation using TestPoolPrice logic)
     VCOPPriceCalculator public priceCalculator;
+
+    // Manual price feeds for mock tokens (baseToken => quoteToken => price)
+    mapping(address => mapping(address => uint256)) private manualPrices;
+    mapping(address => mapping(address => uint256)) private priceTimestamps;
+    
+    // Price feed configurations
+    mapping(address => mapping(address => PriceFeedConfig)) private priceFeedConfigs;
+    mapping(address => mapping(address => bool)) private hasPriceFeedMapping;
 
     // Events emitted when prices are updated
     event UsdToCopRateUpdated(uint256 oldRate, uint256 newRate);
@@ -95,6 +110,173 @@ contract VCOPOracle is Ownable {
         console.log("Initial VCOP/COP rate:", _vcopToCopRate);
         console.log("VCOP is token0:", isVCOPToken0);
     }
+    
+    /**
+     * @dev Sets mock token addresses for price feeds
+     */
+    function setMockTokens(address _mockETH, address _mockWBTC, address _mockUSDC) external onlyOwner {
+        mockETH = _mockETH;
+        mockWBTC = _mockWBTC;
+        mockUSDC = _mockUSDC;
+        
+        // Initialize default prices (all prices normalized to 6 decimals output)
+        // ETH (18 decimals) = $2500 USD (6 decimals) => 1 ETH = 2500 USDC
+        _setManualPrice(mockETH, mockUSDC, 2500 * 1e6);
+        // WBTC (8 decimals) = $45000 USD (6 decimals) => 1 WBTC = 45000 USDC  
+        _setManualPrice(mockWBTC, mockUSDC, 45000 * 1e6);
+        // USDC (6 decimals) = $1 USD => 1 USDC = 1 USDC
+        _setManualPrice(mockUSDC, mockUSDC, 1 * 1e6);
+        
+        // Set reverse prices (considering token decimals)
+        // 1 USDC (6 dec) = 0.0004 ETH (18 dec) => price = 400 (6 dec result) 
+        _setManualPrice(mockUSDC, mockETH, 400);
+        // 1 USDC (6 dec) = 0.0000222 WBTC (8 dec) => price = 22 (6 dec result)
+        _setManualPrice(mockUSDC, mockWBTC, 22);
+        // 1 ETH (18 dec) = 0.0556 WBTC (8 dec) => price = 55556 (6 dec result)
+        _setManualPrice(mockETH, mockWBTC, 55556);
+        // 1 WBTC (8 dec) = 18 ETH (18 dec) => price = 18000000 (6 dec result)
+        _setManualPrice(mockWBTC, mockETH, 18 * 1e6);
+        
+        console.log("Mock tokens configured with default prices");
+    }
+    
+    /**
+     * @dev Internal function to set manual prices
+     */
+    function _setManualPrice(address baseToken, address quoteToken, uint256 price) internal {
+        manualPrices[baseToken][quoteToken] = price;
+        priceTimestamps[baseToken][quoteToken] = block.timestamp;
+        hasPriceFeedMapping[baseToken][quoteToken] = true;
+        
+        // Configure as manual feed
+        priceFeedConfigs[baseToken][quoteToken] = PriceFeedConfig({
+            feedAddress: address(this),
+            feedType: PriceFeedType.MANUAL,
+            decimals: 6,
+            heartbeat: 3600, // 1 hour
+            isActive: true,
+            isInverse: false
+        });
+        
+        emit PriceUpdated(baseToken, quoteToken, price, PriceFeedType.MANUAL);
+    }
+
+    // ========== IGenericOracle Implementation ==========
+    
+    /**
+     * @dev Gets price for a token pair (IGenericOracle implementation)
+     * @param baseToken Address of base token
+     * @param quoteToken Address of quote token (can be address(0) for USD)
+     * @return price Price of baseToken in terms of quoteToken (6 decimals)
+     */
+    function getPrice(address baseToken, address quoteToken) external view override returns (uint256 price) {
+        // Handle address(0) as USD
+        if (quoteToken == address(0)) {
+            quoteToken = mockUSDC;
+        }
+        
+        // Check if we have a manual price
+        if (hasPriceFeedMapping[baseToken][quoteToken]) {
+            price = manualPrices[baseToken][quoteToken];
+            console.log("Oracle: Returning manual price for pair:", price);
+            return price;
+        }
+        
+        // Handle VCOP prices
+        if (baseToken == vcopAddress && quoteToken == mockUSDC) {
+            return getVcopToUsdPriceFromPool();
+        }
+        
+        if (baseToken == mockUSDC && quoteToken == vcopAddress) {
+            uint256 vcopToUsd = getVcopToUsdPriceFromPool();
+            if (vcopToUsd > 0) {
+                return (1e12) / vcopToUsd;
+            }
+        }
+        
+        console.log("Oracle: No price feed found for token pair");
+        return 0;
+    }
+    
+    /**
+     * @dev Gets detailed price data for a token pair
+     */
+    function getPriceData(address baseToken, address quoteToken) external view override returns (PriceData memory priceData) {
+        uint256 price = this.getPrice(baseToken, quoteToken);
+        uint256 timestamp = priceTimestamps[baseToken][quoteToken];
+        
+        if (timestamp == 0) {
+            timestamp = block.timestamp;
+        }
+        
+        priceData = PriceData({
+            price: price,
+            timestamp: timestamp,
+            isValid: price > 0
+        });
+    }
+    
+    /**
+     * @dev Updates price for a token pair (for manual feeds)
+     */
+    function updatePrice(address baseToken, address quoteToken, uint256 price) external override onlyOwner {
+        _setManualPrice(baseToken, quoteToken, price);
+        console.log("Price updated manually:", price);
+    }
+    
+    /**
+     * @dev Configures a price feed for a token pair
+     */
+    function configurePriceFeed(
+        address baseToken, 
+        address quoteToken, 
+        PriceFeedConfig calldata config
+    ) external override onlyOwner {
+        priceFeedConfigs[baseToken][quoteToken] = config;
+        hasPriceFeedMapping[baseToken][quoteToken] = true;
+        
+        emit PriceFeedConfigured(baseToken, quoteToken, config.feedType, config.feedAddress);
+    }
+    
+    /**
+     * @dev Sets primary and fallback feeds for a token pair
+     */
+    function setFeedPriority(
+        address baseToken,
+        address quoteToken,
+        PriceFeedType primaryType,
+        PriceFeedType fallbackType
+    ) external override onlyOwner {
+        emit FeedPrioritySet(baseToken, quoteToken, primaryType, fallbackType);
+    }
+    
+    /**
+     * @dev Checks if price feed exists for a token pair
+     */
+    function hasPriceFeed(address baseToken, address quoteToken) external view override returns (bool exists) {
+        return hasPriceFeedMapping[baseToken][quoteToken];
+    }
+    
+    /**
+     * @dev Gets price feed configuration
+     */
+    function getPriceFeedConfig(
+        address baseToken,
+        address quoteToken,
+        PriceFeedType feedType
+    ) external view override returns (PriceFeedConfig memory config) {
+        return priceFeedConfigs[baseToken][quoteToken];
+    }
+    
+    /**
+     * @dev Validates if price is within acceptable bounds
+     */
+    function validatePrice(address baseToken, address quoteToken, uint256 price) external view override returns (bool isValid) {
+        // Basic validation - price should be greater than 0
+        return price > 0;
+    }
+
+    // ========== Original VCOPOracle Functions ==========
     
     /**
      * @dev Gets the USD to COP exchange rate (view version)

@@ -10,6 +10,7 @@ import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
 import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
 import {Currency} from "v4-core/src/types/Currency.sol";
 import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeSwapDelta.sol";
+import {SwapParams, ModifyLiquidityParams} from "v4-core/src/types/PoolOperation.sol";
 import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
@@ -190,7 +191,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     /**
      * @dev Check if a swap would be considered large
      */
-    function _isLargeSwap(IPoolManager.SwapParams calldata params) internal view returns (bool) {
+    function _isLargeSwap(SwapParams calldata params) internal view returns (bool) {
         // Simplified - we should convert to a common unit (VCOP value) for better comparison
         if (params.amountSpecified < 0) {
             return uint256(-params.amountSpecified) > largeSwapThreshold;
@@ -202,7 +203,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     /**
      * @dev Estimate if a swap would break the peg
      */
-    function _wouldBreakPeg(PoolKey calldata key, IPoolManager.SwapParams calldata params) internal view returns (bool) {
+    function _wouldBreakPeg(PoolKey calldata key, SwapParams calldata params) internal view returns (bool) {
         // This is a simplified check that would need to be enhanced with actual price impact calculation
         // Typically would use price simulation or historical data
         bool isVcopSelling = (key.currency0 == vcopCurrency && params.zeroForOne) || 
@@ -219,7 +220,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     function _beforeSwap(
         address sender,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata params,
+        SwapParams calldata params,
         bytes calldata hookData
     ) internal override returns (bytes4, BeforeSwapDelta, uint24) {
         // Only process VCOP pools
@@ -242,7 +243,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     function _afterSwap(
         address sender,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata params,
+        SwapParams calldata params,
         BalanceDelta delta,
         bytes calldata
     ) internal override returns (bytes4, int128) {
@@ -268,7 +269,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     function _afterAddLiquidity(
         address sender,
         PoolKey calldata key,
-        IPoolManager.ModifyLiquidityParams calldata,
+        ModifyLiquidityParams calldata,
         BalanceDelta delta,
         BalanceDelta,
         bytes calldata
