@@ -1,6 +1,6 @@
 # 📊 CÁLCULOS DE RIESGO Y RATIOS EN EL PROTOCOLO
 
-## 🎯 RESPUESTA A TU PREGUNTA
+## 🎯 FUNCIONALIDADES DEL SISTEMA DE RIESGO
 
 **¿Dónde se calculan los ratios y riesgos?**
 - ✅ **ON-CHAIN**: Cálculos críticos de seguridad están en los contratos
@@ -353,4 +353,4 @@ modifier emergencyStop() {
 
 ---
 
-**🎯 CONCLUSIÓN: Tienes un sistema completo de gestión de riesgo on-chain que supera a la mayoría de protocolos DeFi existentes.** 
+**🎯 CONCLUSIÓN: El protocolo implementa un sistema completo de gestión de riesgo on-chain que supera a la mayoría de protocolos DeFi existentes.** 

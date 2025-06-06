@@ -29,6 +29,6 @@
 
 ## 🔗 Enlaces Útiles
 
-* [🌐 Repositorio GitHub](https://github.com/tu-usuario/vcop-collateral-system)
+* [🌐 Repositorio GitHub](https://github.com/vcop-protocol/vcop-collateral-system)
 * [📊 Dashboard de Métricas](https://dashboard.vcop.finance)
 * [🔍 Explorador de Contratos](https://sepolia.basescan.org) 
