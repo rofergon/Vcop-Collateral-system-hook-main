@@ -1,0 +1,53 @@
+{
+  "title": "Protocolo VCOP Collateral",
+  "description": "Documentación oficial del Protocolo VCOP Collateral - Stablecoin COP y Sistema de Préstamos DeFi",
+  "author": "VCOP Protocol Team",
+  "language": "es",
+  "gitbook": ">=3.0.0",
+  "root": ".",
+  "structure": {
+    "readme": "README.md",
+    "summary": "SUMMARY.md"
+  },
+  "plugins": [
+    "theme-default",
+    "search",
+    "lunr",
+    "sharing",
+    "fontsettings",
+    "highlight",
+    "livereload",
+    "anchorjs",
+    "edit-link",
+    "github"
+  ],
+  "pluginsConfig": {
+    "theme-default": {
+      "showLevel": true
+    },
+    "edit-link": {
+      "base": "https://github.com/tu-usuario/vcop-collateral-system/edit/main/docs",
+      "label": "Editar esta página"
+    },
+    "github": {
+      "url": "https://github.com/tu-usuario/vcop-collateral-system"
+    },
+    "sharing": {
+      "facebook": true,
+      "twitter": true,
+      "linkedin": true,
+      "all": ["facebook", "twitter", "linkedin"]
+    }
+  },
+  "pdf": {
+    "pageNumbers": true,
+    "fontSize": 12,
+    "paperSize": "a4",
+    "margin": {
+      "right": 62,
+      "left": 62,
+      "top": 36,
+      "bottom": 36
+    }
+  }
+} 
