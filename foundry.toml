@@ -19,6 +19,8 @@ via_ir = true
 eth_rpc_url = ''
 # Disable verification
 verify = false
+# Enable file system permissions for script deployment
+fs_permissions = [{ access = "read-write", path = "./" }]
 
 # Test configuration
 fuzz = { runs = 256 }

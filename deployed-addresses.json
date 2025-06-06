@@ -1,0 +1,27 @@
+{
+  "network": "Base Sepolia",
+  "chainId": 84532,
+  "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+  "deploymentDate": "1749172950",
+  "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+  "mockTokens": {
+    "ETH": "0xA4D604C70c4695364D25760D2AD07B07A3DE2aD1",
+    "WBTC": "0x4fF0c4A37Cbe69F7d2459f303a405dDA3450e109",
+    "USDC": "0xe32b992791e0ec4D83a4BFaC048CB7cEe7c951F0"
+  },
+  "vcopCollateral": {
+    "vcopToken": "0xAb5B684ecA865C444E5fBc9E74394b1BB5D95684",
+    "oracle": "0x1EA1b462d73EcBc805Adf1f2F9d93DB68C86ee77",
+    "priceCalculator": "0x839a558B28a5F9c9e6aFB743B0C8a2ab1ACa3CF1",
+    "collateralManager": "0xf53503855778F9CDc7b2341b10Dd0b81c84683B3",
+    "hook": "0x5026DA1e81bC619b65A4cB2E63104Bb282f3C4C0"
+  },
+  "coreLending": {
+    "genericLoanManager": "0x803D9E7c42844670dB6F5b14FA96d95C23e43572",
+    "flexibleLoanManager": "0xf2416FeF3684d74D0BAE2BAEc4af9A4BcC676e8E",
+    "vaultBasedHandler": "0xA2D79964DD431c19445F1aEA87E5Dd06d626bDAa",
+    "mintableBurnableHandler": "0x4067710d0EeaA7eFCFc5BddDfc4eDEd6f177dbb9",
+    "flexibleAssetHandler": "0xecE8D7BAC223aeDC3153611B740A0ffaFCE52Aef",
+    "riskCalculator": "0x4C080FA0c0E655225BE9Ce04c390Cc51d1f9aabB"
+  }
+}
