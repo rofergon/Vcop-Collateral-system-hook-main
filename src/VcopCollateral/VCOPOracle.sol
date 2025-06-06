@@ -123,7 +123,7 @@ contract VCOPOracle is Ownable, IGenericOracle {
         // ETH (18 decimals) = $2500 USD (6 decimals) => 1 ETH = 2500 USDC
         _setManualPrice(mockETH, mockUSDC, 2500 * 1e6);
         // WBTC (8 decimals) = $45000 USD (6 decimals) => 1 WBTC = 45000 USDC  
-        _setManualPrice(mockWBTC, mockUSDC, 45000 * 1e6);
+        _setManualPrice(mockWBTC, mockUSDC, 95000 * 1e6);
         // USDC (6 decimals) = $1 USD => 1 USDC = 1 USDC
         _setManualPrice(mockUSDC, mockUSDC, 1 * 1e6);
         
