@@ -1,0 +1,174 @@
+{
+  "network": "Base Sepolia",
+  "chainId": 84532,
+  "rpcUrl": "https://sepolia.base.org",
+  "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+  "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+  "deploymentDate": "1749177750",
+  
+  "contracts": {
+    "mockTokens": {
+      "MockETH": {
+        "address": "0x7c79c4ebD92837E95fd8B2c25975CE544Eb17D82",
+        "abi": "abi/extracted/MockETH.json",
+        "description": "Mock ETH token for testing",
+        "category": "ERC20"
+      },
+      "MockWBTC": {
+        "address": "0xE51293840CA88a5183fd0dc49eE2abaC480572c3",
+        "abi": "abi/extracted/MockWBTC.json",
+        "description": "Mock WBTC token for testing",
+        "category": "ERC20"
+      },
+      "MockUSDC": {
+        "address": "0x6bf9aDaCefe6a159710094eA5334786E35EE73f9",
+        "abi": "abi/extracted/MockUSDC.json",
+        "description": "Mock USDC token for testing",
+        "category": "ERC20"
+      }
+    },
+    
+    "vcopCollateral": {
+      "VCOPCollateralized": {
+        "address": "0xb70d3B325246b638787551E57bB880404b0Be611",
+        "abi": "abi/extracted/VCOPCollateralized.json",
+        "description": "VCOP token with collateral functionality",
+        "category": "ERC20_Extended"
+      },
+      "VCOPOracle": {
+        "address": "0xD217C3Ea3D4aB981c7E96754E7d2cC588d4773dB",
+        "abi": "abi/extracted/VCOPOracle.json",
+        "description": "Oracle for VCOP/USD and USD/COP prices",
+        "category": "Oracle"
+      },
+      "VCOPPriceCalculator": {
+        "address": "0x8CE89692FBb96c5F4eBDCcBE706d3470d215Ee5F",
+        "abi": "abi/extracted/VCOPPriceCalculator.json",
+        "description": "Price calculator for swap operations",
+        "category": "Utility"
+      },
+      "VCOPCollateralManager": {
+        "address": "0x98D15b2ae44f9e2d8eE5C60c5B3d9DA475EAc8B3",
+        "abi": "abi/extracted/VCOPCollateralManager.json",
+        "description": "Manages collateral and PSM operations",
+        "category": "Core"
+      },
+      "VCOPCollateralHook": {
+        "address": "0x72A41abE3d63f57D5ef475AC514a11efac1304c0",
+        "abi": "abi/extracted/VCOPCollateralHook.json",
+        "description": "Uniswap V4 hook for automatic collateral management",
+        "category": "Hook"
+      }
+    },
+    
+    "coreLending": {
+      "GenericLoanManager": {
+        "address": "0x787d48ba90a5Badb0A4ACaaD721FD63a3a5561DE",
+        "abi": "abi/extracted/GenericLoanManager.json",
+        "description": "Main generic loan manager",
+        "category": "LoanManager"
+      },
+      "FlexibleLoanManager": {
+        "address": "0x63500615EE23a540257F7D32a2a762B461662369",
+        "abi": "abi/extracted/FlexibleLoanManager.json",
+        "description": "Flexible loan manager with advanced features",
+        "category": "LoanManager"
+      },
+      "VaultBasedHandler": {
+        "address": "0x41e0Bb71A57ecf69d19857f54e9C10F89c94B191",
+        "abi": "abi/extracted/VaultBasedHandler.json",
+        "description": "Vault-based asset handler for ETH, WBTC, USDC",
+        "category": "AssetHandler"
+      },
+      "MintableBurnableHandler": {
+        "address": "0x2890C2525f24924cFB989d7A5e6039fb721f06B9",
+        "abi": "abi/extracted/MintableBurnableHandler.json",
+        "description": "Handler for mintable/burnable tokens (VCOP)",
+        "category": "AssetHandler"
+      },
+      "FlexibleAssetHandler": {
+        "address": "0x75c88aaba7E4Ffa46Ca95673147DA8D6aE80b592",
+        "abi": "abi/extracted/FlexibleAssetHandler.json",
+        "description": "Flexible asset handler",
+        "category": "AssetHandler"
+      },
+      "RiskCalculator": {
+        "address": "0x1CD4E00f22324720BFEca771ED652078fC3FB873",
+        "abi": "abi/extracted/RiskCalculator.json",
+        "description": "Risk calculator for loan positions",
+        "category": "Utility"
+      }
+    }
+  },
+  
+  "interfaces": {
+    "IAssetHandler": {
+      "abi": "abi/extracted/IAssetHandler.json",
+      "description": "Interface for asset handlers"
+    },
+    "ILoanManager": {
+      "abi": "abi/extracted/ILoanManager.json",
+      "description": "Interface for loan managers"
+    },
+    "IOracle": {
+      "abi": "abi/extracted/IOracle.json",
+      "description": "Interface for price oracles"
+    }
+  },
+  
+  "assetConfiguration": {
+    "ETH": {
+      "collateralRatio": "130%",
+      "liquidationRatio": "110%",
+      "interestRate": "8%",
+      "oraclePrice": "2500.000000"
+    },
+    "WBTC": {
+      "collateralRatio": "140%",
+      "liquidationRatio": "115%",
+      "interestRate": "7.5%",
+      "oraclePrice": "45000.000000"
+    },
+    "USDC": {
+      "collateralRatio": "110%",
+      "liquidationRatio": "105%",
+      "interestRate": "4%",
+      "oraclePrice": "1.000000"
+    },
+    "USD_COP": {
+      "rate": "4200.000000",
+      "description": "1 USD = 4200 COP"
+    }
+  },
+  
+  "testCommands": {
+    "coreLending": [
+      "make test-core-loans",
+      "make test-eth-usdc-loan",
+      "make test-usdc-eth-loan",
+      "make test-advanced-operations",
+      "make test-risk-analysis",
+      "make test-loan-repayment"
+    ],
+    "vcopSystem": [
+      "make test-loans",
+      "make test-liquidation",
+      "make test-psm"
+    ],
+    "verification": [
+      "make check-new-oracle",
+      "make check-addresses",
+      "make check-tokens"
+    ]
+  },
+  
+  "integrationExamples": {
+    "javascript": {
+      "ethers": "const contract = new ethers.Contract(address, abi, provider);",
+      "web3": "const contract = new web3.eth.Contract(abi, address);"
+    },
+    "python": {
+      "web3py": "contract = w3.eth.contract(address=address, abi=abi)"
+    }
+  }
+} 

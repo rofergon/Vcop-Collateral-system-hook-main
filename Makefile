@@ -69,6 +69,11 @@ help:
 	@echo "make test-advanced-operations - Test advanced loan operations (add/withdraw collateral)"
 	@echo "make test-risk-analysis       - Test basic risk analysis and calculations"
 	@echo "make test-loan-repayment      - Test loan repayment and position closure"
+	@echo ""
+	@echo "ABI Management Commands"
+	@echo "----------------------"
+	@echo "make extract-abis             - Extract ABIs from compiled contracts"
+	@echo "make regenerate-abis          - Recompile contracts and extract fresh ABIs"
 
 # Check PSM status (testnet)
 check-psm:
@@ -278,3 +283,16 @@ provide-usdc-liquidity:
 		100000000000 \
 		0xA6B3D200cD34ca14d7579DAc8B054bf50a62c37c \
 		--rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+
+# === ABI MANAGEMENT COMMANDS ===
+
+# Extract ABIs from all compiled contracts
+extract-abis:
+	@echo "🔧 Extracting ABIs from compiled contracts..."
+	./extract-abis.sh
+
+# Regenerate ABIs after code changes
+regenerate-abis: 
+	@echo "🔄 Recompiling contracts and extracting ABIs..."
+	forge build
+	./extract-abis.sh
