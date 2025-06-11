@@ -1,360 +1,467 @@
-# 🔍 CÓMO FUNCIONA EL PROTOCOLO
+# 🔍 HOW THE PROTOCOL WORKS
 
-## 🎯 **CONCEPTO SIMPLE**
+## 🎯 **SIMPLE CONCEPT**
 
-VCOP es como un "banco digital" que te permite:
-- **Prestar dinero** usando criptomonedas como garantía
-- **Ganar intereses** prestando tu dinero a otros
-- **Protegerte** de la devaluación del peso colombiano
-- **Especular** con los movimientos de precios
+VCOP is like a "digital bank" that allows you to:
+- **Lend money** using cryptocurrencies as collateral
+- **Earn interest** by lending your money to others
+- **Protect yourself** from Colombian peso devaluation
+- **Speculate** on price movements
 
-## 💰 **FORMAS DE GANAR DINERO**
+## 💰 **WAYS TO MAKE MONEY**
 
-### **1. 🏦 PRESTAMISTAS (Proveedores de Liquidez)**
+### **1. 🏦 LENDERS (Liquidity Providers)**
 ```
-¿Qué haces?: Depositas USDC, ETH o WBTC en el protocolo
-¿Cómo ganas?: Cobras intereses a quienes piden prestado
+What do you do?: Deposit USDC, ETH or WBTC in the protocol
+How do you earn?: Collect interest from borrowers
 
-Ejemplo:
-- Depositas 10,000 USDC
-- El protocolo lo presta al 8% anual
-- Ganas ~800 USDC al año (pasivamente)
-```
-
-### **2. 💸 TRADERS/ESPECULADORES**
-```
-¿Qué haces?: Usas tu cripto como garantía para pedir prestado otras criptos
-¿Cómo ganas?: Especulas con los precios
-
-Ejemplo de Apalancamiento:
-- Tienes 1 ETH ($2,000)
-- Lo usas como garantía para pedir $1,500 USDC
-- Compras más ETH con esos $1,500
-- Si ETH sube 20%, ganas $300 extra (¡15% más ganancia!)
-
-Ejemplo de Protección contra Devaluación:
-- Tienes pesos colombianos (COP)
-- Los cambias por VCOP (stablecoin vinculada al peso)
-- Si el peso se devalúa vs el dólar, VCOP mantiene su valor
-- ¡Proteges tu dinero de la inflación!
+Example:
+- Deposit 10,000 USDC
+- Protocol lends it at 8% annual rate
+- Earn ~800 USDC per year (passively)
 ```
 
-### **3. ⚡ LIQUIDADORES**
+### **2. 💸 TRADERS/SPECULATORS**
 ```
-¿Qué haces?: Vigilas posiciones riesgosas y las liquidas
-¿Cómo ganas?: Cobras bonificaciones por liquidar
+What do you do?: Use your crypto as collateral to borrow other cryptos
+How do you earn?: Speculate on prices
 
-Ejemplo:
-- Alguien pidió $1,000 prestado con garantía de $1,200
-- El precio baja y la garantía vale solo $1,100
-- Tú liquidas la posición
-- Ganas ~$50-100 de bonificación (5-10%)
-```
+Leverage Example:
+- You have 1 ETH ($2,000)
+- Use it as collateral to borrow $1,500 USDC
+- Buy more ETH with those $1,500
+- If ETH goes up 20%, you earn $300 extra (15% more profit!)
 
-### **4. 🚀 ARBITRAJISTAS**
-```
-¿Qué haces?: Aprovechas diferencias de precios entre mercados
-¿Cómo ganas?: Compras barato en un lado, vendes caro en otro
-
-Ejemplo:
-- VCOP vale $0.24 en el protocolo
-- VCOP vale $0.25 en otro exchange
-- Compras VCOP en el protocolo, vendes en el exchange
-- Ganas $0.01 por cada VCOP (¡4% de ganancia!)
+Protection against Devaluation Example:
+- You have Colombian pesos (COP)
+- Exchange them for VCOP (peso-pegged stablecoin)
+- If peso devalues vs dollar, VCOP maintains its value
+- Protect your money from inflation!
 ```
 
-## 💡 **OPORTUNIDADES ESPECIALES**
-
-### **📉 CUANDO EL PESO SE DEVALÚA**
+### **3. ⚡ LIQUIDATORS**
 ```
-Escenario: El peso colombiano se devalúa 10% vs el dólar
+What do you do?: Monitor risky positions and liquidate them
+How do you earn?: Collect bonuses for liquidating
 
-Para VCOP holders:
-✅ VCOP mantiene su valor en dólares
-✅ Tienes más poder de compra en Colombia
-✅ Te proteges de la inflación
-
-Para traders inteligentes:
-✅ Pueden hacer "short" al peso usando VCOP
-✅ Ganan cuando el peso se debilita
-✅ Protegen su patrimonio
+Example:
+- Someone borrowed $1,000 with $1,200 collateral
+- Price drops and collateral is now worth only $1,100
+- You liquidate the position
+- Earn ~$50-100 bonus (5-10%)
 ```
 
-### **💎 ESTRATEGIAS AVANZADAS**
+### **4. 🚀 ARBITRAGEURS**
+```
+What do you do?: Take advantage of price differences between markets
+How do you earn?: Buy cheap on one side, sell expensive on the other
+
+Example:
+- VCOP is worth $0.24 on the protocol
+- VCOP is worth $0.25 on another exchange
+- Buy VCOP on the protocol, sell on the exchange
+- Earn $0.01 per VCOP (4% profit!)
+```
+
+## 💡 **SPECIAL OPPORTUNITIES**
+
+### **📉 WHEN THE PESO DEVALUES**
+```
+Scenario: Colombian peso devalues 10% vs the dollar
+
+For VCOP holders:
+✅ VCOP maintains its value in dollars
+✅ You have more purchasing power in Colombia
+✅ You protect yourself from inflation
+
+For smart traders:
+✅ Can "short" the peso using VCOP
+✅ Profit when the peso weakens
+✅ Protect their wealth
+```
+
+### **💎 ADVANCED STRATEGIES**
 ```
 1. "Carry Trade": 
-   - Pide prestado VCOP al 5%
-   - Invierte en crypto que da 15%
-   - Ganancia neta: 10%
+   - Borrow VCOP at 5%
+   - Invest in crypto that yields 15%
+   - Net profit: 10%
 
-2. "Hedge de Portafolio":
-   - Tienes inversiones en pesos
-   - Compras VCOP como seguro
-   - Si el peso baja, VCOP compensa
+2. "Portfolio Hedge":
+   - You have peso investments
+   - Buy VCOP as insurance
+   - If peso drops, VCOP compensates
 
 3. "Yield Farming":
-   - Provees liquidez ETH-USDC
-   - Ganas fees de trading + intereses
-   - Rendimientos del 8-15% anual
+   - Provide ETH-USDC liquidity
+   - Earn trading fees + interest
+   - 8-15% annual returns
 ```
 
-## 🏢 **CÓMO GANA EL PROTOCOLO**
+## 🏢 **HOW THE PROTOCOL EARNS**
 
 ```
-1. Fees de Transacción: 0.1-0.5% por operación
-2. Spread de Intereses: Diferencia entre lo que paga y cobra
-3. Fees de Liquidación: Porcentaje de las liquidaciones
-4. Fees del PSM: Comisión por swaps VCOP↔USDC
+1. Transaction Fees: 0.1-0.5% per operation
+2. Interest Spread: Difference between what it pays and charges
+3. Liquidation Fees: Percentage of liquidations
+4. PSM Fees: Commission on VCOP↔USDC swaps
 
-Ejemplo mensual:
-- $1M en volumen de préstamos
-- 0.5% en fees = $5,000
-- Gastos operativos: ~$2,000  
-- Ganancia neta: $3,000/mes
+Monthly example:
+- $1M in loan volume
+- 0.5% in fees = $5,000
+- Operating expenses: ~$2,000  
+- Net profit: $3,000/month
 ```
 
-## 🛡️ **SEGURIDAD Y PROTECCIONES**
+## 🛡️ **SECURITY AND PROTECTIONS**
 
 ```
-Para Prestamistas:
-✅ Tu dinero está sobre-colateralizado (120-150%)
-✅ Liquidaciones automáticas protegen tu capital
-✅ Contratos auditados y probados
+For Lenders:
+✅ Your money is over-collateralized (120-150%)
+✅ Automatic liquidations protect your capital
+✅ Audited and tested contracts
 
-Para Prestatarios:
-✅ Conservas la propiedad de tu garantía
-✅ Puedes agregar más garantía si el precio baja
-✅ Solo pagas interés sobre lo que usas
+For Borrowers:
+✅ You retain ownership of your collateral
+✅ You can add more collateral if price drops
+✅ You only pay interest on what you use
 
-Para el Protocolo:
-✅ Reservas de emergencia
-✅ Mecanismos de pausa automática
-✅ Oráculos redundantes para precios
+For the Protocol:
+✅ Emergency reserves
+✅ Automatic pause mechanisms
+✅ Redundant price oracles
 ```
 
-## 📊 **EJEMPLOS PRÁCTICOS PASO A PASO**
+## 📊 **STEP-BY-STEP PRACTICAL EXAMPLES**
 
-### **💼 Caso 1: Prestamista Conservador**
+### **💼 Case 1: Conservative Lender**
 ```
-María tiene $10,000 USDC y quiere generar ingresos pasivos
+Maria has $10,000 USDC and wants to generate passive income
 
-Paso 1: Deposita 10,000 USDC en el vault
-Paso 2: El protocolo presta su dinero a traders
-Paso 3: María gana 8% anual = $800 USDC
-Paso 4: Puede retirar su dinero cuando quiera
+Step 1: Deposits 10,000 USDC in the vault
+Step 2: Protocol lends her money to traders
+Step 3: Maria earns 8% annually = $800 USDC
+Step 4: Can withdraw her money anytime
 
-Riesgo: ⭐⭐☆☆☆ (Muy bajo)
-Ganancia: 8% anual
-```
-
-### **💼 Caso 2: Trader Agresivo**
-```
-Carlos tiene 2 ETH ($4,000) y cree que ETH va a subir
-
-Paso 1: Deposita 2 ETH como garantía
-Paso 2: Pide prestado $3,000 USDC (75% LTV)
-Paso 3: Compra 1.5 ETH más con los $3,000
-Paso 4: Ahora tiene exposición a 3.5 ETH en total
-
-Si ETH sube 20%:
-- Sus 3.5 ETH valen $4,800 ($800 más)
-- Debe devolver $3,000 + intereses ($3,060)
-- Ganancia neta: ~$740 (18.5% sobre su capital inicial)
-
-Riesgo: ⭐⭐⭐⭐☆ (Alto)
-Ganancia potencial: 15-25%
+Risk: ⭐⭐☆☆☆ (Very low)
+Return: 8% annually
 ```
 
-### **💼 Caso 3: Protección contra Devaluación**
+### **💼 Case 2: Aggressive Trader**
 ```
-Ana vive en Colombia y tiene $50M COP en ahorros
+Carlos has 2 ETH ($4,000) and thinks ETH will go up
 
-Problema: El peso se puede devaluar
-Solución: Convertir a VCOP
+Step 1: Deposits 2 ETH as collateral
+Step 2: Borrows $3,000 USDC (75% LTV)
+Step 3: Buys 1.5 more ETH with the $3,000
+Step 4: Now has exposure to 3.5 ETH total
 
-Paso 1: Cambia 50M COP por $11,904 USDC (a 4,200 COP/USD)
-Paso 2: Cambia USDC por 49,600 VCOP (a $0.24/VCOP)
-Paso 3: El peso se devalúa 15% → 1 USD = 4,830 COP
+If ETH goes up 20%:
+- His 3.5 ETH worth $4,800 ($800 more)
+- Must repay $3,000 + interest ($3,060)
+- Net profit: ~$740 (18.5% on initial capital)
 
-Resultado:
-- Sin VCOP: Sus 50M COP ahora valen $10,352
-- Con VCOP: Sus 49,600 VCOP valen $11,904
-- Ahorro: $1,552 (15% de protección)
-
-Riesgo: ⭐⭐☆☆☆ (Bajo)
-Beneficio: Protección contra inflación
+Risk: ⭐⭐⭐⭐☆ (High)
+Potential return: 15-25%
 ```
 
-### **💼 Caso 4: Liquidador Oportunista**
+### **💼 Case 3: Protection against Devaluation**
 ```
-David es un bot/trader que busca liquidaciones
+Ana lives in Colombia and has 50M COP in savings
 
-Búsqueda: Posiciones con ratio < 120%
-Encuentra: Pedro tiene $1,000 prestado con garantía de $1,100
+Problem: Peso might devalue
+Solution: Convert to VCOP
 
-Paso 1: David paga la deuda de Pedro ($1,000)
-Paso 2: Recibe la garantía de Pedro ($1,100)
-Paso 3: Bonus del protocolo: $50
-Paso 4: Ganancia total: $150 (15%)
+Step 1: Exchanges 50M COP for $11,904 USDC (at 4,200 COP/USD)
+Step 2: Exchanges USDC for 49,600 VCOP (at $0.24/VCOP)
+Step 3: Peso devalues 15% → 1 USD = 4,830 COP
 
-Frecuencia: 5-10 liquidaciones/mes
-Ganancia mensual: $500-2,000
+Result:
+- Without VCOP: Her 50M COP now worth $10,352
+- With VCOP: Her 49,600 VCOP worth $11,904
+- Savings: $1,552 (15% protection)
 
-Riesgo: ⭐⭐⭐☆☆ (Medio)
-Ganancia: 10-20% por liquidación
-```
-
-## 🎲 **CALCULADORA DE RENDIMIENTOS**
-
-### **Para Prestamistas:**
-```
-Capital inicial: $X
-Tasa anual: 6-12% (según demanda)
-Tiempo: Y meses
-
-Ganancia = (X × Tasa × Y) / 12
-
-Ejemplo: $10,000 × 8% × 6 meses / 12 = $400
+Risk: ⭐⭐☆☆☆ (Low)
+Benefit: Protection against inflation
 ```
 
-### **Para Traders Apalancados:**
+### **💼 Case 4: Opportunistic Liquidator**
+```
+David is a bot/trader looking for liquidations
+
+Search: Positions with ratio < 120%
+Finds: Pedro has $1,000 borrowed with $1,100 collateral
+
+Step 1: David pays Pedro's debt ($1,000)
+Step 2: Receives Pedro's collateral ($1,100)
+Step 3: Protocol bonus: $50
+Step 4: Total profit: $150 (15%)
+
+Frequency: 5-10 liquidations/month
+Monthly profit: $500-2,000
+
+Risk: ⭐⭐⭐☆☆ (Medium)
+Return: 10-20% per liquidation
+```
+
+## 🎲 **YIELD CALCULATOR**
+
+### **For Lenders:**
+```
+Initial capital: $X
+Annual rate: 6-12% (depending on demand)
+Time: Y months
+
+Profit = (X × Rate × Y) / 12
+
+Example: $10,000 × 8% × 6 months / 12 = $400
+```
+
+### **For Leveraged Traders:**
 ```
 Capital: $X
-Apalancamiento: 2x (150% colateral)
-Movimiento de precio: +Z%
+Leverage: 2x (150% collateral)
+Price movement: +Z%
 
-Ganancia = X × 2 × Z% - Costo del préstamo
+Profit = X × 2 × Z% - Loan cost
 
-Ejemplo: $5,000 × 2 × 25% - $100 = $2,400
+Example: $5,000 × 2 × 25% - $100 = $2,400
 ```
 
-### **Para Liquidadores:**
+### **For Liquidators:**
 ```
-Liquidaciones/mes: N
-Promedio por liquidación: $Y
-Bonus promedio: 8%
+Liquidations/month: N
+Average per liquidation: $Y
+Average bonus: 8%
 
-Ingresos = N × Y × 8%
+Income = N × Y × 8%
 
-Ejemplo: 20 liquidaciones × $500 × 8% = $800/mes
+Example: 20 liquidations × $500 × 8% = $800/month
 ```
 
-## 🎯 **FLUJO DEL PROTOCOLO**
+## 🎯 **PROTOCOL FLOW**
 
 ```mermaid
 graph TB
-    subgraph "🏦 PROTOCOLO VCOP"
+    subgraph "🏦 VCOP PROTOCOL"
         direction TB
-        subgraph "💰 PRESTAMISTAS"
-            LP1["👤 Usuario A<br/>Deposita 10,000 USDC"]
-            LP2["👤 Usuario B<br/>Deposita 5 ETH"]
-            LP3["👤 Usuario C<br/>Deposita 1 WBTC"]
+        subgraph "💰 LENDERS"
+            LP1["👤 User A<br/>Deposits 10,000 USDC"]
+            LP2["👤 User B<br/>Deposits 5 ETH"]
+            LP3["👤 User C<br/>Deposits 2 WBTC"]
         end
         
-        subgraph "🏛️ VAULTS DE LIQUIDEZ"
-            VAULT_USDC["💵 Vault USDC<br/>50,000 USDC<br/>📈 Rinde 8%/año"]
-            VAULT_ETH["⟠ Vault ETH<br/>100 ETH<br/>📈 Rinde 6%/año"]
-            VAULT_WBTC["₿ Vault WBTC<br/>10 WBTC<br/>📈 Rinde 7%/año"]
+        subgraph "🏛️ LIQUIDITY VAULTS"
+            V1["💵 USDC Vault<br/>$50,000 available<br/>8% APY"]
+            V2["⚡ ETH Vault<br/>100 ETH available<br/>6% APY"]  
+            V3["₿ WBTC Vault<br/>10 WBTC available<br/>7% APY"]
         end
         
-        subgraph "🎯 PRESTATARIOS"
-            BORROWER1["👤 Usuario D<br/>Garantía: 2 ETH<br/>Préstamo: 3,000 USDC"]
-            BORROWER2["👤 Usuario E<br/>Garantía: 5,000 USDC<br/>Préstamo: 1.2 ETH"]
-            BORROWER3["👤 Usuario F<br/>Garantía: 0.5 WBTC<br/>Préstamo: 20,000 VCOP"]
+        subgraph "💸 BORROWERS"
+            B1["👤 Trader D<br/>Borrows 8,000 USDC<br/>Collateral: 5 ETH"]
+            B2["👤 Trader E<br/>Borrows 2 ETH<br/>Collateral: $6,000 USDC"]
+            B3["👤 Trader F<br/>Borrows 1 WBTC<br/>Collateral: 3 ETH"]
         end
         
-        subgraph "⚡ STABLECOIN VCOP"
-            VCOP_TOKEN["🪙 VCOP Token<br/>1 VCOP = 1 COP<br/>Respaldado por USDC"]
-            PSM["🔄 PSM Module<br/>Swaps VCOP ↔ USDC<br/>Fee: 0.1%"]
+        subgraph "⚡ PSM SYSTEM"
+            PSM["🔄 Parity Stability Module<br/>VCOP ↔ USDC<br/>Maintains $0.24 price"]
         end
         
-        subgraph "🛡️ SEGURIDAD"
-            LIQUIDATORS["⚡ Liquidadores<br/>Monitorean posiciones<br/>Bonus: 5-10%"]
-            ORACLES["📊 Oráculos<br/>Precios en tiempo real<br/>Chainlink + Uniswap"]
-        end
-        
-        subgraph "💎 PROTOCOLO"
-            PROTOCOL["🏢 Protocolo VCOP<br/>Fees: 0.5%<br/>Ganancia: $3k/mes"]
+        subgraph "🔍 RISK ANALYSIS"
+            RISK["📊 RiskCalculator<br/>15+ real-time metrics<br/>Health factors<br/>Liquidation alerts"]
         end
     end
     
-    subgraph "🌍 CASOS DE USO REALES"
-        subgraph "📉 DEVALUACIÓN DEL PESO"
-            PESO_DOWN["💸 Peso se devalúa 10%<br/>1 USD = 4,620 COP<br/>(antes: 4,200 COP)"]
-            VCOP_HOLDER["👤 Holder VCOP<br/>Mantiene valor en USD<br/>🎯 Ganancia: 10%"]
-        end
-        
-        subgraph "📈 TRADING"
-            TRADER["👤 Trader<br/>Apalanca 2x con ETH<br/>ETH sube 20%<br/>🎯 Ganancia: 40%"]
-        end
-        
-        subgraph "🔄 ARBITRAJE"
-            ARB["👤 Arbitrajista<br/>VCOP: $0.24 → $0.25<br/>🎯 Ganancia: 4%"]
-        end
-    end
+    LP1 --> V1
+    LP2 --> V2
+    LP3 --> V3
     
-    %% Flujos de dinero
-    LP1 --> VAULT_USDC
-    LP2 --> VAULT_ETH
-    LP3 --> VAULT_WBTC
+    V1 --> B1
+    V2 --> B2
+    V3 --> B3
     
-    VAULT_USDC --> BORROWER1
-    VAULT_ETH --> BORROWER2
-    VAULT_USDC --> VCOP_TOKEN
+    V1 --> PSM
+    PSM --> V1
     
-    BORROWER1 -.->|"Garantía: 2 ETH"| VAULT_ETH
-    BORROWER2 -.->|"Garantía: 5,000 USDC"| VAULT_USDC
-    BORROWER3 -.->|"Garantía: 0.5 WBTC"| VAULT_WBTC
-    
-    BORROWER1 -->|"Interés: 8%"| PROTOCOL
-    BORROWER2 -->|"Interés: 6%"| PROTOCOL
-    BORROWER3 -->|"Interés: 7%"| PROTOCOL
-    
-    PROTOCOL -->|"80% del interés"| VAULT_USDC
-    PROTOCOL -->|"80% del interés"| VAULT_ETH
-    PROTOCOL -->|"80% del interés"| VAULT_WBTC
-    
-    LIQUIDATORS -.->|"Monitorea"| BORROWER1
-    LIQUIDATORS -.->|"Monitorea"| BORROWER2
-    LIQUIDATORS -.->|"Monitorea"| BORROWER3
-    
-    ORACLES -.->|"Precios"| LIQUIDATORS
-    ORACLES -.->|"Precios"| PSM
-    
-    VCOP_TOKEN <--> PSM
-    PSM -->|"Fee: 0.1%"| PROTOCOL
-    
-    PESO_DOWN --> VCOP_HOLDER
-    TRADER -.->|"Usa"| VAULT_ETH
-    ARB -.->|"Usa"| PSM
-    
-    style LP1 fill:#e1f5fe
-    style LP2 fill:#e1f5fe
-    style LP3 fill:#e1f5fe
-    style BORROWER1 fill:#fff3e0
-    style BORROWER2 fill:#fff3e0
-    style BORROWER3 fill:#fff3e0
-    style LIQUIDATORS fill:#ffebee
-    style PROTOCOL fill:#e8f5e8
-    style VCOP_HOLDER fill:#f3e5f5
-    style TRADER fill:#f3e5f5
-    style ARB fill:#f3e5f5
+    B1 --> RISK
+    B2 --> RISK
+    B3 --> RISK
 ```
 
-## 🎯 **RESUMEN**
+## 💰 **PASSIVE INCOME EXAMPLES**
 
-El protocolo VCOP funciona como un ecosistema financiero donde:
+### **🏦 CONSERVATIVE PORTFOLIO ($50,000)**
+```
+Distribution:
+- 60% USDC ($30,000) → 8% APY = $2,400/year
+- 30% ETH ($15,000) → 6% APY = $900/year  
+- 10% WBTC ($5,000) → 7% APY = $350/year
 
-- **🏦 Prestamistas**: Depositan activos y ganan intereses pasivamente
-- **💸 Prestatarios**: Usan garantías para obtener liquidez y hacer trading
-- **⚡ Liquidadores**: Protegen el protocolo y ganan bonificaciones
-- **🔄 Arbitrajistas**: Aprovechan diferencias de precios
-- **🪙 VCOP**: Protege contra devaluación del peso colombiano
+Total annual income: $3,650 (7.3% portfolio return)
+Monthly income: ~$304
+Risk level: ⭐⭐☆☆☆
+```
 
-**💡 Clave del éxito**: El protocolo genera valor para todos los participantes mientras mantiene la estabilidad y seguridad del sistema.
+### **🚀 AGGRESSIVE PORTFOLIO ($50,000)**
+```
+Strategy: Leverage + Higher risk
+- Deposit $50,000 as collateral
+- Borrow $37,500 additional (75% LTV)
+- Total exposure: $87,500
+
+If portfolio rises 20%:
+- Gain: $87,500 × 20% = $17,500
+- Loan cost: $37,500 × 8% = $3,000
+- Net profit: $14,500 (29% on initial capital)
+
+Risk level: ⭐⭐⭐⭐☆
+Potential return: 15-35%
+```
+
+## 🛡️ **RISK MANAGEMENT STRATEGIES**
+
+### **🔄 DIVERSIFICATION**
+```
+Never put all capital in one asset:
+- 40% Stablecoins (USDC, VCOP) - Low risk
+- 30% ETH - Medium risk  
+- 20% WBTC - Medium risk
+- 10% Other alts - High risk
+```
+
+### **📊 POSITION MONITORING**
+```
+Key metrics to watch:
+- Health Factor > 150% (safe zone)
+- Collateralization ratio > 130%
+- Time to liquidation > 30 days
+- Portfolio correlation < 70%
+```
+
+### **🚨 EMERGENCY PROCEDURES**
+```
+If health factor drops below 130%:
+1. Add more collateral immediately
+2. Partially repay loan
+3. Close risky positions
+4. Rebalance portfolio
+```
+
+## 💎 **ADVANCED TRADING STRATEGIES**
+
+### **🔄 DELTA NEUTRAL STRATEGY**
+```
+Goal: Earn yield without price exposure
+
+Example:
+- Deposit 10 ETH as collateral
+- Borrow $15,000 USDC (75% LTV)
+- Sell $15,000 USDC for 7.5 ETH
+- Total position: 17.5 ETH long, 7.5 ETH short
+- Net exposure: 10 ETH (original position)
+- Earn lending yield without price risk
+```
+
+### **📈 MOMENTUM TRADING**
+```
+Goal: Amplify gains during bull markets
+
+Example:
+- ETH trending upward strongly
+- Deposit 5 ETH ($10,000)
+- Borrow $7,500 USDC max leverage
+- Buy 3.75 more ETH
+- Total exposure: 8.75 ETH
+- If ETH +30%: Profit = $8,750 × 30% - loan cost = ~$2,125
+```
+
+### **🛡️ HEDGING STRATEGY**
+```
+Goal: Protect large crypto holdings
+
+Example:
+- Hold 50 ETH portfolio ($100,000)
+- Worried about market crash
+- Deposit 20 ETH as collateral
+- Borrow $30,000 USDC
+- If ETH crashes 40%:
+  * Portfolio loss: $40,000
+  * USDC value: $30,000 gained vs ETH
+  * Net loss reduced by $30,000
+```
+
+## 🌟 **UNIQUE PROTOCOL ADVANTAGES**
+
+### **🇨🇴 COP STABLECOIN BENEFITS**
+```
+Only protocol offering:
+✅ Colombian peso exposure in DeFi
+✅ Protection against COP devaluation  
+✅ Arbitrage opportunities with local markets
+✅ Cross-border payments facilitation
+✅ Remittance cost reduction
+```
+
+### **🔧 ULTRA-FLEXIBLE SYSTEM**
+```
+Unlike Aave/Compound:
+✅ No hardcoded LTV limits
+✅ User-controlled risk levels
+✅ Multiple loan managers
+✅ Custom asset handlers
+✅ Advanced risk calculations
+```
+
+### **📊 SUPERIOR RISK ANALYSIS**
+```
+15+ real-time metrics:
+✅ Health factor projections
+✅ Liquidation price calculations
+✅ Time-to-liquidation estimates
+✅ Portfolio correlation analysis
+✅ Price impact simulations
+✅ Maximum safe withdrawal amounts
+✅ Optimal rebalancing suggestions
+```
+
+## 🎯 **SUCCESS METRICS**
+
+### **MONTHLY TARGETS**
+```
+Conservative users:
+- 6-8% annual yield
+- <2% drawdown risk
+- >95% position safety
+
+Aggressive users:
+- 15-25% annual returns
+- <20% drawdown risk
+- Active position management
+
+Protocol metrics:
+- >$10M TVL target
+- <1% liquidation rate
+- 99.9% uptime
+```
+
+## 🔮 **FUTURE ROADMAP**
+
+### **Q1 2025**
+```
+✅ Additional asset support (ARB, OP, MATIC)
+✅ Advanced liquidation algorithms
+✅ Mobile app interface
+✅ Cross-chain bridge integration
+```
+
+### **Q2 2025**
+```
+🔄 Governance token launch
+🔄 DAO transition
+🔄 Additional stablecoins (EUR, JPY)
+🔄 Institutional lending features
+```
 
 ---
 
-## 🔗 **SIGUIENTE PASO**
-
-¿Listo para empezar? Ve a la [**Guía del Sistema Operativo**](GUIA_SISTEMA_OPERATIVO.md) para aprender a usar el protocolo paso a paso. 
+*Ready to start earning? Check our [Operating System Guide](GUIA_SISTEMA_OPERATIVO.md) for step-by-step instructions!* 

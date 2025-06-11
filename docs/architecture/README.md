@@ -1,65 +1,65 @@
-# 🏗️ ARQUITECTURA DEL PROTOCOLO
+# 🏗️ PROTOCOL ARCHITECTURE
 
-Esta sección contiene toda la documentación relacionada con el diseño y arquitectura del protocolo VCOP Collateral.
+This section contains all documentation related to the design and architecture of the VCOP Collateral protocol.
 
-## 📁 CONTENIDO
+## 📁 CONTENT
 
-### 📄 [NUEVA_ARQUITECTURA.md](./NUEVA_ARQUITECTURA.md)
-**Rediseño completo del protocolo para máxima flexibilidad**
+### 📄 [NEW_ARCHITECTURE.md](./NUEVA_ARQUITECTURA.md)
+**Complete protocol redesign for maximum flexibility**
 
-**Incluye:**
-- ✅ Análisis del sistema actual vs propuesto
-- ✅ Arquitectura modular multi-token
-- ✅ Interfaces unificadas (IAssetHandler, ILoanManager, IGenericOracle)
-- ✅ Diagramas de componentes y flujos
-- ✅ Plan de implementación en 5 fases
-- ✅ Comparativas con Aave/Compound
+**Includes:**
+- ✅ Analysis of current vs proposed system
+- ✅ Modular multi-token architecture
+- ✅ Unified interfaces (IAssetHandler, ILoanManager, IGenericOracle)
+- ✅ Component and flow diagrams
+- ✅ 5-phase implementation plan
+- ✅ Comparisons with Aave/Compound
 
-### 📄 [FLEXIBILIDAD_MAXIMA.md](./FLEXIBILIDAD_MAXIMA.md)
-**Sistema ultra-flexible sin restricciones hardcodeadas**
+### 📄 [MAXIMUM_FLEXIBILITY.md](./FLEXIBILIDAD_MAXIMA.md)
+**Ultra-flexible system without hardcoded restrictions**
 
-**Incluye:**
-- ✅ Contratos FlexibleLoanManager y FlexibleAssetHandler
-- ✅ Eliminación de límites de ratio
-- ✅ Frontend maneja toda la gestión de riesgo UX
-- ✅ Casos de uso extremos (90%+ LTV permitido)
-- ✅ Comparativa: sistema restrictivo vs flexible
+**Includes:**
+- ✅ FlexibleLoanManager and FlexibleAssetHandler contracts
+- ✅ Removal of ratio limits
+- ✅ Frontend handles all risk management UX
+- ✅ Extreme use cases (90%+ LTV allowed)
+- ✅ Comparison: restrictive vs flexible system
 
-## 🎯 OBJETIVOS DE LA NUEVA ARQUITECTURA
+## 🎯 NEW ARCHITECTURE OBJECTIVES
 
-### **1. UNIVERSALIDAD**
-- Cualquier ERC20 como colateral o asset de préstamo
-- Soporte para tokens mintables (VCOP) y vault-based (ETH, WBTC)
-- Integración con múltiples oráculos
+### **1. UNIVERSALITY**
+- Any ERC20 as collateral or loan asset
+- Support for mintable tokens (VCOP) and vault-based (ETH, WBTC)
+- Integration with multiple oracles
 
-### **2. FLEXIBILIDAD**
-- Cero límites hardcodeados en contratos
-- Frontend controla toda la experiencia de usuario
-- Usuarios pueden asumir cualquier nivel de riesgo
+### **2. FLEXIBILITY**
+- Zero hardcoded limits in contracts
+- Frontend controls entire user experience
+- Users can assume any risk level
 
-### **3. ESCALABILIDAD**
-- Fácil agregar nuevos assets
-- Asset handlers modulares
-- Arquitectura preparada para futuras expansiones
+### **3. SCALABILITY**
+- Easy to add new assets
+- Modular asset handlers
+- Architecture prepared for future expansions
 
-### **4. COMPETITIVIDAD**
-- Supera limitaciones de Aave/Compound
-- Atrae traders profesionales e instituciones
-- Diferenciación clara en el mercado
+### **4. COMPETITIVENESS**
+- Overcomes Aave/Compound limitations
+- Attracts professional traders and institutions
+- Clear market differentiation
 
-## 🔧 COMPONENTES PRINCIPALES
+## 🔧 MAIN COMPONENTS
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    NUEVA ARQUITECTURA                       │
+│                    NEW ARCHITECTURE                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌─────────────────┐    ┌─────────────────┐                │
 │  │ FlexibleLoan    │    │ RiskCalculator  │                │
 │  │ Manager         │    │                 │                │
-│  │                 │    │ • 15+ métricas  │                │
-│  │ • Cero límites  │    │ • Tiempo real   │                │
-│  │ • Ultra flexible│    │ • Predictivo    │                │
+│  │                 │    │ • 15+ metrics   │                │
+│  │ • Zero limits   │    │ • Real time     │                │
+│  │ • Ultra flexible│    │ • Predictive    │                │
 │  └─────────────────┘    └─────────────────┘                │
 │                                                             │
 │  ┌─────────────────┐    ┌─────────────────┐                │
@@ -68,47 +68,47 @@ Esta sección contiene toda la documentación relacionada con el diseño y arqui
 │  │                 │    │ • Chainlink     │                │
 │  │ • Universal     │    │ • Uniswap v4    │                │
 │  │ • Mintable +    │    │ • Manual feeds  │                │
-│  │   Vault based   │    │ • Híbrido       │                │
+│  │   Vault based   │    │ • Hybrid        │                │
 │  └─────────────────┘    └─────────────────┘                │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 📊 VENTAJAS COMPETITIVAS
+## 📊 COMPETITIVE ADVANTAGES
 
-| Característica | Aave/Compound | VCOP Nuevo |
+| Feature | Aave/Compound | VCOP New |
 |---|---|---|
-| **Tokens soportados** | Lista fija | Cualquier ERC20 |
-| **Límites LTV** | 80% típico | Sin límites |
-| **Asset handlers** | Hardcodeado | Modular |
-| **Oráculos** | Chainlink | Multi-oracle |
-| **Flexibilidad** | Baja | Máxima |
-| **UX** | Estándar | Personalizable |
+| **Supported tokens** | Fixed list | Any ERC20 |
+| **LTV limits** | 80% typical | No limits |
+| **Asset handlers** | Hardcoded | Modular |
+| **Oracles** | Chainlink | Multi-oracle |
+| **Flexibility** | Low | Maximum |
+| **UX** | Standard | Customizable |
 
-## 🚀 MIGRACIÓN
+## 🚀 MIGRATION
 
-### **Fase 1: Core Infrastructure**
-- Desplegar interfaces y contratos base
-- Configurar oráculos y handlers
+### **Phase 1: Core Infrastructure**
+- Deploy interfaces and base contracts
+- Configure oracles and handlers
 
-### **Fase 2: Asset Integration** 
-- Configurar ETH, WBTC, USDC, VCOP
-- Testing extensivo
+### **Phase 2: Asset Integration** 
+- Configure ETH, WBTC, USDC, VCOP
+- Extensive testing
 
-### **Fase 3: Hook Integration**
-- Integrar con Uniswap v4 hook
-- PSM y estabilización
+### **Phase 3: Hook Integration**
+- Integrate with Uniswap v4 hook
+- PSM and stabilization
 
-### **Fase 4: Advanced Features**
-- RiskCalculator completo
-- Métricas avanzadas
+### **Phase 4: Advanced Features**
+- Complete RiskCalculator
+- Advanced metrics
 
-### **Fase 5: Production**
-- Migración gradual de usuarios
-- Interfaces diferenciadas por experiencia
+### **Phase 5: Production**
+- Gradual user migration
+- Experience-differentiated interfaces
 
-## 🔗 ENLACES RELACIONADOS
+## 🔗 RELATED LINKS
 
-- 📊 [Gestión de Riesgo](../risk-management/) - Cálculos y métricas
-- 🚀 [Despliegue](../deployment/) - Implementación práctica
-- 📚 [Documentación Principal](../README.md) - Índice general 
+- 📊 [Risk Management](../risk-management/) - Calculations and metrics
+- 🚀 [Deployment](../deployment/) - Practical implementation
+- 📚 [Main Documentation](../README.md) - General index 

@@ -1,33 +1,33 @@
-# 📊 GESTIÓN DE RIESGO
+# 📊 RISK MANAGEMENT
 
-Esta sección contiene toda la documentación relacionada con los cálculos de riesgo, métricas y monitoreo del protocolo.
+This section contains all documentation related to risk calculations, metrics and protocol monitoring.
 
-## 📁 CONTENIDO
+## 📁 CONTENT
 
-### 📄 [CALCULOS_RIESGO.md](./CALCULOS_RIESGO.md)
-**Sistema completo de cálculos de riesgo on-chain**
+### 📄 [RISK_CALCULATIONS.md](./CALCULOS_RIESGO.md)
+**Complete on-chain risk calculation system**
 
-**Incluye:**
-- ✅ Métricas de riesgo en tiempo real (15+ indicadores)
-- ✅ Health factors y ratios de colateralización
-- ✅ Integración con oráculos para precios actualizados
-- ✅ RiskCalculator.sol - Contrato especializado
-- ✅ Ejemplos prácticos de implementación
-- ✅ Comparativa: cálculos on-chain vs frontend
+**Includes:**
+- ✅ Real-time risk metrics (15+ indicators)
+- ✅ Health factors and collateralization ratios
+- ✅ Oracle integration for updated prices
+- ✅ RiskCalculator.sol - Specialized contract
+- ✅ Practical implementation examples
+- ✅ Comparison: on-chain vs frontend calculations
 
-## 🎯 FILOSOFÍA DE GESTIÓN DE RIESGO
+## 🎯 RISK MANAGEMENT PHILOSOPHY
 
-### **ON-CHAIN: Cálculos Críticos**
+### **ON-CHAIN: Critical Calculations**
 ```solidity
-// Todos los cálculos de seguridad están en contratos
+// All security calculations are in contracts
 function getCollateralizationRatio(uint256 positionId) external view returns (uint256)
 function canLiquidate(uint256 positionId) public view returns (bool)
 function calculateRiskMetrics(uint256 positionId) external view returns (RiskMetrics memory)
 ```
 
-### **FRONTEND: UX y Warnings**
+### **FRONTEND: UX and Warnings**
 ```javascript
-// Frontend maneja experiencia de usuario y alertas
+// Frontend handles user experience and alerts
 function calculateRiskWarnings(ratio) {
     if (ratio > 200) return { level: 'safe', color: 'green' };
     if (ratio > 105) return { level: 'extreme', color: 'red' };
@@ -35,53 +35,53 @@ function calculateRiskWarnings(ratio) {
 }
 ```
 
-## 📊 MÉTRICAS IMPLEMENTADAS
+## 📊 IMPLEMENTED METRICS
 
 ### **RiskMetrics Struct**
 ```solidity
 struct RiskMetrics {
-    uint256 collateralizationRatio;    // Ratio actual (1500000 = 150%)
-    uint256 liquidationThreshold;      // Umbral de liquidación
-    uint256 healthFactor;              // Factor de salud (1000000 = 1.0)
-    uint256 maxWithdrawable;          // Máximo colateral retirable
-    uint256 maxBorrowable;            // Máximo adicional prestable
-    uint256 liquidationPrice;         // Precio de liquidación exacto
+    uint256 collateralizationRatio;    // Current ratio (1500000 = 150%)
+    uint256 liquidationThreshold;      // Liquidation threshold
+    uint256 healthFactor;              // Health factor (1000000 = 1.0)
+    uint256 maxWithdrawable;          // Maximum withdrawable collateral
+    uint256 maxBorrowable;            // Maximum additional borrowable
+    uint256 liquidationPrice;         // Exact liquidation price
     RiskLevel riskLevel;              // HEALTHY/WARNING/DANGER/CRITICAL
-    uint256 timeToLiquidation;        // Tiempo estimado en segundos
-    bool isLiquidatable;              // ¿Puede liquidarse ahora?
+    uint256 timeToLiquidation;        // Estimated time in seconds
+    bool isLiquidatable;              // Can be liquidated now?
 }
 ```
 
-### **Niveles de Riesgo**
-| Nivel | Ratio | Color | Descripción |
+### **Risk Levels**
+| Level | Ratio | Color | Description |
 |---|---|---|---|
-| **HEALTHY** | >200% | 🟢 Verde | Posición muy segura |
-| **WARNING** | 150-200% | 🟡 Amarillo | Atención requerida |
-| **DANGER** | 120-150% | 🟠 Naranja | Alto riesgo |
-| **CRITICAL** | 110-120% | 🔴 Rojo | Muy peligroso |
-| **LIQUIDATABLE** | <110% | ⚫ Negro | Liquidación activa |
+| **HEALTHY** | >200% | 🟢 Green | Very safe position |
+| **WARNING** | 150-200% | 🟡 Yellow | Attention required |
+| **DANGER** | 120-150% | 🟠 Orange | High risk |
+| **CRITICAL** | 110-120% | 🔴 Red | Very dangerous |
+| **LIQUIDATABLE** | <110% | ⚫ Black | Active liquidation |
 
-## 🔧 COMPONENTES TÉCNICOS
+## 🔧 TECHNICAL COMPONENTS
 
 ### **1. RiskCalculator.sol**
 ```solidity
-// Cálculos comprehensivos de riesgo
+// Comprehensive risk calculations
 function calculateRiskMetrics(uint256 positionId) external view returns (RiskMetrics memory)
 function analyzePriceImpact(uint256 positionId) external view returns (PriceImpact memory)
 function calculatePortfolioRisk(address user) external view returns (...)
 function projectFutureRisk(uint256 positionId, uint256 timeInSeconds) external view returns (...)
 ```
 
-### **2. Integración con Oráculos**
+### **2. Oracle Integration**
 ```solidity
-// Precios en tiempo real para cálculos
+// Real-time prices for calculations
 function _getAssetValueInUSD(address asset, uint256 amount) internal view returns (uint256)
 function getPriceMetrics(address asset) external view returns (uint256 price, int256 change24h, uint256 volatility)
 ```
 
-### **3. Monitoreo Continuo**
+### **3. Continuous Monitoring**
 ```solidity
-// Verificación automática en cada operación
+// Automatic verification on each operation
 modifier riskCheck(uint256 positionId) {
     _;
     if (canLiquidate(positionId)) {
@@ -90,75 +90,75 @@ modifier riskCheck(uint256 positionId) {
 }
 ```
 
-## 📈 EJEMPLOS PRÁCTICOS
+## 📈 PRACTICAL EXAMPLES
 
-### **Escenario 1: Posición Saludable**
+### **Scenario 1: Healthy Position**
 ```
-Colateral: 10 ETH @ $2,000 = $20,000
-Préstamo: 8,000 USDC
+Collateral: 10 ETH @ $2,000 = $20,000
+Loan: 8,000 USDC
 Ratio: 250% ✅ HEALTHY
 Health Factor: 2.27
-Liquidación en: ETH < $960
+Liquidation at: ETH < $960
 ```
 
-### **Escenario 2: Posición en Peligro**
+### **Scenario 2: Position in Danger**
 ```
-Colateral: 10 ETH @ $1,400 = $14,000
-Préstamo: 8,200 USDC (incluye interés)
+Collateral: 10 ETH @ $1,400 = $14,000
+Loan: 8,200 USDC (including interest)
 Ratio: 170% ⚠️ WARNING
 Health Factor: 1.55
-Liquidación en: ETH < $984
+Liquidation at: ETH < $984
 ```
 
-### **Escenario 3: Liquidación Inminente**
+### **Scenario 3: Imminent Liquidation**
 ```
-Colateral: 10 ETH @ $900 = $9,000
-Préstamo: 8,500 USDC (incluye interés)
+Collateral: 10 ETH @ $900 = $9,000
+Loan: 8,500 USDC (including interest)
 Ratio: 105% 🚨 LIQUIDATABLE
 Health Factor: 0.95
-Acción: LIQUIDACIÓN AUTOMÁTICA
+Action: AUTOMATIC LIQUIDATION
 ```
 
-## 🖥️ INTEGRACIÓN FRONTEND
+## 🖥️ FRONTEND INTEGRATION
 
-### **Lectura de Métricas**
+### **Reading Metrics**
 ```javascript
-// Obtener métricas completas
+// Get complete metrics
 const metrics = await riskCalculator.calculateRiskMetrics(positionId);
 
-// Mostrar en UI
+// Display in UI
 displayRiskLevel(metrics.riskLevel);
 showHealthFactor(metrics.healthFactor / 1000000);
 displayLiquidationPrice(metrics.liquidationPrice);
 ```
 
-### **Monitoreo en Tiempo Real**
+### **Real-time Monitoring**
 ```javascript
-// Suscripción a eventos
+// Event subscription
 loanManager.on('RiskLevelChanged', (positionId, oldLevel, newLevel) => {
     updatePositionUI(positionId, newLevel);
     if (newLevel >= 3) showCriticalAlert(positionId);
 });
 
-// Actualización periódica
+// Periodic updates
 setInterval(async () => {
     const positions = await loanManager.getUserPositions(userAddress);
     for (const positionId of positions) {
         const metrics = await riskCalculator.calculateRiskMetrics(positionId);
         updateDashboard(positionId, metrics);
     }
-}, 30000); // Cada 30 segundos
+}, 30000); // Every 30 seconds
 ```
 
-## 🛡️ PROTECCIONES IMPLEMENTADAS
+## 🛡️ IMPLEMENTED PROTECTIONS
 
-### **1. Validación de Oracle**
+### **1. Oracle Validation**
 ```solidity
 require(priceData.isValid, "Invalid price data");
 require(block.timestamp - priceData.timestamp <= MAX_PRICE_AGE, "Price too stale");
 ```
 
-### **2. Prevención de Overflow**
+### **2. Overflow Prevention**
 ```solidity
 require(numerator <= type(uint256).max / 1000000, "Overflow in ratio calculation");
 ```
@@ -171,48 +171,48 @@ modifier emergencyStop() {
 }
 ```
 
-## 🚀 VENTAJAS COMPETITIVAS
+## 🚀 COMPETITIVE ADVANTAGES
 
 ### **vs Aave/Compound**
-| Característica | Aave/Compound | VCOP |
+| Feature | Aave/Compound | VCOP |
 |---|---|---|
-| **Métricas disponibles** | 3-5 básicas | 15+ avanzadas |
-| **Cálculos predictivos** | ❌ No | ✅ Sí |
-| **Análisis de cartera** | ❌ Limitado | ✅ Completo |
-| **Proyección futura** | ❌ No | ✅ Con intereses |
-| **Análisis de volatilidad** | ❌ No | ✅ Sí |
-| **Tiempo real** | ✅ Básico | ✅ Avanzado |
+| **Available metrics** | 3-5 basic | 15+ advanced |
+| **Predictive calculations** | ❌ No | ✅ Yes |
+| **Portfolio analysis** | ❌ Limited | ✅ Complete |
+| **Future projection** | ❌ No | ✅ With interest |
+| **Volatility analysis** | ❌ No | ✅ Yes |
+| **Real-time** | ✅ Basic | ✅ Advanced |
 
-### **Ventajas Únicas**
-- ✅ **Proyección de riesgo futuro** con acumulación de intereses
-- ✅ **Análisis de impacto de precios** para diferentes escenarios
-- ✅ **Health factor dinámico** que considera múltiples variables
-- ✅ **Monitoreo de cartera completa** agregado
-- ✅ **Estimación de tiempo a liquidación**
+### **Unique Advantages**
+- ✅ **Future risk projection** with interest accumulation
+- ✅ **Price impact analysis** for different scenarios
+- ✅ **Dynamic health factor** considering multiple variables
+- ✅ **Complete portfolio monitoring** aggregated
+- ✅ **Time-to-liquidation estimation**
 
-## 🔄 CASOS DE USO
+## 🔄 USE CASES
 
-### **Para Usuarios Finales**
-1. **Monitoreo diario** de posiciones
-2. **Alertas tempranas** de riesgo
-3. **Optimización** de colateral
-4. **Planificación** de estrategias
+### **For End Users**
+1. **Daily monitoring** of positions
+2. **Early alerts** for risk
+3. **Collateral optimization**
+4. **Strategy planning**
 
-### **Para Traders Profesionales**
-1. **Análisis técnico** avanzado
-2. **Gestión de riesgo** sofisticada
-3. **Arbitraje** con métricas precisas
-4. **Backtesting** de estrategias
+### **For Professional Traders**
+1. **Advanced technical analysis**
+2. **Sophisticated risk management**
+3. **Arbitrage** with precise metrics
+4. **Strategy backtesting**
 
-### **Para Liquidadores**
-1. **Identificación** de oportunidades
-2. **Cálculo** de rentabilidad
-3. **Monitoreo** automatizado
-4. **Optimización** de gas
+### **For Liquidators**
+1. **Opportunity identification**
+2. **Profitability calculation**
+3. **Automated monitoring**
+4. **Gas optimization**
 
-## 🔗 ENLACES RELACIONADOS
+## 🔗 RELATED LINKS
 
-- 🏗️ [Arquitectura](../architecture/) - Diseño del sistema
-- 🚀 [Despliegue](../deployment/) - Implementación
-- 📚 [Documentación Principal](../README.md) - Índice general
-- 🧪 [Ejemplos](../../examples/) - Código de ejemplo 
+- 🏗️ [Architecture](../architecture/) - System design
+- 🚀 [Deployment](../deployment/) - Implementation
+- 📚 [Main Documentation](../README.md) - General index
+- 🧪 [Examples](../../examples/) - Example code 

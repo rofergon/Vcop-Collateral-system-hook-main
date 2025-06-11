@@ -1,193 +1,193 @@
-# 🚀 DESPLIEGUE E IMPLEMENTACIÓN
+# 🚀 DEPLOYMENT AND IMPLEMENTATION
 
-Esta sección contiene toda la documentación relacionada con el despliegue, configuración e implementación del protocolo en producción.
+This section contains all documentation related to deployment, configuration and implementation of the protocol in production.
 
-## 📁 CONTENIDO
+## 📁 CONTENT
 
-### 🚀 [SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md) ⭐ **NUEVO**
-**Guía Completa del Sistema de Préstamos Colateralizados Corregido**
+### 🚀 [CORRECTED_SYSTEM_DEPLOYMENT.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md) ⭐ **NEW**
+**Complete Guide for Corrected Collateralized Lending System**
 
-**Incluye:**
-- ✅ Procedimiento completo de despliegue corregido
-- ✅ Configuración automatizada del oracle
-- ✅ Solución a problemas de direcciones hardcodeadas
-- ✅ Workflow automatizado sin intervención manual
-- ✅ Verificación y testing del sistema
-- ✅ Métricas de éxito y validación
+**Includes:**
+- ✅ Complete corrected deployment procedure
+- ✅ Automated oracle configuration
+- ✅ Solution to hardcoded address problems
+- ✅ Automated workflow without manual intervention
+- ✅ System verification and testing
+- ✅ Success metrics and validation
 
-### 🚨 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) ⭐ **NUEVO**
-**Solución de Problemas Comunes**
+### 🚨 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) ⭐ **NEW**
+**Common Problem Solutions**
 
-**Incluye:**
-- ✅ Error "Insufficient collateral" y su solución
-- ✅ Problemas de oracle (precios incorrectos)
-- ✅ Direcciones hardcodeadas obsoletas
-- ✅ Comandos de diagnóstico y recuperación
-- ✅ Checklist de verificación pre-despliegue
+**Includes:**
+- ✅ "Insufficient collateral" error and its solution
+- ✅ Oracle problems (incorrect prices)
+- ✅ Obsolete hardcoded addresses
+- ✅ Diagnostic and recovery commands
+- ✅ Pre-deployment verification checklist
 
-### ⚡ [REFERENCIA_RAPIDA.md](./REFERENCIA_RAPIDA.md) ⭐ **NUEVO**
-**Comandos y Valores de Referencia Inmediata**
+### ⚡ [QUICK_REFERENCE.md](./REFERENCIA_RAPIDA.md) ⭐ **NEW**
+**Immediate Reference Commands and Values**
 
-**Incluye:**
-- ✅ Comandos esenciales de despliegue y testing
-- ✅ Soluciones rápidas a problemas comunes
-- ✅ Valores de configuración y precios oracle
-- ✅ Template de direcciones para actualizar
-- ✅ Checklist rápido de verificación
+**Includes:**
+- ✅ Essential deployment and testing commands
+- ✅ Quick solutions to common problems
+- ✅ Configuration values and oracle prices
+- ✅ Address template for updates
+- ✅ Quick verification checklist
 
-### 📄 [INSTRUCCIONES_DESPLIEGUE.md](./INSTRUCCIONES_DESPLIEGUE.md) 🔄 **ACTUALIZADO**
-**Guía de despliegue para sistemas VCOP y legacy**
+### 📄 [DEPLOYMENT_INSTRUCTIONS.md](./INSTRUCCIONES_DESPLIEGUE.md) 🔄 **UPDATED**
+**Deployment guide for VCOP and legacy systems**
 
-**Incluye:**
-- ✅ Sistema de préstamos colateralizados (nuevo)
-- ✅ Scripts de configuración automatizados
-- ✅ Sistema VCOP original (legacy)
-- ✅ Referencias cruzadas a nueva documentación
+**Includes:**
+- ✅ Collateralized lending system (new)
+- ✅ Automated configuration scripts
+- ✅ Original VCOP system (legacy)
+- ✅ Cross-references to new documentation
 
 ### 📄 [PSM-README.md](./PSM-README.md)
-**Peg Stability Module - Configuración y funcionamiento**
+**Peg Stability Module - Configuration and operation**
 
-**Incluye:**
-- ✅ Explicación técnica del PSM
-- ✅ Parámetros de configuración
-- ✅ Integración con VCOPCollateralHook
-- ✅ Mecanismos de estabilización
-- ✅ Monitoreo y ajustes
+**Includes:**
+- ✅ Technical explanation of PSM
+- ✅ Configuration parameters
+- ✅ Integration with VCOPCollateralHook
+- ✅ Stabilization mechanisms
+- ✅ Monitoring and adjustments
 
-## 🎯 ESTRATEGIA DE DESPLIEGUE
+## 🎯 DEPLOYMENT STRATEGY
 
-### **Enfoque Gradual por Fases**
+### **Gradual Phase Approach**
 
-#### **Fase 1: Core Infrastructure** 
+#### **Phase 1: Core Infrastructure** 
 ```bash
-# Contratos base
+# Base contracts
 FlexibleLoanManager.sol
 FlexibleAssetHandler.sol  
 GenericOracle.sol
 RiskCalculator.sol
 ```
 
-#### **Fase 2: Asset Integration**
+#### **Phase 2: Asset Integration**
 ```bash
-# Configuración de assets principales
+# Main asset configuration
 VCOP (Mintable)
 ETH (Vault-based)
 WBTC (Vault-based)
 USDC (Vault-based)
 ```
 
-#### **Fase 3: Hook Integration**
+#### **Phase 3: Hook Integration**
 ```bash
-# Integración con Uniswap v4
+# Uniswap v4 integration
 VCOPCollateralHook.sol
 PSM Configuration
 Price Monitoring
 ```
 
-#### **Fase 4: Advanced Features**
+#### **Phase 4: Advanced Features**
 ```bash
-# Características avanzadas
-Risk metrics avanzadas
+# Advanced features
+Advanced risk metrics
 Portfolio management
 Liquidation automation
 ```
 
-#### **Fase 5: Production Migration**
+#### **Phase 5: Production Migration**
 ```bash
-# Migración en producción
+# Production migration
 User migration tools
 Interface upgrades
 Legacy system sunset
 ```
 
-## 🛠️ HERRAMIENTAS DE DESPLIEGUE
+## 🛠️ DEPLOYMENT TOOLS
 
-### **Scripts Automatizados**
+### **Automated Scripts**
 ```bash
 script/
 ├── deploy/
-│   ├── DeployNewArchitecture.s.sol    # Despliegue completo
-│   ├── ConfigureAssets.s.sol          # Configuración de assets
-│   └── SetupOracles.s.sol             # Configuración de oráculos
+│   ├── DeployNewArchitecture.s.sol    # Complete deployment
+│   ├── ConfigureAssets.s.sol          # Asset configuration
+│   └── SetupOracles.s.sol             # Oracle configuration
 ├── configure/
-│   ├── ConfigureVCOPSystem.sol        # Sistema VCOP
-│   └── SetupPSM.s.sol                 # Configuración PSM
+│   ├── ConfigureVCOPSystem.sol        # VCOP system
+│   └── SetupPSM.s.sol                 # PSM configuration
 └── verify/
-    ├── VerifyContracts.s.sol          # Verificación automática
-    └── ValidateDeployment.s.sol       # Validación post-despliegue
+    ├── VerifyContracts.s.sol          # Automatic verification
+    └── ValidateDeployment.s.sol       # Post-deployment validation
 ```
 
-### **Configuración por Red**
+### **Network Configuration**
 
 #### **Mainnet Production**
 ```solidity
-// Parámetros conservadores
+// Conservative parameters
 uint256 liquidationBonus = 50000;      // 5%
 uint256 protocolFee = 5000;            // 0.5%
 uint256 maxLoanAmount = 1000000e18;    // 1M tokens max
-bool strictValidation = true;          // Validaciones estrictas
+bool strictValidation = true;          // Strict validations
 ```
 
 #### **Testnet Development**
 ```solidity
-// Parámetros flexibles para testing
+// Flexible parameters for testing
 uint256 liquidationBonus = 100000;     // 10%
 uint256 protocolFee = 10000;           // 1%
 uint256 maxLoanAmount = 10000e18;      // 10K tokens max
-bool strictValidation = false;         // Validaciones relajadas
+bool strictValidation = false;         // Relaxed validations
 ```
 
-## 📋 CHECKLIST DE DESPLIEGUE
+## 📋 DEPLOYMENT CHECKLIST
 
-### **Pre-Despliegue**
-- [ ] ✅ Auditoría de seguridad completa
-- [ ] ✅ Testing exhaustivo en testnet
-- [ ] ✅ Configuración de oráculos verificada
-- [ ] ✅ Parámetros de red definidos
-- [ ] ✅ Scripts de despliegue validados
-- [ ] ✅ Plan de rollback preparado
+### **Pre-Deployment**
+- [ ] ✅ Complete security audit
+- [ ] ✅ Exhaustive testnet testing
+- [ ] ✅ Verified oracle configuration
+- [ ] ✅ Defined network parameters
+- [ ] ✅ Validated deployment scripts
+- [ ] ✅ Prepared rollback plan
 
-### **Durante el Despliegue**
-- [ ] ⚙️ Desplegar contratos base
-- [ ] ⚙️ Configurar asset handlers
-- [ ] ⚙️ Configurar oráculos
-- [ ] ⚙️ Verificar contratos en etherscan
-- [ ] ⚙️ Configurar PSM
-- [ ] ⚙️ Testing de integración
+### **During Deployment**
+- [ ] ⚙️ Deploy base contracts
+- [ ] ⚙️ Configure asset handlers
+- [ ] ⚙️ Configure oracles
+- [ ] ⚙️ Verify contracts on etherscan
+- [ ] ⚙️ Configure PSM
+- [ ] ⚙️ Integration testing
 
-### **Post-Despliegue**
-- [ ] ✅ Verificación de funcionalidad
-- [ ] ✅ Monitoreo de métricas
-- [ ] ✅ Documentación actualizada
-- [ ] ✅ Interfaces de usuario actualizadas
-- [ ] ✅ Comunicación a usuarios
-- [ ] ✅ Monitoreo continuo 24/7
+### **Post-Deployment**
+- [ ] ✅ Functionality verification
+- [ ] ✅ Metrics monitoring
+- [ ] ✅ Updated documentation
+- [ ] ✅ Updated user interfaces
+- [ ] ✅ User communication
+- [ ] ✅ 24/7 continuous monitoring
 
-## 🔧 CONFIGURACIÓN TÉCNICA
+## 🔧 TECHNICAL CONFIGURATION
 
-### **Variables de Entorno**
+### **Environment Variables**
 ```bash
-# Configuración de red
+# Network configuration
 ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_KEY
 POLYGON_RPC_URL=https://polygon-mainnet.infura.io/v3/YOUR_KEY
 BSC_RPC_URL=https://bsc-dataseed.binance.org/
 
-# Claves de despliegue
+# Deployment keys
 DEPLOYER_PRIVATE_KEY=0x...
 MULTISIG_ADDRESS=0x...
 
-# Configuración de verificación
+# Verification configuration
 ETHERSCAN_API_KEY=YOUR_ETHERSCAN_KEY
 POLYGONSCAN_API_KEY=YOUR_POLYGONSCAN_KEY
 
-# Oráculos
+# Oracles
 CHAINLINK_ETH_USD=0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
 CHAINLINK_BTC_USD=0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c
 ```
 
-### **Configuración de Gas**
+### **Gas Configuration**
 ```solidity
-// Optimización de gas por red
+// Gas optimization per network
 if (block.chainid == 1) {          // Mainnet
     gasPrice = 30 gwei;
     gasLimit = 500000;
@@ -200,134 +200,118 @@ if (block.chainid == 1) {          // Mainnet
 }
 ```
 
-## 🔍 VALIDACIÓN Y TESTING
+## 🔍 VALIDATION AND TESTING
 
-### **Testing Automatizado**
+### **Automated Testing**
 ```bash
-# Suite de tests completa
+# Complete test suite
 forge test --fork-url $ETHEREUM_RPC_URL
 forge test --fork-url $POLYGON_RPC_URL
 forge test --fork-url $BSC_RPC_URL
 
-# Tests específicos por componente
+# Component-specific tests
 forge test --match-contract FlexibleLoanManagerTest
 forge test --match-contract RiskCalculatorTest
 forge test --match-contract AssetHandlerTest
 ```
 
-### **Verificación Post-Despliegue**
+### **Post-Deployment Verification**
 ```solidity
-// Script de validación automática
+// Automatic validation script
 contract ValidateDeployment {
     function validateFullSystem() external {
-        // 1. Verificar contratos desplegados
+        // 1. Verify deployed contracts
         require(address(loanManager) != address(0), "LoanManager not deployed");
         require(address(assetHandler) != address(0), "AssetHandler not deployed");
         
-        // 2. Verificar configuraciones
+        // 2. Verify configurations
         require(loanManager.protocolFee() == EXPECTED_FEE, "Wrong protocol fee");
         
-        // 3. Testing de funcionalidad básica
+        // 3. Basic functionality testing
         testCreateLoan();
         testLiquidation();
         testRiskCalculations();
         
-        // 4. Verificar integraciones
+        // 4. Verify integrations
         testOracleIntegration();
         testPSMFunctionality();
     }
 }
 ```
 
-## 📊 MONITOREO POST-DESPLIEGUE
+## 📊 POST-DEPLOYMENT MONITORING
 
-### **Métricas Clave**
+### **Key Metrics**
 ```javascript
-// Dashboard de monitoreo
+// Monitoring dashboard
 const metrics = {
     totalValueLocked: await getTVL(),
     activeLoans: await getActiveLoansCount(),
     liquidationsLast24h: await getLiquidations24h(),
-    averageHealthFactor: await getAverageHealthFactor(),
+    healthFactorDistribution: await getHealthFactorStats(),
     protocolRevenue: await getProtocolRevenue(),
     gasUsageOptimization: await getGasMetrics()
 };
 ```
 
-### **Alertas Automáticas**
+### **Alert System**
 ```javascript
-// Sistema de alertas
-if (metrics.averageHealthFactor < 1.5) {
-    sendAlert('WARNING: Low average health factor detected');
-}
-
-if (metrics.liquidationsLast24h > THRESHOLD) {
-    sendAlert('HIGH: Unusual liquidation activity');
-}
-
-if (oracle.isStale()) {
-    sendAlert('CRITICAL: Oracle price feed is stale');
-}
+// Automated alert system
+const alerts = {
+    lowHealthFactors: checkLowHealthFactors(),      // < 1.2
+    oracleFailures: checkOracleStatus(),           // Price feed issues
+    liquidationBacklog: checkLiquidationQueue(),   // > 10 pending
+    unusualVolume: checkVolumeSpikes(),            // > 10x normal
+    contractPause: checkEmergencyState()           // System paused
+};
 ```
 
-## 🔐 SEGURIDAD Y CONTINGENCIAS
-
-### **Plan de Rollback**
+### **Performance Monitoring**
 ```solidity
-// Mecanismo de pausa de emergencia
-contract EmergencyControls {
-    function pauseSystem() external onlyOwner {
-        loanManager.setPaused(true);
-        assetHandler.pauseAllAssets();
-        hook.pausePSM(true);
-    }
+// On-chain performance tracking
+contract PerformanceMonitor {
+    mapping(bytes32 => uint256) public functionCosts;
+    mapping(address => uint256) public userGasSavings;
     
-    function rollbackToSnapshot(uint256 snapshotId) external onlyOwner {
-        // Revertir a estado anterior conocido
-        revertToSnapshot(snapshotId);
+    function trackGasUsage(string memory functionName) external {
+        uint256 gasStart = gasleft();
+        // Function execution
+        uint256 gasUsed = gasStart - gasleft();
+        functionCosts[keccak256(abi.encode(functionName))] = gasUsed;
     }
 }
 ```
 
-### **Multisig Controls**
+## 🔄 UPGRADE STRATEGY
+
+### **Contract Upgradeability**
 ```solidity
-// Controles críticos requieren multisig
-modifier onlyMultisig() {
-    require(msg.sender == MULTISIG_ADDRESS, "Only multisig");
-    _;
-}
-
-function updateCriticalParameter(uint256 newValue) external onlyMultisig {
-    // Cambios críticos solo vía multisig
-}
-```
-
-## 🔄 MIGRACIÓN DE USUARIOS
-
-### **Herramientas de Migración**
-```solidity
-contract MigrationHelper {
-    // Migrar posición del sistema viejo al nuevo
-    function migratePosition(uint256 oldPositionId) external {
-        // 1. Verificar ownership
-        // 2. Cerrar posición en sistema viejo
-        // 3. Recrear en sistema nuevo
-        // 4. Transferir assets
-    }
+// Proxy pattern for upgrades
+contract VCOPProxy {
+    address public implementation;
+    address public admin;
     
-    // Migración en lote
-    function batchMigrate(uint256[] calldata positionIds) external {
-        for (uint i = 0; i < positionIds.length; i++) {
-            migratePosition(positionIds[i]);
-        }
+    function upgrade(address newImplementation) external onlyAdmin {
+        implementation = newImplementation;
+        emit Upgraded(newImplementation);
     }
 }
 ```
 
-## 🔗 ENLACES RELACIONADOS
+### **Migration Process**
+```bash
+# Staged migration process
+1. Deploy new contracts alongside old ones
+2. Test new contracts with limited functionality
+3. Gradually migrate user positions
+4. Sunset old contracts after full migration
+5. Update all external integrations
+```
 
-- 🏗️ [Arquitectura](../architecture/) - Diseño del sistema
-- 📊 [Gestión de Riesgo](../risk-management/) - Cálculos y métricas
-- 📚 [Documentación Principal](../README.md) - Índice general
-- 🧪 [Ejemplos](../../examples/) - Código de ejemplo
+## 🔗 RELATED LINKS
+
+- 🏗️ [Architecture](../architecture/) - System design
+- 📊 [Risk Management](../risk-management/) - Risk calculations
+- 📚 [Main Documentation](../README.md) - General index
+- 🧪 [Examples](../../examples/) - Code examples 
 - 📜 [Scripts](../../script/) - Scripts de despliegue 

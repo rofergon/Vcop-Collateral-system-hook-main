@@ -1,285 +1,285 @@
-# 📚 Protocolo VCOP Collateral
+# 📚 VCOP Collateral Protocol
 
-¡Bienvenido a la documentación oficial del Protocolo VCOP Collateral! Este sistema innovador combina una stablecoin vinculada al peso colombiano con una plataforma de préstamos flexible y avanzada.
+Welcome to the official documentation of the VCOP Collateral Protocol! This innovative system combines a stablecoin pegged to the Colombian peso with a flexible and advanced lending platform.
 
-## 🚀 ¿Qué es VCOP Collateral?
+## 🚀 What is VCOP Collateral?
 
-VCOP Collateral es un protocolo DeFi dual que ofrece:
+VCOP Collateral is a dual DeFi protocol that offers:
 
-- **🪙 Stablecoin VCOP**: Vinculada 1:1 al peso colombiano (COP)
-- **💰 Sistema de Préstamos**: Plataforma multi-asset con gestión de riesgo avanzada
-- **🔄 PSM Automático**: Módulo de estabilidad de paridad para mantener el precio
-- **📊 Análisis de Riesgo**: Métricas en tiempo real con 15+ indicadores
+- **🪙 VCOP Stablecoin**: Pegged 1:1 to the Colombian peso (COP)
+- **💰 Lending System**: Multi-asset platform with advanced risk management
+- **🔄 Automatic PSM**: Parity Stability Module to maintain price
+- **📊 Risk Analysis**: Real-time metrics with 15+ indicators
 
-## 🌟 Estado Actual
+## 🌟 Current Status
 
-**✅ COMPLETAMENTE DESPLEGADO Y OPERATIVO** en Base Sepolia
+**✅ FULLY DEPLOYED AND OPERATIONAL** on Base Sepolia
 
-Todos los componentes están funcionando y han sido validados en producción.
+All components are functioning and have been validated in production.
 
-> 💡 **¿Nuevo en VCOP?** Ve a [**🔍 ¿Cómo Funciona?**](COMO_FUNCIONA.md) para entender de forma sencilla cómo ganar dinero con el protocolo.
-
----
-
-## 📖 ÍNDICE DE DOCUMENTACIÓN
-
-### 🚀 **SISTEMA OPERATIVO**
-
-#### 📄 [GUIA_SISTEMA_OPERATIVO.md](./GUIA_SISTEMA_OPERATIVO.md)
-**Guía completa del sistema desplegado y funcional**
-- Estado actual de todos los componentes
-- Comandos de validación operativos
-- Casos de uso implementados y funcionando
-- Métricas de rendimiento confirmadas
-- Parámetros técnicos actuales
+> 💡 **New to VCOP?** Go to [**🔍 How Does It Work?**](COMO_FUNCIONA.md) to understand in simple terms how to make money with the protocol.
 
 ---
 
-### 🏗️ **ARQUITECTURA Y DISEÑO**
+## 📖 DOCUMENTATION INDEX
 
-#### 📄 [NUEVA_ARQUITECTURA.md](./architecture/NUEVA_ARQUITECTURA.md)
-**Diseño modular y universal del protocolo**
-- Sistema dual: VCOPCollateral (stablecoin específica) + Core (préstamos flexibles)
-- Nueva arquitectura multi-token completamente implementada
-- Interfaces unificadas (IAssetHandler, ILoanManager, IGenericOracle)
-- Diagramas de flujo y comparativas
-- Sistema desplegado y funcional en Base Sepolia
+### 🚀 **OPERATING SYSTEM**
 
-#### 📄 [FLEXIBILIDAD_MAXIMA.md](./architecture/FLEXIBILIDAD_MAXIMA.md)  
-**Sistema ultra-flexible sin límites de ratio**
-- Contratos sin restricciones hardcodeadas implementados
-- FlexibleLoanManager y FlexibleAssetHandler operativos
-- Frontend maneja toda la gestión de riesgo UX
-- Casos de uso extremos permitidos y funcionando
-- GenericLoanManager vs FlexibleLoanManager comparativa
+#### 📄 [OPERATING_SYSTEM_GUIDE.md](./GUIA_SISTEMA_OPERATIVO.md)
+**Complete guide to the deployed and functional system**
+- Current status of all components
+- Operational validation commands
+- Implemented and working use cases
+- Confirmed performance metrics
+- Current technical parameters
 
 ---
 
-### 📊 **GESTIÓN DE RIESGO**
+### 🏗️ **ARCHITECTURE AND DESIGN**
 
-#### 📄 [CALCULOS_RIESGO.md](./risk-management/CALCULOS_RIESGO.md)
-**Sistema completo de cálculos de riesgo on-chain IMPLEMENTADO**
-- RiskCalculator.sol desplegado y funcional
-- 15+ métricas de riesgo en tiempo real
-- Health factors y ratios de colateralización operativos
-- Integración con oráculos funcionando
-- Análisis predictivo y de impacto de precios
+#### 📄 [NEW_ARCHITECTURE.md](./architecture/NUEVA_ARQUITECTURA.md)
+**Modular and universal protocol design**
+- Dual system: VCOPCollateral (specific stablecoin) + Core (flexible loans)
+- New fully implemented multi-token architecture
+- Unified interfaces (IAssetHandler, ILoanManager, IGenericOracle)
+- Flow diagrams and comparisons
+- System deployed and functional on Base Sepolia
+
+#### 📄 [MAXIMUM_FLEXIBILITY.md](./architecture/FLEXIBILIDAD_MAXIMA.md)  
+**Ultra-flexible system without ratio limits**
+- Implemented contracts without hardcoded restrictions
+- Operational FlexibleLoanManager and FlexibleAssetHandler
+- Frontend handles all risk management UX
+- Allowed and working extreme use cases
+- GenericLoanManager vs FlexibleLoanManager comparison
 
 ---
 
-### 🚀 **IMPLEMENTACIÓN Y DESPLIEGUE**
+### 📊 **RISK MANAGEMENT**
 
-#### 📄 [INSTRUCCIONES_DESPLIEGUE.md](./deployment/INSTRUCCIONES_DESPLIEGUE.md)
-**Guía paso a paso para el despliegue actualizada**
-- Scripts de configuración validados y funcionando
-- Parámetros de red Base Sepolia configurados
-- Verificación de contratos implementada
-- Makefile con comandos operativos
+#### 📄 [RISK_CALCULATIONS.md](./risk-management/CALCULOS_RIESGO.md)
+**Complete on-chain risk calculation system IMPLEMENTED**
+- RiskCalculator.sol deployed and functional
+- 15+ real-time risk metrics
+- Operational health factors and collateralization ratios
+- Oracle integration working
+- Predictive and price impact analysis
+
+---
+
+### 🚀 **IMPLEMENTATION AND DEPLOYMENT**
+
+#### 📄 [DEPLOYMENT_INSTRUCTIONS.md](./deployment/INSTRUCCIONES_DESPLIEGUE.md)
+**Updated step-by-step deployment guide**
+- Validated and working configuration scripts
+- Base Sepolia network parameters configured
+- Implemented contract verification
+- Makefile with operational commands
 
 #### 📄 [PSM-README.md](./deployment/PSM-README.md)
-**Peg Stability Module operativo**
-- PSM funcionando con swaps automáticos
-- Hook de Uniswap v4 implementado y desplegado
-- Configuración y parámetros validados
-- Mantenimiento de paridad VCOP/COP funcionando
+**Operational Peg Stability Module**
+- PSM working with automatic swaps
+- Uniswap v4 hook implemented and deployed
+- Validated configuration and parameters
+- Working VCOP/COP parity maintenance
 
 ---
 
-### 🧪 **EJEMPLOS Y CÓDIGOS**
+### 🧪 **EXAMPLES AND CODE**
 
-#### 📄 [Ejemplos de Código](./examples/README.md)
-**Implementaciones prácticas y casos de uso funcionando**
-- Ejemplos de cálculos de riesgo validados
-- Scripts de testing operativos
-- Comandos Makefile para pruebas del sistema
-- Dashboards de métricas implementados
+#### 📄 [Code Examples](./examples/README.md)
+**Working practical implementations and use cases**
+- Validated risk calculation examples
+- Operational testing scripts
+- Makefile commands for system testing
+- Implemented metrics dashboards
 
 ---
 
-## 🔧 **ESTRUCTURA TÉCNICA ACTUALIZADA**
+## 🔧 **UPDATED TECHNICAL STRUCTURE**
 
-### **CONTRATOS DESPLEGADOS Y OPERATIVOS**
+### **DEPLOYED AND OPERATIONAL CONTRACTS**
 
 ```
 src/
-├── interfaces/           # Interfaces unificadas ✅ IMPLEMENTADAS
-│   ├── IAssetHandler.sol     # Interface universal para manejo de activos
-│   ├── ILoanManager.sol      # Interface para gestores de préstamos
-│   └── IGenericOracle.sol    # Interface para sistema de oráculos
-├── core/                # Sistema Core ✅ DESPLEGADO Y FUNCIONANDO
-│   ├── GenericLoanManager.sol      # Gestión conservadora con límites
-│   ├── FlexibleLoanManager.sol     # Ultra-flexible sin restricciones
-│   ├── MintableBurnableHandler.sol # Manejo de tokens minteable/quemables
-│   ├── VaultBasedHandler.sol       # Manejo de activos con vault
-│   ├── FlexibleAssetHandler.sol    # Handler universal combinado
-│   └── RiskCalculator.sol          # Análisis avanzado de riesgo
-├── mocks/               # Tokens de prueba ✅ DESPLEGADOS
-│   ├── MockETH.sol              # WETH simulado (18 decimales)
-│   ├── MockWBTC.sol             # WBTC simulado (8 decimales)
-│   └── MockUSDC.sol             # USDC simulado (6 decimales)
-└── VcopCollateral/      # Sistema VCOP ✅ DESPLEGADO Y FUNCIONANDO
-    ├── VCOPCollateralHook.sol       # Hook Uniswap v4 operativo
-    ├── VCOPCollateralManager.sol    # Gestión de colateral VCOP
-    ├── VCOPOracle.sol               # Oráculos para precios COP
-    ├── VCOPCollateralized.sol       # Token VCOP stablecoin
-    └── VCOPPriceCalculator.sol      # Cálculos de precios Uniswap
+├── interfaces/           # Unified interfaces ✅ IMPLEMENTED
+│   ├── IAssetHandler.sol     # Universal interface for asset management
+│   ├── ILoanManager.sol      # Interface for loan managers
+│   └── IGenericOracle.sol    # Interface for oracle system
+├── core/                # Core System ✅ DEPLOYED AND WORKING
+│   ├── GenericLoanManager.sol      # Conservative management with limits
+│   ├── FlexibleLoanManager.sol     # Ultra-flexible without restrictions
+│   ├── MintableBurnableHandler.sol # Mintable/burnable token management
+│   ├── VaultBasedHandler.sol       # Vault-based asset management
+│   ├── FlexibleAssetHandler.sol    # Combined universal handler
+│   └── RiskCalculator.sol          # Advanced risk analysis
+├── mocks/               # Test tokens ✅ DEPLOYED
+│   ├── MockETH.sol              # Simulated WETH (18 decimals)
+│   ├── MockWBTC.sol             # Simulated WBTC (8 decimals)
+│   └── MockUSDC.sol             # Simulated USDC (6 decimals)
+└── VcopCollateral/      # VCOP System ✅ DEPLOYED AND WORKING
+    ├── VCOPCollateralHook.sol       # Operational Uniswap v4 hook
+    ├── VCOPCollateralManager.sol    # VCOP collateral management
+    ├── VCOPOracle.sol               # Oracles for COP prices
+    ├── VCOPCollateralized.sol       # VCOP stablecoin token
+    └── VCOPPriceCalculator.sol      # Uniswap price calculations
 ```
 
-### **CONTRATOS DESPLEGADOS EN BASE SEPOLIA**
+### **CONTRACTS DEPLOYED ON BASE SEPOLIA**
 
 ```
-Direcciones de contratos (Base Sepolia):
+Contract addresses (Base Sepolia):
 ✅ GenericLoanManager: [DEPLOYED]
 ✅ FlexibleLoanManager: [DEPLOYED] 
 ✅ VaultBasedHandler: [DEPLOYED]
 ✅ MintableBurnableHandler: [DEPLOYED]
 ✅ FlexibleAssetHandler: [DEPLOYED]
 ✅ RiskCalculator: [DEPLOYED]
-✅ VCOPCollateralHook: [DEPLOYED con Uniswap v4]
+✅ VCOPCollateralHook: [DEPLOYED with Uniswap v4]
 ✅ Mock Tokens: ETH, WBTC, USDC [DEPLOYED]
 ```
 
 ---
 
-## 🎯 **GUÍAS RÁPIDAS ACTUALIZADAS**
+## 🎯 **UPDATED QUICK GUIDES**
 
-### **Para Desarrolladores**
-1. 📖 Leer [NUEVA_ARQUITECTURA.md](./architecture/NUEVA_ARQUITECTURA.md) para entender el diseño implementado
-2. 📊 Revisar [CALCULOS_RIESGO.md](./risk-management/CALCULOS_RIESGO.md) para métricas operativas
-3. 🚀 Usar [Makefile](../Makefile) para testing del sistema desplegado
-4. 🧪 Ejecutar `make test-core-loans` para validar funcionalidad
+### **For Developers**
+1. 📖 Read [NEW_ARCHITECTURE.md](./architecture/NUEVA_ARQUITECTURA.md) to understand the implemented design
+2. 📊 Review [RISK_CALCULATIONS.md](./risk-management/CALCULOS_RIESGO.md) for operational metrics
+3. 🚀 Use [Makefile](../Makefile) for deployed system testing
+4. 🧪 Run `make test-core-loans` to validate functionality
 
-### **Para Product Managers**
-1. 🚀 [FLEXIBILIDAD_MAXIMA.md](./architecture/FLEXIBILIDAD_MAXIMA.md) - Sistema funcionando
-2. 📊 [CALCULOS_RIESGO.md](./risk-management/CALCULOS_RIESGO.md) - Métricas en tiempo real
-3. 🏗️ [NUEVA_ARQUITECTURA.md](./architecture/NUEVA_ARQUITECTURA.md) - Capacidades reales
+### **For Product Managers**
+1. 🚀 [MAXIMUM_FLEXIBILITY.md](./architecture/FLEXIBILIDAD_MAXIMA.md) - Working system
+2. 📊 [RISK_CALCULATIONS.md](./risk-management/CALCULOS_RIESGO.md) - Real-time metrics
+3. 🏗️ [NEW_ARCHITECTURE.md](./architecture/NUEVA_ARQUITECTURA.md) - Real capabilities
 
-### **Para Auditores**
-1. 🔧 Contratos en `src/core/` - Lógica principal desplegada y validada
-2. 📊 [CALCULOS_RIESGO.md](./risk-management/CALCULOS_RIESGO.md) - Cálculos verificados on-chain
-3. 🛡️ [FLEXIBILIDAD_MAXIMA.md](./architecture/FLEXIBILIDAD_MAXIMA.md) - Protecciones implementadas y probadas
-
----
-
-## 📊 **FUNCIONALIDADES IMPLEMENTADAS Y OPERATIVAS**
-
-### **Sistema VCOPCollateral (Stablecoin COP)**
-- ✅ **VCOP Token**: Stablecoin vinculada al peso colombiano funcionando
-- ✅ **PSM Operativo**: Módulo de estabilidad de paridad automático
-- ✅ **Hook Uniswap v4**: Monitoreo y estabilización de precios activo
-- ✅ **Colateralización**: Sistema de colateral USDC→VCOP operativo
-- ✅ **Liquidaciones**: Sistema automático de liquidación funcionando
-
-### **Sistema Core (Préstamos Flexibles)**
-- ✅ **Préstamos Multi-Asset**: ETH, WBTC, USDC como colateral/préstamo
-- ✅ **Gestores Duales**: Conservador y ultra-flexible operativos
-- ✅ **Asset Handlers**: Vault-based y mintable/burnable funcionando
-- ✅ **Liquidez Operativa**: Proveedores earning yields en múltiples tokens
-- ✅ **Risk Calculator**: 15+ métricas de riesgo en tiempo real
-
-### **Análisis de Riesgo Avanzado**
-- ✅ **Health Factors**: Cálculo automático de salud de posiciones
-- ✅ **Proyecciones**: Análisis predictivo de liquidación implementado
-- ✅ **Price Impact**: Simulación de escenarios de precio funcionando
-- ✅ **Portfolio Risk**: Análisis multi-posición operativo
-- ✅ **Real-time Updates**: Métricas actualizadas en cada bloque
+### **For Auditors**
+1. 🔧 Contracts in `src/core/` - Main logic deployed and validated
+2. 📊 [RISK_CALCULATIONS.md](./risk-management/CALCULOS_RIESGO.md) - Verified on-chain calculations
+3. 🛡️ [MAXIMUM_FLEXIBILITY.md](./architecture/FLEXIBILIDAD_MAXIMA.md) - Implemented and tested protections
 
 ---
 
-## 🧪 **COMANDOS DE TESTING OPERATIVOS**
+## 📊 **IMPLEMENTED AND OPERATIONAL FEATURES**
 
-### **Sistema Core Validado**
+### **VCOPCollateral System (COP Stablecoin)**
+- ✅ **VCOP Token**: Working stablecoin pegged to Colombian peso
+- ✅ **Operational PSM**: Automatic parity stability module
+- ✅ **Uniswap v4 Hook**: Active price monitoring and stabilization
+- ✅ **Collateralization**: Operational USDC→VCOP collateral system
+- ✅ **Liquidations**: Working automatic liquidation system
+
+### **Core System (Flexible Loans)**
+- ✅ **Multi-Asset Loans**: ETH, WBTC, USDC as collateral/loan
+- ✅ **Dual Managers**: Conservative and ultra-flexible operational
+- ✅ **Asset Handlers**: Vault-based and mintable/burnable working
+- ✅ **Operational Liquidity**: Providers earning yields in multiple tokens
+- ✅ **Risk Calculator**: 15+ real-time risk metrics
+
+### **Advanced Risk Analysis**
+- ✅ **Health Factors**: Automatic position health calculation
+- ✅ **Projections**: Implemented predictive liquidation analysis
+- ✅ **Price Impact**: Working price scenario simulation
+- ✅ **Portfolio Risk**: Operational multi-position analysis
+- ✅ **Real-time Updates**: Metrics updated every block
+
+---
+
+## 🧪 **OPERATIONAL TESTING COMMANDS**
+
+### **Validated Core System**
 ```bash
-# Probar sistema completo de préstamos
+# Test complete lending system
 make test-core-loans
 
-# Probar préstamo específico ETH→USDC
+# Test specific ETH→USDC loan
 make test-eth-usdc-loan
 
-# Probar préstamo específico USDC→ETH  
+# Test specific USDC→ETH loan  
 make test-usdc-eth-loan
 
-# Probar operaciones avanzadas
+# Test advanced operations
 make test-advanced-operations
 
-# Analizar riesgos en tiempo real
+# Analyze real-time risks
 make test-risk-analysis
 
-# Probar repagos y cierres
+# Test repayments and closures
 make test-loan-repayment
 ```
 
-### **Sistema VCOP Validado**
+### **Validated VCOP System**
 ```bash
-# Probar sistema completo VCOP
+# Test complete VCOP system
 make test-new-system
 
-# Verificar PSM operativo
+# Verify operational PSM
 make check-psm
 
-# Monitorear precios en tiempo real
+# Monitor real-time prices
 make check-prices
 
-# Probar swaps PSM
+# Test PSM swaps
 make swap-usdc-to-vcop
 make swap-vcop-to-usdc
 ```
 
 ---
 
-## 🔄 **HISTORIAL DE IMPLEMENTACIÓN**
+## 🔄 **IMPLEMENTATION HISTORY**
 
-### **v1.0 - Sistema Original ✅ DESPLEGADO**
-- VCOPCollateralHook operativo en Uniswap v4
-- VCOP stablecoin funcionando con paridad COP
-- PSM automático operativo
+### **v1.0 - Original System ✅ DEPLOYED**
+- VCOPCollateralHook operational on Uniswap v4
+- VCOP stablecoin working with COP parity
+- Automatic PSM operational
 
-### **v2.0 - Nueva Arquitectura ✅ COMPLETAMENTE IMPLEMENTADO**
-- Sistema modular multi-token desplegado
-- Asset handlers especializados funcionando
-- Oráculos flexibles operativos
-- Préstamos multi-asset validados
+### **v2.0 - New Architecture ✅ FULLY IMPLEMENTED**
+- Deployed modular multi-token system
+- Working specialized asset handlers
+- Operational flexible oracles
+- Validated multi-asset loans
 
-### **v3.0 - Ultra Flexibilidad ✅ OPERATIVO**
-- FlexibleLoanManager sin límites funcionando
-- RiskCalculator avanzado desplegado y validado
-- Análisis predictivo de riesgo operativo
-- Frontend-driven risk management implementado
+### **v3.0 - Ultra Flexibility ✅ OPERATIONAL**
+- FlexibleLoanManager without limits working
+- Advanced RiskCalculator deployed and validated
+- Operational predictive risk analysis
+- Implemented frontend-driven risk management
 
 ---
 
-## 📈 **MÉTRICAS DEL SISTEMA OPERATIVO**
+## 📈 **SYSTEM OPERATING METRICS**
 
-### **Capacidades Técnicas Demostradas**
-- ✅ **15+ Tokens Diferentes**: ETH, WBTC, USDC, VCOP como colateral/préstamo
-- ✅ **3 Gestores de Préstamos**: Generic, Flexible, VCOPCollateral
+### **Technical Capabilities Demonstrated**
+- ✅ **15+ Different Tokens**: ETH, WBTC, USDC, VCOP as collateral/loan
+- ✅ **3 Loan Managers**: Generic, Flexible, VCOPCollateral
 - ✅ **4 Asset Handlers**: Vault, Mintable, Flexible, VCOP-specific
-- ✅ **Análisis de Riesgo**: 15+ métricas calculadas on-chain
-- ✅ **Liquidez Activa**: Proveedores earning yields en múltiples tokens
+- ✅ **Risk Analysis**: 15+ metrics calculated on-chain
+- ✅ **Active Liquidity**: Providers earning yields in multiple tokens
 
-### **Ventajas Competitivas Validadas**
-- 🚀 **Flexibilidad Superior**: Supera Aave/Compound en opciones
-- 💼 **Diversidad de Assets**: Más opciones que protocolos existentes
-- 🌐 **Stablecoin COP**: Único protocolo con peso colombiano
-- 📈 **Risk Management**: Sistema de riesgo más avanzado del mercado
-
----
-
-## 🔗 **ENLACES ACTUALIZADOS**
-
-- 🏠 [README Principal](../README.md)
-- 🧪 [Makefile con Comandos](../Makefile) - Comandos validados y funcionando
-- 🔧 [Scripts de Despliegue](../script/) - Scripts probados en Base Sepolia
-- ✅ [Contratos Fuente](../src/) - Código desplegado y operativo
+### **Validated Competitive Advantages**
+- 🚀 **Superior Flexibility**: Outperforms Aave/Compound in options
+- 💼 **Asset Diversity**: More options than existing protocols
+- 🌐 **COP Stablecoin**: Unique protocol with Colombian peso
+- 📈 **Risk Management**: Most advanced risk management system in the market
 
 ---
 
-## 📞 **SOPORTE TÉCNICO**
+## 🔗 **UPDATED LINKS**
 
-Para testing y validación del sistema:
-1. **Sistema Core**: `make test-core-loans` - Validación completa
-2. **Sistema VCOP**: `make test-new-system` - Pruebas de stablecoin
-3. **Análisis de Riesgo**: `make test-risk-analysis` - Métricas en tiempo real
-4. **Documentación**: Todos los archivos actualizados con funcionalidad real
+- 🏠 [Main README](../README.md)
+- 🧪 [Makefile with Commands](../Makefile) - Validated commands
+- 🔧 [Deployment Scripts](../script/) - Scripts tested on Base Sepolia
+- ✅ [Source Contracts](../src/) - Deployed and operational code
 
-**Última actualización**: Diciembre 2024 - Reflejando sistema completamente implementado y operativo 
+---
+
+## 📞 **TECHNICAL SUPPORT**
+
+For system testing and validation:
+1. **Core System**: `make test-core-loans` - Complete validation
+2. **VCOP System**: `make test-new-system` - Stablecoin tests
+3. **Risk Analysis**: `make test-risk-analysis` - Real-time metrics
+4. **Documentation**: All updated files with real functionality
+
+**Last update**: December 2024 - Reflecting fully implemented and operational system 

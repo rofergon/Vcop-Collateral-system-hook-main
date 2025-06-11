@@ -1,35 +1,35 @@
 # Table of contents
 
-* [🏠 Inicio](README.md)
-* [🔍 ¿Cómo Funciona?](COMO_FUNCIONA.md)
-* [🚀 Sistema Operativo](GUIA_SISTEMA_OPERATIVO.md)
+* [🏠 Home](README.md)
+* [🔍 How Does It Work?](COMO_FUNCIONA.md)
+* [🚀 Operating System](GUIA_SISTEMA_OPERATIVO.md)
 
-## 🏗️ Arquitectura y Diseño
+## 🏗️ Architecture and Design
 
-* [📋 Arquitectura General](architecture/README.md)
-* [🆕 Nueva Arquitectura](architecture/NUEVA_ARQUITECTURA.md)
-* [🔧 Flexibilidad Máxima](architecture/FLEXIBILIDAD_MAXIMA.md)
+* [📋 General Architecture](architecture/README.md)
+* [🆕 New Architecture](architecture/NUEVA_ARQUITECTURA.md)
+* [🔧 Maximum Flexibility](architecture/FLEXIBILIDAD_MAXIMA.md)
 
-## 📊 Gestión de Riesgo
+## 📊 Risk Management
 
-* [📈 Gestión de Riesgo](risk-management/README.md)
-* [🧮 Cálculos de Riesgo](risk-management/CALCULOS_RIESGO.md)
+* [📈 Risk Management](risk-management/README.md)
+* [🧮 Risk Calculations](risk-management/CALCULOS_RIESGO.md)
 
-## 🚀 Implementación y Despliegue
+## 🚀 Implementation and Deployment
 
-* [🛠️ Despliegue](deployment/README.md)
-* [📝 Instrucciones de Despliegue](deployment/INSTRUCCIONES_DESPLIEGUE.md)
-* [🔧 Sistema Corregido](deployment/SISTEMA_CORREGIDO_DESPLIEGUE.md)
-* [⚡ Referencia Rápida](deployment/REFERENCIA_RAPIDA.md)
+* [🛠️ Deployment](deployment/README.md)
+* [📝 Deployment Instructions](deployment/INSTRUCCIONES_DESPLIEGUE.md)
+* [🔧 Corrected System](deployment/SISTEMA_CORREGIDO_DESPLIEGUE.md)
+* [⚡ Quick Reference](deployment/REFERENCIA_RAPIDA.md)
 * [🚨 Troubleshooting](deployment/TROUBLESHOOTING.md)
 * [🔄 PSM Documentation](deployment/PSM-README.md)
 
-## 🧪 Ejemplos y Códigos
+## 🧪 Examples and Code
 
-* [💡 Ejemplos de Uso](examples/README.md)
+* [💡 Usage Examples](examples/README.md)
 
-## 🔗 Enlaces Útiles
+## 🔗 Useful Links
 
-* [🌐 Repositorio GitHub](https://github.com/vcop-protocol/vcop-collateral-system)
-* [📊 Dashboard de Métricas](https://dashboard.vcop.finance)
-* [🔍 Explorador de Contratos](https://sepolia.basescan.org) 
+* [🌐 GitHub Repository](https://github.com/vcop-protocol/vcop-collateral-system)
+* [📊 Metrics Dashboard](https://dashboard.vcop.finance)
+* [🔍 Contract Explorer](https://sepolia.basescan.org) 

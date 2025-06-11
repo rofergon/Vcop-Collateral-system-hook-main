@@ -1,26 +1,26 @@
-# 🧪 EJEMPLOS DE CÓDIGO
+# 🧪 CODE EXAMPLES
 
-Esta sección contiene ejemplos prácticos de implementación y uso del protocolo VCOP Collateral.
+This section contains practical implementation and usage examples of the VCOP Collateral protocol.
 
-## 📁 EJEMPLOS DISPONIBLES
+## 📁 AVAILABLE EXAMPLES
 
 ### 📄 [RiskCalculationExample.sol](../../examples/RiskCalculationExample.sol)
-**Ejemplos prácticos de cálculos de riesgo**
+**Practical risk calculation examples**
 
-**Incluye:**
-- ✅ Simulaciones de posiciones ETH→USDC, WBTC→VCOP  
-- ✅ Análisis de cambios de precio en tiempo real
-- ✅ Proyecciones de riesgo futuro (30 días)
-- ✅ Análisis de cartera multi-asset
-- ✅ Impacto de volatilidad en liquidaciones
+**Includes:**
+- ✅ ETH→USDC, WBTC→VCOP position simulations
+- ✅ Real-time price change analysis
+- ✅ Future risk projections (30 days)
+- ✅ Multi-asset portfolio analysis
+- ✅ Volatility impact on liquidations
 
-## 🚀 EJEMPLOS DE USO
+## 🚀 USAGE EXAMPLES
 
-### **1. Análisis Básico de Posición**
+### **1. Basic Position Analysis**
 ```javascript
 const riskExample = new ethers.Contract(RISK_EXAMPLE_ADDRESS, abi, provider);
 
-// Obtener análisis completo de una posición ETH→USDC
+// Get complete analysis of an ETH→USDC position
 const ethExample = await riskExample.exampleETHtoUSDC();
 console.log(`Scenario: ${ethExample.scenario}`);
 console.log(`Collateralization Ratio: ${ethExample.collateralizationRatio / 10000}%`);
@@ -30,9 +30,9 @@ console.log(`Max Withdrawable ETH: ${ethers.utils.formatEther(ethExample.maxWith
 console.log(`Liquidation Price: $${ethExample.liquidationPriceETH / 1000000}`);
 ```
 
-### **2. Simulación de Cambio de Precio**
+### **2. Price Change Simulation**
 ```javascript
-// Cambiar precio de ETH y ver impacto
+// Change ETH price and see impact
 await riskExample.updateMockPrice(ETH_ADDRESS, ethers.utils.parseUnits("1800", 6)); // $1,800
 
 const priceChangeResult = await riskExample.simulatePriceChange(ethers.utils.parseUnits("1800", 6));
@@ -42,9 +42,9 @@ console.log(`Risk Level Changed: ${priceChangeResult.oldRiskLevel} → ${priceCh
 console.log(`Liquidation Triggered: ${priceChangeResult.liquidationTriggered}`);
 ```
 
-### **3. Análisis de Cartera Multi-Asset**
+### **3. Multi-Asset Portfolio Analysis**
 ```javascript
-// Analizar riesgo de cartera completa
+// Analyze complete portfolio risk
 const portfolio = await riskExample.portfolioRiskAnalysis();
 console.log(`Total Collateral: $${portfolio.totalCollateralUSD / 1000000}`);
 console.log(`Total Debt: $${portfolio.totalDebtUSD / 1000000}`);
@@ -53,9 +53,9 @@ console.log(`Positions at Risk: ${portfolio.positionsAtRisk}`);
 console.log(`Overall Risk Level: ${portfolio.overallRiskLevel}`);
 ```
 
-### **4. Proyección de Riesgo Futuro**
+### **4. Future Risk Projection**
 ```javascript
-// Proyectar riesgo a 30 días con acumulación de intereses
+// Project risk to 30 days with interest accumulation
 const futureRisk = await riskExample.futureRiskProjection(30); // 30 days
 console.log(`Current Health: ${futureRisk.currentHealthFactor / 1000000}`);
 console.log(`Future Health (30d): ${futureRisk.futureHealthFactor / 1000000}`);
@@ -63,9 +63,9 @@ console.log(`Additional Interest: ${ethers.utils.formatUnits(futureRisk.addition
 console.log(`Days to Liquidation: ${futureRisk.daysToLiquidation}`);
 ```
 
-### **5. Análisis de Impacto de Volatilidad**
+### **5. Volatility Impact Analysis**
 ```javascript
-// Analizar precios críticos para diferentes niveles de riesgo
+// Analyze critical prices for different risk levels
 const volatility = await riskExample.volatilityImpactAnalysis();
 console.log(`Current ETH Price: $${volatility.currentPrice / 1000000}`);
 console.log(`Liquidation Price: $${volatility.liquidationPrice / 1000000}`);
@@ -74,9 +74,9 @@ console.log(`50% Risk Price: $${volatility.priceFor50PercentRisk / 1000000}`);
 console.log(`90% Risk Price: $${volatility.priceFor90PercentRisk / 1000000}`);
 ```
 
-## 📊 CASOS DE USO REALES
+## 📊 REAL USE CASES
 
-### **Dashboard de Usuario**
+### **User Dashboard**
 ```javascript
 class PositionDashboard {
     async displayUserPositions(userAddress) {
@@ -101,7 +101,7 @@ class PositionDashboard {
 }
 ```
 
-### **Sistema de Alertas**
+### **Alert System**
 ```javascript
 class RiskAlertSystem {
     async monitorPositions(userAddress) {
@@ -110,7 +110,7 @@ class RiskAlertSystem {
         for (const positionId of positions) {
             const metrics = await riskCalculator.calculateRiskMetrics(positionId);
             
-            // Alertas por nivel de riesgo
+            // Alerts by risk level
             if (metrics.riskLevel >= 3) { // CRITICAL
                 this.sendAlert({
                     type: 'CRITICAL',
@@ -130,11 +130,11 @@ class RiskAlertSystem {
 }
 ```
 
-### **Bot de Liquidación**
+### **Liquidation Bot**
 ```javascript
 class LiquidationBot {
     async scanForLiquidations() {
-        // Obtener todas las posiciones activas
+        // Get all active positions
         const allPositions = await this.getAllActivePositions();
         
         for (const positionId of allPositions) {
@@ -143,7 +143,7 @@ class LiquidationBot {
             if (canLiquidate) {
                 const liquidationStatus = await riskCalculator.checkLiquidationStatus(positionId);
                 
-                // Verificar si es rentable
+                // Check if profitable
                 if (liquidationStatus.liquidatorProfit > this.minProfitThreshold) {
                     console.log(`Liquidating position ${positionId} for profit: ${liquidationStatus.liquidatorProfit}`);
                     await loanManager.liquidatePosition(positionId);
@@ -154,15 +154,15 @@ class LiquidationBot {
 }
 ```
 
-## 🔧 HERRAMIENTAS DE DESARROLLO
+## 🔧 DEVELOPMENT TOOLS
 
-### **Testing de Cálculos**
+### **Calculation Testing**
 ```javascript
 describe("Risk Calculations", function() {
     it("should calculate correct ratios", async function() {
         const example = await deployContract("RiskCalculationExample");
         
-        // Test escenario ETH→USDC
+        // Test ETH→USDC scenario
         const result = await example.exampleETHtoUSDC();
         expect(result.collateralizationRatio).to.equal(2500000); // 250%
         expect(result.riskLevel).to.equal("HEALTHY");
@@ -172,7 +172,7 @@ describe("Risk Calculations", function() {
     it("should detect liquidation correctly", async function() {
         const example = await deployContract("RiskCalculationExample");
         
-        // Simular crash de precio
+        // Simulate price crash
         const crashResult = await example.simulatePriceChange(ethers.utils.parseUnits("960", 6));
         expect(crashResult.liquidationTriggered).to.be.true;
         expect(crashResult.newRiskLevel).to.equal("LIQUIDATABLE");
@@ -180,9 +180,9 @@ describe("Risk Calculations", function() {
 });
 ```
 
-### **Integración con Frontend**
+### **Frontend Integration**
 ```javascript
-// Hook de React para monitoreo de posiciones
+// React hook for position monitoring
 function usePositionRisk(positionId) {
     const [metrics, setMetrics] = useState(null);
     
@@ -193,7 +193,7 @@ function usePositionRisk(positionId) {
         };
         
         updateMetrics();
-        const interval = setInterval(updateMetrics, 30000); // Cada 30 segundos
+        const interval = setInterval(updateMetrics, 30000); // Every 30 seconds
         
         return () => clearInterval(interval);
     }, [positionId]);
@@ -201,7 +201,7 @@ function usePositionRisk(positionId) {
     return metrics;
 }
 
-// Componente de visualización
+// Display component
 function PositionRiskDisplay({ positionId }) {
     const metrics = usePositionRisk(positionId);
     
@@ -223,9 +223,9 @@ function PositionRiskDisplay({ positionId }) {
 }
 ```
 
-## 📈 MÉTRICAS DE PERFORMANCE
+## 📈 PERFORMANCE METRICS
 
-### **Benchmarking de Gas**
+### **Gas Benchmarking**
 ```javascript
 async function benchmarkGasCosts() {
     const gasReport = {
@@ -241,9 +241,85 @@ async function benchmarkGasCosts() {
 }
 ```
 
-## 🔗 ENLACES RELACIONADOS
+### **Performance Monitoring**
+```javascript
+class PerformanceMonitor {
+    async trackProtocolMetrics() {
+        const metrics = {
+            totalValueLocked: await this.calculateTVL(),
+            activePositions: await this.getActivePositionsCount(),
+            averageHealthFactor: await this.getAverageHealthFactor(),
+            liquidationRate: await this.getLiquidationRate(),
+            protocolRevenue: await this.getProtocolRevenue(),
+            gasEfficiency: await this.getGasEfficiencyMetrics()
+        };
+        
+        // Store metrics for historical analysis
+        await this.storeMetrics(metrics);
+        
+        // Check for anomalies
+        await this.detectAnomalies(metrics);
+        
+        return metrics;
+    }
+    
+    async detectAnomalies(currentMetrics) {
+        const historicalData = await this.getHistoricalMetrics(30); // 30 days
+        
+        // Check for unusual patterns
+        if (currentMetrics.liquidationRate > historicalData.avgLiquidationRate * 3) {
+            await this.alertHighLiquidationActivity();
+        }
+        
+        if (currentMetrics.averageHealthFactor < 1.2) {
+            await this.alertLowSystemHealth();
+        }
+    }
+}
+```
 
-- 🏗️ [Arquitectura](../architecture/) - Diseño del sistema
-- 📊 [Gestión de Riesgo](../risk-management/) - Documentación técnica
-- 🚀 [Despliegue](../deployment/) - Guías de implementación
-- 📚 [Documentación Principal](../README.md) - Índice general 
+## 🧮 CALCULATION UTILITIES
+
+### **Risk Score Calculator**
+```javascript
+class RiskScoreCalculator {
+    calculateRiskScore(metrics) {
+        const {
+            collateralizationRatio,
+            healthFactor,
+            timeToLiquidation,
+            volatility
+        } = metrics;
+        
+        // Weighted risk score (0-100)
+        const ratioScore = Math.max(0, Math.min(100, (200 - collateralizationRatio / 10000) * 2));
+        const healthScore = Math.max(0, Math.min(100, (2 - healthFactor / 1000000) * 50));
+        const timeScore = Math.max(0, Math.min(100, 100 - (timeToLiquidation / 86400) * 3.33)); // 30 days = 0 score
+        const volatilityScore = Math.min(100, volatility * 100);
+        
+        const weightedScore = (
+            ratioScore * 0.4 +
+            healthScore * 0.3 +
+            timeScore * 0.2 +
+            volatilityScore * 0.1
+        );
+        
+        return {
+            totalScore: Math.round(weightedScore),
+            breakdown: {
+                ratio: ratioScore,
+                health: healthScore,
+                time: timeScore,
+                volatility: volatilityScore
+            }
+        };
+    }
+}
+```
+
+## 🔗 RELATED LINKS
+
+- 🏗️ [Architecture](../architecture/) - System design
+- 📊 [Risk Management](../risk-management/) - Technical documentation
+- 🚀 [Deployment](../deployment/) - Implementation guides
+- 📚 [Main Documentation](../README.md) - General index 
