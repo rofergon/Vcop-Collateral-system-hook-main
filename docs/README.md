@@ -45,6 +45,15 @@ All components are functioning and have been validated in production.
 - Flow diagrams and comparisons
 - System deployed and functional on Base Sepolia
 
+#### 📄 [UNISWAP_V4_HOOK.md](./architecture/UNISWAP_V4_HOOK.md)
+**Comprehensive Uniswap v4 Hook Documentation**
+- VCOPCollateralHook technical architecture and implementation
+- PSM (Peg Stability Module) automated price stabilization
+- Hook lifecycle: beforeSwap, afterSwap, and liquidity monitoring
+- Real-time price monitoring with 0.1% tolerance for COP parity
+- Risk management and security mechanisms
+- Integration examples and operational parameters
+
 #### 📄 [MAXIMUM_FLEXIBILITY.md](./architecture/FLEXIBILIDAD_MAXIMA.md)  
 **Ultra-flexible system without ratio limits**
 - Implemented contracts without hardcoded restrictions
@@ -118,10 +127,10 @@ src/
 │   ├── MockWBTC.sol             # Simulated WBTC (8 decimals)
 │   └── MockUSDC.sol             # Simulated USDC (6 decimals)
 └── VcopCollateral/      # VCOP System ✅ DEPLOYED AND WORKING
-    ├── VCOPCollateralHook.sol       # Operational Uniswap v4 hook
-    ├── VCOPCollateralManager.sol    # VCOP collateral management
-    ├── VCOPOracle.sol               # Oracles for COP prices
-    ├── VCOPCollateralized.sol       # VCOP stablecoin token
+    ├── VCOPCollateralHook.sol       # Uniswap v4 hook with PSM and price stabilization
+    ├── VCOPCollateralManager.sol    # VCOP collateral management with PSM reserves
+    ├── VCOPOracle.sol               # Oracles for COP prices (VCOP/COP, USD/COP)
+    ├── VCOPCollateralized.sol       # VCOP stablecoin token (6 decimals)
     └── VCOPPriceCalculator.sol      # Uniswap price calculations
 ```
 
@@ -145,9 +154,10 @@ Contract addresses (Base Sepolia):
 
 ### **For Developers**
 1. 📖 Read [NEW_ARCHITECTURE.md](./architecture/NUEVA_ARQUITECTURA.md) to understand the implemented design
-2. 📊 Review [RISK_CALCULATIONS.md](./risk-management/CALCULOS_RIESGO.md) for operational metrics
-3. 🚀 Use [Makefile](../Makefile) for deployed system testing
-4. 🧪 Run `make test-core-loans` to validate functionality
+2. 🔗 Study [UNISWAP_V4_HOOK.md](./architecture/UNISWAP_V4_HOOK.md) for hook integration and PSM
+3. 📊 Review [RISK_CALCULATIONS.md](./risk-management/CALCULOS_RIESGO.md) for operational metrics
+4. 🚀 Use [Makefile](../Makefile) for deployed system testing
+5. 🧪 Run `make test-core-loans` to validate functionality
 
 ### **For Product Managers**
 1. 🚀 [MAXIMUM_FLEXIBILITY.md](./architecture/FLEXIBILIDAD_MAXIMA.md) - Working system
@@ -165,8 +175,9 @@ Contract addresses (Base Sepolia):
 
 ### **VCOPCollateral System (COP Stablecoin)**
 - ✅ **VCOP Token**: Working stablecoin pegged to Colombian peso
-- ✅ **Operational PSM**: Automatic parity stability module
-- ✅ **Uniswap v4 Hook**: Active price monitoring and stabilization
+- ✅ **Operational PSM**: Automatic parity stability module with 0.1% tolerance
+- ✅ **Uniswap v4 Hook**: VCOPCollateralHook with active price monitoring and automated stabilization
+- ✅ **Price Stability**: Real-time monitoring with preventive and reactive stabilization
 - ✅ **Collateralization**: Operational USDC→VCOP collateral system
 - ✅ **Liquidations**: Working automatic liquidation system
 
