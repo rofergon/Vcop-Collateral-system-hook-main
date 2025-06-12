@@ -9,6 +9,7 @@
 * [📋 General Architecture](architecture/README.md)
 * [🆕 New Architecture](architecture/NUEVA_ARQUITECTURA.md)
 * [🔧 Maximum Flexibility](architecture/FLEXIBILIDAD_MAXIMA.md)
+* [🔗 Uniswap v4 Hook](architecture/UNISWAP_V4_HOOK.md)
 
 ## 📊 Risk Management
 
@@ -23,10 +24,12 @@
 * [⚡ Quick Reference](deployment/REFERENCIA_RAPIDA.md)
 * [🚨 Troubleshooting](deployment/TROUBLESHOOTING.md)
 * [🔄 PSM Documentation](deployment/PSM-README.md)
+* [🔗 Hook Reference](deployment/HOOK_REFERENCE.md)
 
 ## 🧪 Examples and Code
 
 * [💡 Usage Examples](examples/README.md)
+* [🔧 Uniswap Hook Examples](examples/UNISWAP_HOOK_EXAMPLES.md)
 
 ## 🔗 Useful Links
 
