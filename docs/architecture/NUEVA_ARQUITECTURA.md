@@ -1,55 +1,55 @@
-# 🏗️ NUEVA ARQUITECTURA MODULAR PARA PRÉSTAMOS COLATERALIZADOS
+# 🏗️ NEW MODULAR ARCHITECTURE FOR COLLATERALIZED LOANS
 
-## 📋 RESUMEN EJECUTIVO
+## 📋 EXECUTIVE SUMMARY
 
-La nueva arquitectura transforma el protocolo de un sistema monolítico centrado en VCOP a una plataforma modular que soporta **cualquier token como colateral O como activo de préstamo**, incluyendo tokens externos que el protocolo no puede mintear/quemar.
+The new architecture transforms the protocol from a monolithic VCOP-centric system to a modular platform that supports **any token as collateral OR as a loan asset**, including external tokens that the protocol cannot mint/burn.
 
-## 🎯 OBJETIVOS CUMPLIDOS
+## 🎯 ACHIEVED OBJECTIVES
 
-### ✅ Flexibilidad Total
-- **Cualquier ERC20** puede ser colateral
-- **Cualquier ERC20** puede ser token de préstamo
-- Soporte para tokens con/sin control de minteo
-- Interfaz unificada para todos los tipos de activos
+### ✅ Total Flexibility
+- **Any ERC20** can be collateral
+- **Any ERC20** can be a loan token
+- Support for tokens with/without minting control
+- Unified interface for all asset types
 
-### ✅ Sistema de Vaults
-- Para tokens externos (ETH, WBTC, etc.)
-- Liquidez proporcionada por LP's
-- Intereses para proveedores de liquidez
-- Cálculo dinámico de tasas de interés
+### ✅ Vault System
+- For external tokens (ETH, WBTC, etc.)
+- Liquidity provided by LPs
+- Interest for liquidity providers
+- Dynamic interest rate calculation
 
-### ✅ Oráculos Híbridos
-- Chainlink para precios confiables
-- Uniswap v4 como fallback
-- Precios manuales para testing
-- Soporte para múltiples pares de tokens
+### ✅ Hybrid Oracles
+- Chainlink for reliable prices
+- Uniswap v4 as fallback
+- Manual prices for testing
+- Support for multiple token pairs
 
-### ✅ Gestión de Riesgo
-- Ratios de colateralización por asset
-- Liquidaciones automáticas
-- Límites de exposición por token
-- Bonificaciones para liquidadores
+### ✅ Risk Management
+- Collateralization ratios per asset
+- Automatic liquidations
+- Exposure limits per token
+- Bonuses for liquidators
 
-## 🏛️ COMPONENTES DE LA ARQUITECTURA
+## 🏛️ ARCHITECTURE COMPONENTS
 
-### 1. INTERFACES CORE
+### 1. CORE INTERFACES
 
 #### `IAssetHandler`
 ```solidity
-// Interfaz unificada para manejar diferentes tipos de activos
+// Unified interface for handling different asset types
 enum AssetType {
-    MINTABLE_BURNABLE,  // VCOP y tokens similares
-    VAULT_BASED,        // ETH, WBTC, tokens externos
-    REBASING            // Tokens con mecanismos de rebase
+    MINTABLE_BURNABLE,  // VCOP and similar tokens
+    VAULT_BASED,        // ETH, WBTC, external tokens
+    REBASING            // Tokens with rebase mechanisms
 }
 ```
 
 #### `ILoanManager`
 ```solidity
-// Gestión de préstamos con cualquier combinación de activos
+// Loan management with any asset combination
 struct LoanTerms {
-    address collateralAsset;  // Cualquier token como colateral
-    address loanAsset;        // Cualquier token como préstamo
+    address collateralAsset;  // Any token as collateral
+    address loanAsset;        // Any token as loan
     uint256 collateralAmount;
     uint256 loanAmount;
     uint256 maxLoanToValue;
@@ -60,121 +60,121 @@ struct LoanTerms {
 
 #### `IGenericOracle`
 ```solidity
-// Sistema de oráculos flexible
+// Flexible oracle system
 enum PriceFeedType {
-    CHAINLINK,    // Feeds de Chainlink
-    UNISWAP_V4,   // Pools de Uniswap v4
-    MANUAL,       // Precios manuales
-    HYBRID        // Combinación de fuentes
+    CHAINLINK,    // Chainlink feeds
+    UNISWAP_V4,   // Uniswap v4 pools
+    MANUAL,       // Manual prices
+    HYBRID        // Combined sources
 }
 ```
 
 ### 2. ASSET HANDLERS
 
 #### `MintableBurnableHandler`
-- **Propósito**: Maneja tokens que el protocolo puede mintear/quemar
-- **Casos de uso**: VCOP, tokens propios del protocolo
-- **Funcionamiento**: 
-  - Mintea tokens directamente al prestamista
-  - Quema tokens del prestamista al repagar
-  - Liquidez "infinita" (limitada por parámetros de seguridad)
+- **Purpose**: Handles tokens that the protocol can mint/burn
+- **Use cases**: VCOP, protocol's own tokens
+- **Operation**: 
+  - Mints tokens directly to lender
+  - Burns tokens from lender upon repayment
+  - "Infinite" liquidity (limited by safety parameters)
 
 #### `VaultBasedHandler`
-- **Propósito**: Maneja tokens externos que requieren vaults
-- **Casos de uso**: ETH, WBTC, USDC, DAI, etc.
-- **Funcionamiento**:
-  - Proveedores de liquidez depositan tokens
-  - Sistema de intereses basado en utilización
-  - Prestamistas reciben tokens del vault
-  - Repagos van de vuelta al vault
+- **Purpose**: Handles external tokens requiring vaults
+- **Use cases**: ETH, WBTC, USDC, DAI, etc.
+- **Operation**:
+  - Liquidity providers deposit tokens
+  - Utilization-based interest system
+  - Lenders receive tokens from vault
+  - Repayments go back to vault
 
 ### 3. LOAN MANAGER
 
 #### `GenericLoanManager`
-- **Flexibilidad total**: Cualquier token como colateral + cualquier token como préstamo
-- **Gestión de posiciones**: Crear, modificar, liquidar posiciones
-- **Cálculos de riesgo**: LTV, ratios de colateralización, límites
-- **Integración con handlers**: Delega operaciones a handlers específicos
+- **Total flexibility**: Any token as collateral + any token as loan
+- **Position management**: Create, modify, liquidate positions
+- **Risk calculations**: LTV, collateralization ratios, limits
+- **Handler integration**: Delegates operations to specific handlers
 
-### 4. MOCK TOKENS PARA TESTING
+### 4. MOCK TOKENS FOR TESTING
 
 ```solidity
-// MockETH.sol - 18 decimales
-// MockWBTC.sol - 8 decimales  
-// MockUSDC.sol - 6 decimales
+// MockETH.sol - 18 decimals
+// MockWBTC.sol - 8 decimals  
+// MockUSDC.sol - 6 decimals
 ```
 
-## 🔄 FLUJO DE FUNCIONAMIENTO
+## 🔄 OPERATIONAL FLOW
 
-### Escenario 1: Préstamo de VCOP con ETH como colateral
+### Scenario 1: VCOP Loan with ETH as Collateral
 ```
-1. Usuario deposita ETH como colateral
-2. VaultBasedHandler verifica liquidez disponible de VCOP
-3. MintableBurnableHandler mintea VCOP al usuario
-4. Posición creada con ETH colateral + VCOP prestado
-```
-
-### Escenario 2: Préstamo de ETH con WBTC como colateral
-```
-1. Usuario deposita WBTC como colateral
-2. VaultBasedHandler verifica liquidez ETH disponible
-3. VaultBasedHandler transfiere ETH del vault al usuario
-4. Posición creada con WBTC colateral + ETH prestado
+1. User deposits ETH as collateral
+2. VaultBasedHandler verifies VCOP liquidity available
+3. MintableBurnableHandler mints VCOP to user
+4. Position created with ETH collateral + VCOP loan
 ```
 
-### Escenario 3: Préstamo de USDC con VCOP como colateral
+### Scenario 2: ETH Loan with WBTC as Collateral
 ```
-1. Usuario deposita VCOP como colateral
-2. VaultBasedHandler verifica liquidez USDC disponible
-3. VaultBasedHandler transfiere USDC del vault al usuario
-4. Posición creada con VCOP colateral + USDC prestado
+1. User deposits WBTC as collateral
+2. VaultBasedHandler verifies ETH liquidity available
+3. VaultBasedHandler transfers ETH from vault to user
+4. Position created with WBTC collateral + ETH loan
 ```
 
-## 📊 COMPARACIÓN: ANTES vs DESPUÉS
+### Scenario 3: USDC Loan with VCOP as Collateral
+```
+1. User deposits VCOP as collateral
+2. VaultBasedHandler verifies USDC liquidity available
+3. VaultBasedHandler transfers USDC from vault to user
+4. Position created with VCOP collateral + USDC loan
+```
 
-| Aspecto | Sistema Actual | Nueva Arquitectura |
+## 📊 COMPARISON: BEFORE vs AFTER
+
+| Aspect | Current System | New Architecture |
 |---------|---------------|-------------------|
-| **Tokens de préstamo** | Solo VCOP | Cualquier ERC20 |
-| **Colateral** | Solo USDC | Cualquier ERC20 |
-| **Control de tokens** | Absoluto (mint/burn) | Flexible (mint/burn + vaults) |
-| **Liquidez** | Ilimitada (minteo) | Vaults + LP's + minteo |
-| **Oráculos** | Solo VCOP/COP | Múltiples pares |
-| **Flexibilidad** | Baja | Muy alta |
-| **Escalabilidad** | Limitada | Excelente |
+| **Loan tokens** | Only VCOP | Any ERC20 |
+| **Collateral** | Only USDC | Any ERC20 |
+| **Token control** | Absolute (mint/burn) | Flexible (mint/burn + vaults) |
+| **Liquidity** | Unlimited (minting) | Vaults + LPs + minting |
+| **Oracles** | Only VCOP/COP | Multiple pairs |
+| **Flexibility** | Low | Very high |
+| **Scalability** | Limited | Excellent |
 
-## 🛠️ PLAN DE IMPLEMENTACIÓN
+## 🛠️ IMPLEMENTATION PLAN
 
-### Fase 1: Interfaces y Contracts Core
+### Phase 1: Core Interfaces and Contracts
 - [x] `IAssetHandler.sol`
 - [x] `ILoanManager.sol` 
 - [x] `IGenericOracle.sol`
 - [x] Mock tokens (ETH, WBTC, USDC)
 
-### Fase 2: Asset Handlers (En desarrollo)
+### Phase 2: Asset Handlers (In development)
 - [ ] `MintableBurnableHandler.sol`
 - [ ] `VaultBasedHandler.sol`
 - [ ] `GenericLoanManager.sol`
 
-### Fase 3: Oracle System
+### Phase 3: Oracle System
 - [ ] `GenericOracle.sol`
 - [ ] `ChainlinkPriceFeed.sol`
 - [ ] `UniswapV4PriceFeed.sol`
 - [ ] `ManualPriceFeed.sol`
 
-### Fase 4: Hook Integration
-- [ ] `GenericCollateralHook.sol` (adaptación del hook actual)
-- [ ] Integración con Uniswap v4
+### Phase 4: Hook Integration
+- [ ] `GenericCollateralHook.sol` (adaptation of current hook)
+- [ ] Integration with Uniswap v4
 
-### Fase 5: Migration y Testing
-- [ ] Scripts de migración
-- [ ] Tests comprehensivos
+### Phase 5: Migration and Testing
+- [ ] Migration scripts
+- [ ] Comprehensive tests
 - [ ] Deployment scripts
 
-## 🔧 MIGRACIÓN DESDE SISTEMA ACTUAL
+## 🔧 MIGRATION FROM CURRENT SYSTEM
 
-### Pasos de Migración:
+### Migration Steps:
 
-1. **Deployar nuevos contratos**
+1. **Deploy new contracts**
    ```bash
    # Deploy asset handlers
    forge script script/deploy/DeployAssetHandlers.s.sol
@@ -186,9 +186,9 @@ enum PriceFeedType {
    forge script script/deploy/DeployOracle.s.sol
    ```
 
-2. **Configurar assets**
+2. **Configure assets**
    ```solidity
-   // Configurar VCOP como mintable/burnable
+   // Configure VCOP as mintable/burnable
    mintableBurnableHandler.configureAsset(
        vcopAddress,
        1500000, // 150% collateral ratio
@@ -197,7 +197,7 @@ enum PriceFeedType {
        50000 // 5% interest rate
    );
    
-   // Configurar ETH como vault-based
+   // Configure ETH as vault-based
    vaultBasedHandler.configureAsset(
        mockETHAddress,
        1300000, // 130% collateral ratio
@@ -207,84 +207,84 @@ enum PriceFeedType {
    );
    ```
 
-3. **Migrar posiciones existentes**
+3. **Migrate existing positions**
    ```solidity
-   // Script para migrar posiciones del sistema anterior
-   // al nuevo GenericLoanManager
+   // Script to migrate positions from previous system
+   // to new GenericLoanManager
    ```
 
-4. **Actualizar frontend**
+4. **Update frontend**
    ```javascript
-   // Nuevas funciones para interactuar con múltiples tokens
-   // UI para seleccionar colateral y asset de préstamo
-   // Dashboards para LP's de vaults
+   // New functions to interact with multiple tokens
+   // UI for selecting collateral and loan asset
+   // Dashboards for vault LPs
    ```
 
-## 💡 CASOS DE USO NUEVOS
+## 💡 NEW USE CASES
 
-### Para Usuarios:
-- **Prestamista flexible**: "Quiero prestar USDC usando mi ETH como colateral"
-- **Diversificación**: "Tengo WBTC y quiero obtener VCOP"
-- **Arbitraje**: "Quiero aprovechar diferencias de precio entre tokens"
+### For Users:
+- **Flexible lending**: "I want to borrow USDC using my ETH as collateral"
+- **Diversification**: "I have WBTC and want to get VCOP"
+- **Arbitrage**: "I want to take advantage of price differences between tokens"
 
-### Para Proveedores de Liquidez:
-- **Yield farming**: "Deposito ETH en el vault y gano intereses"
-- **Gestión de riesgo**: "Distribuyo liquidez entre varios activos"
+### For Liquidity Providers:
+- **Yield farming**: "I deposit ETH in the vault and earn interest"
+- **Risk management**: "I distribute liquidity across multiple assets"
 
-### Para el Protocolo:
-- **Escalabilidad**: Soportar nuevos tokens sin cambios de código
-- **Competitividad**: Rivalizar con Aave, Compound
-- **Innovación**: Nuevos productos financieros
+### For the Protocol:
+- **Scalability**: Support new tokens without code changes
+- **Competitiveness**: Rival Aave, Compound
+- **Innovation**: New financial products
 
-## 🔐 CONSIDERACIONES DE SEGURIDAD
+## 🔐 SECURITY CONSIDERATIONS
 
 ### Risk Management:
-- **Límites por activo**: Máximo exposure por token
-- **Ratios dinámicos**: Ajuste automático según volatilidad
-- **Circuit breakers**: Pausar operaciones en casos extremos
-- **Timelock**: Cambios críticos con delay
+- **Asset limits**: Maximum exposure per token
+- **Dynamic ratios**: Automatic adjustment based on volatility
+- **Circuit breakers**: Pause operations in extreme cases
+- **Timelock**: Critical changes with delay
 
 ### Oracle Security:
-- **Múltiples fuentes**: Reducir riesgo de oracle único
-- **Validación de precios**: Detectar precios anómalos
-- **Heartbeat monitoring**: Verificar frescura de datos
+- **Multiple sources**: Reduce single oracle risk
+- **Price validation**: Detect anomalous prices
+- **Heartbeat monitoring**: Verify data freshness
 
 ### Smart Contract Security:
-- **Reentrancy guards**: Protección contra ataques
-- **Access control**: Permisos granulares
-- **Upgradability**: Sistema de upgrades seguro
-- **Audit**: Auditorías de seguridad
+- **Reentrancy guards**: Protection against attacks
+- **Access control**: Granular permissions
+- **Upgradability**: Secure upgrade system
+- **Audit**: Security audits
 
-## 📈 BENEFICIOS DE LA NUEVA ARQUITECTURA
+## 📈 BENEFITS OF NEW ARCHITECTURE
 
-### Técnicos:
-- **Modularidad**: Componentes independientes y testeable
-- **Extensibilidad**: Fácil agregar nuevos tipos de activos
-- **Mantenibilidad**: Código más limpio y organizado
-- **Testabilidad**: Testing unitario e integración mejorado
+### Technical:
+- **Modularity**: Independent and testable components
+- **Extensibility**: Easy to add new asset types
+- **Maintainability**: Cleaner and organized code
+- **Testability**: Improved unit and integration testing
 
-### De Negocio:
-- **Market expansion**: Capturar más usuarios y liquidez
-- **Revenue diversification**: Ingresos de múltiples activos
-- **Competitive advantage**: Features que otros no tienen
-- **Future-proof**: Arquitectura preparada para nuevos tokens
+### Business:
+- **Market expansion**: Capture more users and liquidity
+- **Revenue diversification**: Income from multiple assets
+- **Competitive advantage**: Features others don't have
+- **Future-proof**: Architecture ready for new tokens
 
-### Para Usuarios:
-- **Más opciones**: Flexibilidad total de activos
-- **Mejores rates**: Competencia entre vaults
-- **UX mejorada**: Interfaz unificada y intuitiva
-- **Lower risk**: Diversificación de colateral
+### For Users:
+- **More options**: Total asset flexibility
+- **Better rates**: Competition between vaults
+- **Improved UX**: Unified and intuitive interface
+- **Lower risk**: Collateral diversification
 
-## 🚀 PRÓXIMOS PASOS
+## 🚀 NEXT STEPS
 
-1. **Completar implementación** de asset handlers
-2. **Desarrollar oracle system** robusto
-3. **Integrar con Uniswap v4** hook actualizado
-4. **Testing exhaustivo** en testnet
-5. **Audit de seguridad** previo a mainnet
-6. **Deployment gradual** con límites iniciales
-7. **Monitoring y optimización** post-deployment
+1. **Complete implementation** of asset handlers
+2. **Develop robust** oracle system
+3. **Integrate with Uniswap v4** updated hook
+4. **Exhaustive testing** on testnet
+5. **Security audit** before mainnet
+6. **Gradual deployment** with initial limits
+7. **Monitoring and optimization** post-deployment
 
 ---
 
-Esta nueva arquitectura representa un salto cualitativo hacia un protocolo de lending verdaderamente universal y competitivo. 🌟 
+This new architecture represents a qualitative leap towards a truly universal and competitive lending protocol. 🌟 
