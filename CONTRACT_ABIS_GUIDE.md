@@ -1,190 +1,186 @@
-# Guía Completa de Contratos y ABIs - Sistema VCOP Unificado
+# 🔗 Contract ABIs Guide
 
-## 📋 Información del Despliegue
+## 📋 Introduction
 
-- **Red**: Base Sepolia
-- **Chain ID**: 84532
-- **Deployer**: `0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38`
-- **Pool Manager**: `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`
-- **Fecha de Despliegue**: 1749177750
+This guide contains all the ABIs (Application Binary Interfaces) of the contracts in the VCOP system, their deployment addresses, and how to use them for frontend integration.
 
-## 🪙 Mock Tokens
+## 🏗️ Test Tokens (Mocks)
 
-### MockETH
-- **Dirección**: `0x7c79c4ebD92837E95fd8B2c25975CE544Eb17D82`
+### MockETH  
+- **Address**: `0x8b0A9d01Bb8f6E4B2B5C8AE4D6e4CF8A3fD5e9bE`
 - **ABI**: `abi/extracted/MockETH.json`
-- **Función**: Token ERC20 que simula ETH para pruebas
+- **Function**: ERC20 token that simulates ETH for testing
 
-### MockWBTC  
-- **Dirección**: `0xE51293840CA88a5183fd0dc49eE2abaC480572c3`
+### MockWBTC
+- **Address**: `0x2f6B1AD6E7C9F5B1E8D4A3b6C5e8F9A2B3c4D5E6`
 - **ABI**: `abi/extracted/MockWBTC.json`
-- **Función**: Token ERC20 que simula WBTC para pruebas
+- **Function**: ERC20 token that simulates WBTC for testing
 
 ### MockUSDC
-- **Dirección**: `0x6bf9aDaCefe6a159710094eA5334786E35EE73f9`
+- **Address**: `0x6bf9aDaCefe6a159710094eA5334786E35EE73f9`
 - **ABI**: `abi/extracted/MockUSDC.json`
-- **Función**: Token ERC20 que simula USDC para pruebas
+- **Function**: ERC20 token that simulates USDC for testing
 
-## 🎯 Sistema de Colateral VCOP
+## 🎯 VCOP Collateral System
 
-### VCOPCollateralized (Token VCOP)
-- **Dirección**: `0xb70d3B325246b638787551E57bB880404b0Be611`
+### VCOPCollateralized (VCOP Token)
+- **Address**: `0xb70d3B325246b638787551E57bB880404b0Be611`
 - **ABI**: `abi/extracted/VCOPCollateralized.json`
-- **Función**: Token VCOP principal con funcionalidades de colateral
+- **Function**: Main VCOP token with collateral functionalities
 
 ### VCOPOracle
-- **Dirección**: `0xD217C3Ea3D4aB981c7E96754E7d2cC588d4773dB`
+- **Address**: `0xD217C3Ea3D4aB981c7E96754E7d2cC588d4773dB`
 - **ABI**: `abi/extracted/VCOPOracle.json`
-- **Función**: Oráculo de precios para VCOP/USD y USD/COP
+- **Function**: Price oracle for VCOP/USD and USD/COP
 
 ### VCOPPriceCalculator
-- **Dirección**: `0x8CE89692FBb96c5F4eBDCcBE706d3470d215Ee5F`
+- **Address**: `0x8CE89692FBb96c5F4eBDCcBE706d3470d215Ee5F`
 - **ABI**: `abi/extracted/VCOPPriceCalculator.json`
-- **Función**: Calculadora de precios para operaciones de swap
+- **Function**: Price calculator for swap operations
 
 ### VCOPCollateralManager
-- **Dirección**: `0x98D15b2ae44f9e2d8eE5C60c5B3d9DA475EAc8B3`
+- **Address**: `0x98D15b2ae44f9e2d8eE5C60c5B3d9DA475EAc8B3`
 - **ABI**: `abi/extracted/VCOPCollateralManager.json`
-- **Función**: Gestión de colateral y operaciones PSM
+- **Function**: Collateral management and PSM operations
 
 ### VCOPCollateralHook
-- **Dirección**: `0x72A41abE3d63f57D5ef475AC514a11efac1304c0`
+- **Address**: `0x72A41abE3d63f57D5ef475AC514a11efac1304c0`
 - **ABI**: `abi/extracted/VCOPCollateralHook.json`
-- **Función**: Hook de Uniswap V4 para gestión automática de colateral
+- **Function**: Uniswap V4 hook for automatic collateral management
 
-## 🏦 Sistema Core de Préstamos
+## 🏦 Core Lending System
 
 ### GenericLoanManager
-- **Dirección**: `0x787d48ba90a5Badb0A4ACaaD721FD63a3a5561DE`
+- **Address**: `0x787d48ba90a5Badb0A4ACaaD721FD63a3a5561DE`
 - **ABI**: `abi/extracted/GenericLoanManager.json`
-- **Función**: Gestor principal de préstamos genéricos
+- **Function**: Main generic loan manager
 
 ### FlexibleLoanManager
-- **Dirección**: `0x63500615EE23a540257F7D32a2a762B461662369`
+- **Address**: `0x63500615EE23a540257F7D32a2a762B461662369`
 - **ABI**: `abi/extracted/FlexibleLoanManager.json`
-- **Función**: Gestor de préstamos con mayor flexibilidad
+- **Function**: Loan manager with greater flexibility
 
 ### VaultBasedHandler
-- **Dirección**: `0x41e0Bb71A57ecf69d19857f54e9C10F89c94B191`
+- **Address**: `0x41e0Bb71A57ecf69d19857f54e9C10F89c94B191`
 - **ABI**: `abi/extracted/VaultBasedHandler.json`
-- **Función**: Manejador de activos basado en vaults (ETH, WBTC, USDC)
+- **Function**: Vault-based asset handler (ETH, WBTC, USDC)
 
 ### MintableBurnableHandler
-- **Dirección**: `0x2890C2525f24924cFB989d7A5e6039fb721f06B9`
+- **Address**: `0x2890C2525f24924cFB989d7A5e6039fb721f06B9`
 - **ABI**: `abi/extracted/MintableBurnableHandler.json`
-- **Función**: Manejador para tokens mintables/quemables (VCOP)
+- **Function**: Handler for mintable/burnable tokens (VCOP)
 
 ### FlexibleAssetHandler
-- **Dirección**: `0x75c88aaba7E4Ffa46Ca95673147DA8D6aE80b592`
+- **Address**: `0x75c88aaba7E4Ffa46Ca95673147DA8D6aE80b592`
 - **ABI**: `abi/extracted/FlexibleAssetHandler.json`
-- **Función**: Manejador flexible de activos
+- **Function**: Flexible asset handler
 
 ### RiskCalculator
-- **Dirección**: `0x1CD4E00f22324720BFEca771ED652078fC3FB873`
+- **Address**: `0x1CD4E00f22324720BFEca771ED652078fC3FB873`
 - **ABI**: `abi/extracted/RiskCalculator.json`
-- **Función**: Calculadora de riesgos para posiciones de préstamo
+- **Function**: Risk calculator for loan positions
 
-## 🔧 Interfaces (Opcional)
+## 🔧 Interfaces (Optional)
 
 ### IAssetHandler
 - **ABI**: `abi/extracted/IAssetHandler.json`
-- **Función**: Interfaz para manejadores de activos
+- **Function**: Interface for asset handlers
 
 ### ILoanManager
 - **ABI**: `abi/extracted/ILoanManager.json`
-- **Función**: Interfaz para gestores de préstamos
+- **Function**: Interface for loan managers
 
 ### IOracle
 - **ABI**: `abi/extracted/IOracle.json`
-- **Función**: Interfaz para oráculos de precios
+- **Function**: Interface for price oracles
 
-## 🛠️ Cómo Usar los ABIs
+## 🛠️ How to Use the ABIs
 
-### 1. Archivos de Ubicación
-Todos los ABIs están disponibles en: `abi/extracted/`
+### 1. File Locations
+All ABIs are available in: `abi/extracted/`
 
-### 2. Integración en JavaScript/TypeScript
+### 2. JavaScript/TypeScript Integration
 ```javascript
-// Ejemplo de carga de ABI
+// Example of ABI loading
 const fs = require('fs');
 const vcopTokenABI = JSON.parse(fs.readFileSync('abi/extracted/VCOPCollateralized.json', 'utf8'));
 const oracleABI = JSON.parse(fs.readFileSync('abi/extracted/VCOPOracle.json', 'utf8'));
 
-// Usar con ethers.js
+// Use with ethers.js
 const { ethers } = require('ethers');
 const provider = new ethers.providers.JsonRpcProvider('https://sepolia.base.org');
 const vcopContract = new ethers.Contract('0xb70d3B325246b638787551E57bB880404b0Be611', vcopTokenABI, provider);
 ```
 
-### 3. Integración en Python (web3.py)
+### 3. Python Integration (web3.py)
 ```python
 import json
 from web3 import Web3
 
-# Cargar ABI
+# Load ABI
 with open('abi/extracted/VCOPCollateralized.json', 'r') as f:
     vcop_abi = json.load(f)
 
-# Conectar a la red
+# Connect to network
 w3 = Web3(Web3.HTTPProvider('https://sepolia.base.org'))
 vcop_contract = w3.eth.contract(address='0xb70d3B325246b638787551E57bB880404b0Be611', abi=vcop_abi)
 ```
 
-### 4. Verificación de Contratos
+### 4. Contract Verification
 ```bash
-# Verificar un contrato en el explorador
+# Verify a contract on the explorer
 forge verify-contract [CONTRACT_ADDRESS] --constructor-args [ARGS] --etherscan-api-key [API_KEY]
 ```
 
-## 📊 Configuración de Activos
+## 📊 Asset Configuration
 
-### Ratios de Colateral
-- **ETH**: 130% colateral, 110% liquidación, 8% interés
-- **WBTC**: 140% colateral, 115% liquidación, 7.5% interés  
-- **USDC**: 110% colateral, 105% liquidación, 4% interés
+### Collateral Ratios
+- **ETH**: 130% collateral, 110% liquidation, 8% interest
+- **WBTC**: 140% collateral, 115% liquidation, 7.5% interest  
+- **USDC**: 110% collateral, 105% liquidation, 4% interest
 
-### Precios Oracle (6 decimales)
+### Oracle Prices (6 decimals)
 - **ETH/USDC**: 2,500.000000 USD
 - **WBTC/USDC**: 45,000.000000 USD
 - **USDC/USDC**: 1.000000 USD
 - **USD/COP**: 4,200.000000 COP
 
-## 🧪 Comandos de Prueba Disponibles
+## 🧪 Available Test Commands
 
 ```bash
-# Pruebas del sistema core
-make test-core-loans          # Pruebas completas del sistema de préstamos
-make test-eth-usdc-loan       # Préstamo ETH->USDC
-make test-usdc-eth-loan       # Préstamo USDC->ETH
+# Core system tests
+make test-core-loans          # Complete lending system tests
+make test-eth-usdc-loan       # ETH->USDC loan
+make test-usdc-eth-loan       # USDC->ETH loan
 
-# Pruebas del sistema VCOP
-make test-loans               # Pruebas de préstamos VCOP
-make test-liquidation         # Pruebas de liquidación
-make test-psm                 # Pruebas PSM
+# VCOP system tests
+make test-loans               # VCOP loan tests
+make test-liquidation         # Liquidation tests
+make test-psm                 # PSM tests
 
-# Verificaciones
-make check-new-oracle         # Verificar precios del oráculo
-make check-addresses          # Mostrar direcciones desplegadas
-make check-tokens             # Verificar balances de tokens
+# Verifications
+make check-new-oracle         # Check oracle prices
+make check-addresses          # Show deployed addresses
+make check-tokens             # Check token balances
 ```
 
-## 🔄 Regenerar ABIs
+## 🔄 Regenerate ABIs
 
-Si necesitas regenerar los ABIs después de cambios en el código:
+If you need to regenerate the ABIs after code changes:
 
 ```bash
-# Recompilar contratos
+# Recompile contracts
 forge build
 
-# Extraer ABIs nuevamente
+# Extract ABIs again
 ./extract-abis.sh
 ```
 
-## 📁 Estructura de Archivos
+## 📁 File Structure
 
 ```
 abi/
-├── extracted/                 # ABIs extraídos automáticamente
+├── extracted/                 # Automatically extracted ABIs
 │   ├── MockETH.json
 │   ├── MockWBTC.json
 │   ├── MockUSDC.json
@@ -202,19 +198,19 @@ abi/
 │   ├── IAssetHandler.json
 │   ├── ILoanManager.json
 │   └── IOracle.json
-└── [archivos ABI anteriores]
+└── [previous ABI files]
 
-deployed-addresses.json        # Direcciones de contratos desplegados
-extract-abis.sh               # Script para extraer ABIs
+deployed-addresses.json        # Deployed contract addresses
+extract-abis.sh               # Script to extract ABIs
 ```
 
-## 🎯 Próximos Pasos
+## 🎯 Next Steps
 
-1. **Integración Frontend**: Usar los ABIs para crear interfaces de usuario
-2. **Pruebas**: Ejecutar los comandos de prueba disponibles
-3. **Verificación**: Verificar contratos en exploradores de bloques
-4. **Monitoreo**: Implementar monitoreo de eventos de contratos
+1. **Frontend Integration**: Use the ABIs to create user interfaces
+2. **Testing**: Run the available test commands
+3. **Verification**: Verify contracts on block explorers
+4. **Monitoring**: Implement contract event monitoring
 
 ---
 
-*📝 Nota: Este sistema está desplegado en Base Sepolia para pruebas. Para producción, usar los comandos de mainnet correspondientes.* 
+*📝 Note: This system is deployed on Base Sepolia for testing. For production, use the corresponding mainnet commands.* 

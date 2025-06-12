@@ -1,10 +1,10 @@
 # 🔗 Uniswap v4 Hook - VCOPCollateralHook
 
-## 📋 Introducción
+## 📋 Introduction
 
-El **VCOPCollateralHook** es un hook personalizado de Uniswap v4 que actúa como el mecanismo principal de estabilización de precios para el token VCOP. Este hook monitora continuamente el precio del token y ejecuta operaciones automatizadas para mantener la paridad con el peso colombiano (COP).
+The **VCOPCollateralHook** is a custom Uniswap v4 hook that acts as the main price stabilization mechanism for the VCOP token. This hook continuously monitors the token price and executes automated operations to maintain parity with the Colombian peso (COP).
 
-## 🏗️ Arquitectura General
+## 🏗️ General Architecture
 
 ```mermaid
 graph TB
@@ -24,32 +24,32 @@ graph TB
     L[Stablecoin Collateral] --> B
 ```
 
-## 🔧 Componentes Principales
+## 🔧 Main Components
 
 ### 1. BaseHook Integration
-El hook extiende `BaseHook` de Uniswap v4 y implementa los siguientes puntos de interceptación:
-- `beforeSwap`: Intercepta swaps antes de la ejecución
-- `afterSwap`: Procesa acciones post-swap
-- `afterAddLiquidity`: Monitorea cambios de liquidez
+The hook extends `BaseHook` from Uniswap v4 and implements the following interception points:
+- `beforeSwap`: Intercepts swaps before execution
+- `afterSwap`: Processes post-swap actions
+- `afterAddLiquidity`: Monitors liquidity changes
 
 ### 2. Price Oracle Integration
 ```solidity
 VCOPOracle public immutable oracle;
 ```
-Se integra con un oráculo personalizado para obtener:
-- Tasa VCOP/COP
-- Tasa USD/COP
-- Datos de precios en tiempo real
+Integrates with a custom oracle to obtain:
+- VCOP/COP rate
+- USD/COP rate
+- Real-time price data
 
 ### 3. PSM (Peg Stability Module)
-Sistema de estabilización que permite:
-- Intercambio de VCOP por colateral a tasas cerca de la paridad
-- Intercambio de colateral por VCOP
-- Operaciones automáticas de estabilización
+Stabilization system that allows:
+- VCOP to collateral exchange at rates near parity
+- Collateral to VCOP exchange
+- Automatic stabilization operations
 
-## ⚙️ Funcionalidades Clave
+## ⚙️ Key Features
 
-### 🎯 Monitoreo de Precios
+### 🎯 Price Monitoring
 ```solidity
 function monitorPrice() public returns (bool) {
     uint256 vcopToCopRate = oracle.getVcopToCopRate();
@@ -59,10 +59,10 @@ function monitorPrice() public returns (bool) {
 }
 ```
 
-**Parámetros de Estabilidad:**
-- `pegUpperBound`: 1.01 COP (101% de la paridad)
-- `pegLowerBound`: 0.99 COP (99% de la paridad)
-- Tolerancia del 0.1% para mantener estabilidad
+**Stability Parameters:**
+- `pegUpperBound`: 1.01 COP (101% of parity)
+- `pegLowerBound`: 0.99 COP (99% of parity)
+- 0.1% tolerance to maintain stability
 
 ### 🔄 Hook Lifecycle
 
@@ -76,10 +76,10 @@ function _beforeSwap(
 ) internal override returns (bytes4, BeforeSwapDelta, uint24)
 ```
 
-**Funciones:**
-1. Detecta si el pool contiene VCOP
-2. Identifica swaps grandes que podrían desestabilizar el precio
-3. Ejecuta estabilización preventiva si es necesario
+**Functions:**
+1. Detects if the pool contains VCOP
+2. Identifies large swaps that could destabilize the price
+3. Executes preventive stabilization if necessary
 
 #### After Swap
 ```solidity
@@ -92,100 +92,100 @@ function _afterSwap(
 ) internal override returns (bytes4, int128)
 ```
 
-**Funciones:**
-1. Monitorea el precio post-swap
-2. Ejecuta operaciones de estabilización si el precio sale de los límites
-3. Registra eventos para análisis
+**Functions:**
+1. Monitors post-swap price
+2. Executes stabilization operations if price goes out of bounds
+3. Records events for analysis
 
 ### 💱 PSM Operations
 
-#### Swap VCOP por Colateral
+#### Swap VCOP for Collateral
 ```solidity
 function psmSwapVCOPForCollateral(uint256 vcopAmount) external {
-    // Validaciones
+    // Validations
     require(!psmPaused, "PSM is paused");
     require(vcopAmount <= psmMaxSwapAmount, "Amount exceeds PSM limit");
     
-    // Cálculo de colateral
+    // Collateral calculation
     uint256 collateralAmount = calculateCollateralForVCOP(vcopAmount);
     uint256 fee = (collateralAmount * psmFee) / 1000000;
     uint256 amountOut = collateralAmount - fee;
     
-    // Quemar VCOP y transferir colateral
+    // Burn VCOP and transfer collateral
     VCOPCollateralized(Currency.unwrap(vcopCurrency)).burn(address(this), vcopAmount);
     collateralManager().transferPSMCollateral(msg.sender, collateralTokenAddress, amountOut);
 }
 ```
 
-#### Swap Colateral por VCOP
+#### Swap Collateral for VCOP
 ```solidity
 function psmSwapCollateralForVCOP(uint256 collateralAmount) external {
-    // Validaciones y cálculos
+    // Validations and calculations
     uint256 vcopAmount = calculateVCOPForCollateral(collateralAmount);
     
-    // Transferir colateral y mintear VCOP
+    // Transfer collateral and mint VCOP
     IERC20(collateralTokenAddress).safeTransferFrom(msg.sender, address(collateralManager()), collateralAmount);
     collateralManager().mintPSMVcop(msg.sender, collateralTokenAddress, amountOut);
 }
 ```
 
-### 🎛️ Estabilización Automática
+### 🎛️ Automatic Stabilization
 
 ```solidity
 function stabilizePriceWithPSM() public {
     uint256 vcopToCopRate = oracle.getVcopToCopRate();
     
     if (vcopToCopRate < pegLowerBound) {
-        // Precio bajo - comprar VCOP con colateral
+        // Low price - buy VCOP with collateral
         uint256 stabilizationAmount = calculateStabilizationAmount();
         _executePSMBuy(stabilizationAmount);
     } else if (vcopToCopRate > pegUpperBound) {
-        // Precio alto - vender VCOP por colateral
+        // High price - sell VCOP for collateral
         uint256 stabilizationAmount = calculateStabilizationAmount();
         _executePSMSell(stabilizationAmount);
     }
 }
 ```
 
-## 📊 Parámetros de Configuración
+## 📊 Configuration Parameters
 
-### Parámetros de Estabilidad
+### Stability Parameters
 ```solidity
 uint256 public pegUpperBound = 1010000;    // 1.01 * 1e6
 uint256 public pegLowerBound = 990000;     // 0.99 * 1e6
 uint256 public largeSwapThreshold = 5000 * 1e6; // 5,000 VCOP
 ```
 
-### Parámetros PSM
+### PSM Parameters
 ```solidity
 uint256 public psmFee = 1000;              // 0.1% (1e6 basis)
 uint256 public psmMaxSwapAmount = 10000 * 1e6; // 10,000 VCOP
 bool public psmPaused = false;
 ```
 
-## 🔐 Control de Acceso
+## 🔐 Access Control
 
-### Funciones de Administración
-- `pausePSM()`: Pausa/despausa el PSM
-- `updateStabilityParameters()`: Actualiza límites de estabilidad
-- `updatePSMParameters()`: Modifica parámetros del PSM
-- `setCollateralManager()`: Configura el gestor de colateral
+### Administration Functions
+- `pausePSM()`: Pauses/unpauses the PSM
+- `updateStabilityParameters()`: Updates stability limits
+- `updatePSMParameters()`: Modifies PSM parameters
+- `setCollateralManager()`: Configures the collateral manager
 
-### Autorización
+### Authorization
 ```solidity
 require(msg.sender == collateralManager().owner(), "Not authorized");
 ```
 
-## 📈 Métricas y Monitoreo
+## 📈 Metrics and Monitoring
 
-### Eventos Principales
+### Main Events
 ```solidity
 event PriceMonitored(uint256 vcopToCopRate, bool isWithinBounds);
 event PSMSwap(address account, bool isVcopToCollateral, uint256 amountIn, uint256 amountOut);
 event PSMStabilizationExecuted(bool isBuy, uint256 amount, uint256 price);
 ```
 
-### Estadísticas PSM
+### PSM Statistics
 ```solidity
 function getPSMStats() external view returns (
     uint256 vcopReserve,
@@ -195,67 +195,67 @@ function getPSMStats() external view returns (
 )
 ```
 
-## 🚨 Gestión de Riesgos
+## 🚨 Risk Management
 
-### Límites Operacionales
-1. **Límite de Swap PSM**: Máximo 10,000 VCOP por operación
-2. **Threshold de Swap Grande**: 5,000 VCOP
-3. **Tolerancia de Precio**: ±1% de la paridad
+### Operational Limits
+1. **PSM Swap Limit**: Maximum 10,000 VCOP per operation
+2. **Large Swap Threshold**: 5,000 VCOP
+3. **Price Tolerance**: ±1% from parity
 
-### Mecanismos de Seguridad
-1. **Pausas de Emergencia**: PSM puede ser pausado
-2. **Validación de Reservas**: Verificación antes de cada operación
-3. **Límites de Slippage**: Protección contra manipulación de precios
+### Security Mechanisms
+1. **Emergency Pauses**: PSM can be paused
+2. **Reserve Validation**: Verification before each operation
+3. **Slippage Limits**: Protection against price manipulation
 
-## 💡 Casos de Uso
+## 💡 Use Cases
 
-### Caso 1: Swap Grande Detectado
+### Case 1: Large Swap Detected
 ```
-1. Usuario intenta swap de 6,000 VCOP → Hook detecta swap grande
-2. Hook ejecuta stabilizePriceWithPSM() preventivamente
-3. Swap procede con precio estabilizado
-4. Hook monitorea precio post-swap
-```
-
-### Caso 2: Precio Fuera de Límites
-```
-1. Precio VCOP = 0.98 COP (por debajo del límite)
-2. Hook ejecuta compra automática de VCOP
-3. Precio se estabiliza cerca de 1.00 COP
-4. Sistema registra operación de estabilización
+1. User attempts 6,000 VCOP swap → Hook detects large swap
+2. Hook executes stabilizePriceWithPSM() preventively
+3. Swap proceeds with stabilized price
+4. Hook monitors post-swap price
 ```
 
-## 🔗 Integración con Ecosystem
-
-### Conexiones Principales
-- **VCOPCollateralManager**: Gestión de colateral y reservas PSM
-- **VCOPOracle**: Datos de precios en tiempo real
-- **VCOPCollateralized**: Token VCOP para mint/burn
-- **Uniswap v4 Pool**: Pool principal de liquidez
-
-### Flujo de Datos
+### Case 2: Price Out of Bounds
 ```
-Oracle → Hook → Decisión → PSM → CollateralManager → VCOP Token
+1. VCOP price = 0.98 COP (below limit)
+2. Hook executes automatic VCOP purchase
+3. Price stabilizes near 1.00 COP
+4. System records stabilization operation
 ```
 
-## 🔧 Consideraciones de Implementación
+## 🔗 Ecosystem Integration
+
+### Main Connections
+- **VCOPCollateralManager**: Collateral management and PSM reserves
+- **VCOPOracle**: Real-time price data
+- **VCOPCollateralized**: VCOP token for mint/burn
+- **Uniswap v4 Pool**: Main liquidity pool
+
+### Data Flow
+```
+Oracle → Hook → Decision → PSM → CollateralManager → VCOP Token
+```
+
+## 🔧 Implementation Considerations
 
 ### Gas Optimization
-- Uso de `view` functions para cálculos
-- Batch operations cuando es posible
-- Lazy loading de datos del oráculo
+- Use of `view` functions for calculations
+- Batch operations when possible
+- Lazy loading of oracle data
 
 ### Upgradability
-- Hook es inmutable una vez desplegado
-- Parámetros configurables por admin
-- Integración modular con otros componentes
+- Hook is immutable once deployed
+- Admin-configurable parameters
+- Modular integration with other components
 
 ### Testing
-- Unit tests para cada función del hook
-- Integration tests con pools de Uniswap v4
-- Simulation tests para escenarios de mercado
+- Unit tests for each hook function
+- Integration tests with Uniswap v4 pools
+- Simulation tests for market scenarios
 
-## 📚 Referencias
+## 📚 References
 
 - [Uniswap v4 Hook Documentation](https://docs.uniswap.org/contracts/v4/overview)
 - [VCOP Architecture](NUEVA_ARQUITECTURA.md)
