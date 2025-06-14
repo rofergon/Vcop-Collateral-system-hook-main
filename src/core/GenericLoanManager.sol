@@ -7,12 +7,14 @@ import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownab
 import {ILoanManager} from "../interfaces/ILoanManager.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
+import {IRewardable} from "../interfaces/IRewardable.sol";
+import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
  * @title GenericLoanManager
  * @notice Manages loans with flexible collateral and loan asset combinations
  */
-contract GenericLoanManager is ILoanManager, Ownable {
+contract GenericLoanManager is ILoanManager, IRewardable, Ownable {
     using SafeERC20 for IERC20;
     
     // Asset handlers for different types of assets
@@ -36,6 +38,10 @@ contract GenericLoanManager is ILoanManager, Ownable {
     
     // Interest management
     mapping(uint256 => uint256) public accruedInterest;
+    
+    // Reward system
+    RewardDistributor public rewardDistributor;
+    bytes32 public constant REWARD_POOL_ID = keccak256("GENERIC_LOAN_COLLATERAL");
     
     constructor(address _oracle, address _feeCollector) Ownable(msg.sender) {
         oracle = IGenericOracle(_oracle);
@@ -105,6 +111,9 @@ contract GenericLoanManager is ILoanManager, Ownable {
         // Execute loan through asset handler
         loanHandler.lend(terms.loanAsset, terms.loanAmount, msg.sender);
         
+        // Update reward system
+        _updateUserRewards(msg.sender, terms.collateralAmount, true);
+        
         emit LoanCreated(
             positionId,
             msg.sender,
@@ -129,6 +138,9 @@ contract GenericLoanManager is ILoanManager, Ownable {
         
         // Update position
         position.collateralAmount += amount;
+        
+        // Update reward system
+        _updateUserRewards(msg.sender, amount, true);
         
         emit CollateralAdded(positionId, amount);
     }
@@ -160,6 +172,9 @@ contract GenericLoanManager is ILoanManager, Ownable {
         // Update position and transfer collateral
         position.collateralAmount = remainingCollateral;
         IERC20(position.collateralAsset).safeTransfer(msg.sender, amount);
+        
+        // Update reward system
+        _updateUserRewards(msg.sender, amount, false);
         
         emit CollateralWithdrawn(positionId, amount);
     }
@@ -243,6 +258,9 @@ contract GenericLoanManager is ILoanManager, Ownable {
         if (remainingCollateral > 0) {
             IERC20(position.collateralAsset).safeTransfer(position.borrower, remainingCollateral);
         }
+        
+        // Update reward system - remove all collateral
+        _updateUserRewards(position.borrower, position.collateralAmount, false);
         
         // Close position
         position.isActive = false;
@@ -421,5 +439,73 @@ contract GenericLoanManager is ILoanManager, Ownable {
     function setFeeCollector(address _collector) external onlyOwner {
         require(_collector != address(0), "Invalid address");
         feeCollector = _collector;
+    }
+    
+    // ========================================
+    // IRewardable Implementation
+    // ========================================
+    
+    /**
+     * @dev Updates user rewards when collateral changes
+     */
+    function updateUserRewards(address user, uint256 amount, bool isIncrease) external override {
+        require(msg.sender == address(this), "Only self can update rewards");
+        if (address(rewardDistributor) != address(0)) {
+            rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
+            emit RewardsUpdated(user, amount, REWARD_POOL_ID);
+        }
+    }
+    
+    /**
+     * @dev Gets pending rewards for a user
+     */
+    function getPendingRewards(address user) external view override returns (uint256) {
+        if (address(rewardDistributor) == address(0)) return 0;
+        return rewardDistributor.pendingRewards(REWARD_POOL_ID, user);
+    }
+    
+    /**
+     * @dev Claims rewards for the caller
+     */
+    function claimRewards() external override returns (uint256) {
+        require(address(rewardDistributor) != address(0), "Reward distributor not set");
+        
+        uint256 pending = rewardDistributor.pendingRewards(REWARD_POOL_ID, msg.sender);
+        if (pending > 0) {
+            rewardDistributor.claimRewards(REWARD_POOL_ID);
+            emit RewardsClaimed(msg.sender, pending, REWARD_POOL_ID);
+        }
+        return pending;
+    }
+    
+    /**
+     * @dev Gets the reward pool ID for this contract
+     */
+    function getRewardPoolId() external pure override returns (bytes32) {
+        return REWARD_POOL_ID;
+    }
+    
+    /**
+     * @dev Gets reward distributor address
+     */
+    function getRewardDistributor() external view override returns (address) {
+        return address(rewardDistributor);
+    }
+    
+    /**
+     * @dev Sets the reward distributor (only owner)
+     */
+    function setRewardDistributor(address distributor) external override onlyOwner {
+        rewardDistributor = RewardDistributor(distributor);
+    }
+    
+    /**
+     * @dev Internal function to update rewards when collateral changes
+     */
+    function _updateUserRewards(address user, uint256 amount, bool isIncrease) internal {
+        if (address(rewardDistributor) != address(0)) {
+            rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
+            emit RewardsUpdated(user, amount, REWARD_POOL_ID);
+        }
     }
 } 

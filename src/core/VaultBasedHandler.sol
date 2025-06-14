@@ -5,12 +5,14 @@ import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/I
 import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
+import {IRewardable} from "../interfaces/IRewardable.sol";
+import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
  * @title VaultBasedHandler
  * @notice Handles external assets that require vault-based lending (like ETH, WBTC)
  */
-contract VaultBasedHandler is IAssetHandler, Ownable {
+contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     using SafeERC20 for IERC20;
     
     // Liquidity provider information
@@ -45,6 +47,12 @@ contract VaultBasedHandler is IAssetHandler, Ownable {
     uint256 public constant SECONDS_PER_YEAR = 365 * 24 * 3600;
     uint256 public baseInterestRate = 50000; // 5% base rate (6 decimals: 5% = 50000)
     uint256 public utilizationMultiplier = 200000; // 20% multiplier
+    
+    // Reward system
+    RewardDistributor public rewardDistributor;
+    bytes32 public constant VAULT_ETH_POOL_ID = keccak256("VAULT_ETH_LIQUIDITY");
+    bytes32 public constant VAULT_WBTC_POOL_ID = keccak256("VAULT_WBTC_LIQUIDITY");
+    bytes32 public constant VAULT_USDC_POOL_ID = keccak256("VAULT_USDC_LIQUIDITY");
     
     // Events
     event InterestAccrued(address indexed token, uint256 amount);
@@ -116,6 +124,9 @@ contract VaultBasedHandler is IAssetHandler, Ownable {
         vault.totalLiquidity += amount;
         vault.lastUpdateTimestamp = block.timestamp;
         
+        // Update reward system
+        _updateUserRewards(provider, token, amount, true);
+        
         // Update utilization rate
         _updateUtilizationRate(token);
         
@@ -154,6 +165,9 @@ contract VaultBasedHandler is IAssetHandler, Ownable {
         // Update vault information
         vault.totalLiquidity -= amount;
         vault.lastUpdateTimestamp = block.timestamp;
+        
+        // Update reward system
+        _updateUserRewards(provider, token, amount, false);
         
         // Transfer tokens back to provider
         IERC20(token).safeTransfer(provider, amount);
@@ -371,5 +385,86 @@ contract VaultBasedHandler is IAssetHandler, Ownable {
     function setInterestRateParams(uint256 _baseRate, uint256 _multiplier) external onlyOwner {
         baseInterestRate = _baseRate;
         utilizationMultiplier = _multiplier;
+    }
+    
+    // ========================================
+    // IRewardable Implementation
+    // ========================================
+    
+    /**
+     * @dev Updates user rewards when liquidity changes
+     */
+    function updateUserRewards(address user, uint256 amount, bool isIncrease) external override {
+        require(msg.sender == address(this), "Only self can update rewards");
+        // For now, we'll use a generic pool ID - in production you'd determine the correct pool based on the token
+        bytes32 poolId = VAULT_ETH_POOL_ID; // This should be determined dynamically
+        if (address(rewardDistributor) != address(0)) {
+            rewardDistributor.updateStake(poolId, user, amount, isIncrease);
+            emit RewardsUpdated(user, amount, poolId);
+        }
+    }
+    
+    /**
+     * @dev Gets pending rewards for a user
+     */
+    function getPendingRewards(address user) external view override returns (uint256) {
+        if (address(rewardDistributor) == address(0)) return 0;
+        // For now, we'll check the ETH pool - in production you'd check all pools
+        return rewardDistributor.pendingRewards(VAULT_ETH_POOL_ID, user);
+    }
+    
+    /**
+     * @dev Claims rewards for the caller
+     */
+    function claimRewards() external override returns (uint256) {
+        require(address(rewardDistributor) != address(0), "Reward distributor not set");
+        
+        // For now, we'll claim from ETH pool - in production you'd claim from all pools
+        uint256 pending = rewardDistributor.pendingRewards(VAULT_ETH_POOL_ID, msg.sender);
+        if (pending > 0) {
+            rewardDistributor.claimRewards(VAULT_ETH_POOL_ID);
+            emit RewardsClaimed(msg.sender, pending, VAULT_ETH_POOL_ID);
+        }
+        return pending;
+    }
+    
+    /**
+     * @dev Gets the reward pool ID for this contract
+     */
+    function getRewardPoolId() external pure override returns (bytes32) {
+        return VAULT_ETH_POOL_ID; // Default to ETH pool
+    }
+    
+    /**
+     * @dev Gets reward distributor address
+     */
+    function getRewardDistributor() external view override returns (address) {
+        return address(rewardDistributor);
+    }
+    
+    /**
+     * @dev Sets the reward distributor (only owner)
+     */
+    function setRewardDistributor(address distributor) external override onlyOwner {
+        rewardDistributor = RewardDistributor(distributor);
+    }
+    
+    /**
+     * @dev Internal function to update rewards when liquidity changes
+     */
+    function _updateUserRewards(address user, address token, uint256 amount, bool isIncrease) internal {
+        if (address(rewardDistributor) != address(0)) {
+            bytes32 poolId = _getPoolIdForToken(token);
+            rewardDistributor.updateStake(poolId, user, amount, isIncrease);
+            emit RewardsUpdated(user, amount, poolId);
+        }
+    }
+    
+    /**
+     * @dev Gets the pool ID for a specific token
+     */
+    function _getPoolIdForToken(address token) internal pure returns (bytes32) {
+        // This is a simplified version - in production you'd have a proper mapping
+        return keccak256(abi.encodePacked("VAULT_", token, "_LIQUIDITY"));
     }
 } 

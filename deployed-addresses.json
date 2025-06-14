@@ -2,26 +2,26 @@
   "network": "Base Sepolia",
   "chainId": 84532,
   "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-  "deploymentDate": "1749177750",
+  "deploymentDate": "1749932752",
   "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
   "mockTokens": {
-    "ETH": "0x7c79c4ebD92837E95fd8B2c25975CE544Eb17D82",
-    "WBTC": "0xE51293840CA88a5183fd0dc49eE2abaC480572c3",
-    "USDC": "0x6bf9aDaCefe6a159710094eA5334786E35EE73f9"
+    "ETH": "0x59340e7c71a0Ea614D1bC7062932861aC411dd67",
+    "WBTC": "0x40De8579cf83EDB8542755a51ab2630Db7ea82e9",
+    "USDC": "0x9DDf02F9bDAcdc308eBC83289807D6C60B3fbB4d"
   },
   "vcopCollateral": {
-    "vcopToken": "0xb70d3B325246b638787551E57bB880404b0Be611",
-    "oracle": "0xD217C3Ea3D4aB981c7E96754E7d2cC588d4773dB",
-    "priceCalculator": "0x8CE89692FBb96c5F4eBDCcBE706d3470d215Ee5F",
-    "collateralManager": "0x98D15b2ae44f9e2d8eE5C60c5B3d9DA475EAc8B3",
-    "hook": "0x72A41abE3d63f57D5ef475AC514a11efac1304c0"
+    "vcopToken": "0x49C81D0DE89081B4142051C44640990aD299183D",
+    "oracle": "0xaDfaE8Ec901063e8B959EB9C2b0FBeF690843146",
+    "priceCalculator": "0xA8e79854772e3FE7c04bFb7cb987040A0e131C57",
+    "collateralManager": "0x683Ab77BB8f40D42F406eCe189f3EcD65c8B27Eb",
+    "hook": "0xF1e0bcCA4F9e10EA23f7d3Dc2DC555e85b3184c0"
   },
   "coreLending": {
-    "genericLoanManager": "0x787d48ba90a5Badb0A4ACaaD721FD63a3a5561DE",
-    "flexibleLoanManager": "0x63500615EE23a540257F7D32a2a762B461662369",
-    "vaultBasedHandler": "0x41e0Bb71A57ecf69d19857f54e9C10F89c94B191",
-    "mintableBurnableHandler": "0x2890C2525f24924cFB989d7A5e6039fb721f06B9",
-    "flexibleAssetHandler": "0x75c88aaba7E4Ffa46Ca95673147DA8D6aE80b592",
-    "riskCalculator": "0x1CD4E00f22324720BFEca771ED652078fC3FB873"
+    "genericLoanManager": "0x9Df3Ee3aA7fA4Eb76E5Ea5c81D40ff1380b5fE47",
+    "flexibleLoanManager": "0x25A1fCb83929A6AdCAa3E356315cb6461525D9A3",
+    "vaultBasedHandler": "0x98b581050CDc681B2f585806CE1c53477ECc2305",
+    "mintableBurnableHandler": "0x5a0b16D35790b5B4FEa33FC0B8ffE1D8faDB66BE",
+    "flexibleAssetHandler": "0x85fEa02a92881e8FB4726AFC884047A2812d36e8",
+    "riskCalculator": "0x78F9Db939e7069A53357ee917a471d8A883aD558"
   }
 }

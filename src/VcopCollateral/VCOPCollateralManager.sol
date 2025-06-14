@@ -6,13 +6,15 @@ import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/I
 import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {VCOPCollateralized} from "./VCOPCollateralized.sol";
 import {VCOPOracle} from "./VCOPOracle.sol";
+import {IRewardable} from "../interfaces/IRewardable.sol";
+import {RewardDistributor} from "../core/RewardDistributor.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
 /**
  * @title VCOPCollateralManager
  * @notice Manages collateral for the VCOP stablecoin
  */
-contract VCOPCollateralManager is Ownable {
+contract VCOPCollateralManager is Ownable, IRewardable {
     using SafeERC20 for IERC20;
     
     // VCOP token contract
@@ -68,6 +70,10 @@ contract VCOPCollateralManager is Ownable {
     // PSM stats
     uint256 public lastPSMOperationTimestamp;
     uint256 public totalPSMSwapsCount;
+    
+    // Reward system
+    RewardDistributor public rewardDistributor;
+    bytes32 public constant REWARD_POOL_ID = keccak256("VCOP_COLLATERAL_DEPOSITS");
     
     // Events
     event CollateralAdded(address token, uint256 ratio);
@@ -351,6 +357,9 @@ contract VCOPCollateralManager is Ownable {
             vcop.mint(feeCollector, fee);
         }
         
+        // Update rewards for collateral deposit
+        _updateUserRewards(msg.sender, collateralAmount, true);
+        
         emit PositionCreated(msg.sender, positionId, collateralToken, collateralAmount, vcopToMint);
         emit VCOPMinted(msg.sender, vcopToMint - fee);
     }
@@ -364,6 +373,9 @@ contract VCOPCollateralManager is Ownable {
         
         IERC20(position.collateralToken).safeTransferFrom(msg.sender, address(this), amount);
         position.collateralAmount += amount;
+        
+        // Update rewards for additional collateral
+        _updateUserRewards(msg.sender, amount, true);
         
         emit CollateralDeposited(msg.sender, positionId, amount);
     }
@@ -388,6 +400,9 @@ contract VCOPCollateralManager is Ownable {
         // Update position and transfer tokens
         position.collateralAmount = remainingCollateral;
         IERC20(position.collateralToken).safeTransfer(msg.sender, amount);
+        
+        // Update rewards for collateral withdrawal
+        _updateUserRewards(msg.sender, amount, false);
         
         emit CollateralWithdrawn(msg.sender, positionId, amount);
     }
@@ -423,6 +438,9 @@ contract VCOPCollateralManager is Ownable {
             uint256 collateralToReturn = position.collateralAmount;
             IERC20(position.collateralToken).safeTransfer(msg.sender, collateralToReturn);
             
+            // Update rewards for complete collateral withdrawal
+            _updateUserRewards(msg.sender, position.collateralAmount, false);
+            
             // Clear position
             position.collateralAmount = 0;
             
@@ -450,6 +468,9 @@ contract VCOPCollateralManager is Ownable {
         
         // Burn VCOP debt
         vcop.burn(msg.sender, position.vcopMinted);
+        
+        // Update rewards for liquidation (remove all collateral)
+        _updateUserRewards(user, position.collateralAmount, false);
         
         // Clear position
         position.collateralAmount = 0;
@@ -516,5 +537,73 @@ contract VCOPCollateralManager is Ownable {
         }
         
         return 0; // For other tokens, implement accordingly
+    }
+    
+    // ========================================
+    // IRewardable Implementation
+    // ========================================
+    
+    /**
+     * @dev Updates user rewards when collateral deposits change
+     */
+    function updateUserRewards(address user, uint256 amount, bool isIncrease) external override {
+        require(msg.sender == address(this), "Only self can update rewards");
+        if (address(rewardDistributor) != address(0)) {
+            rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
+            emit RewardsUpdated(user, amount, REWARD_POOL_ID);
+        }
+    }
+    
+    /**
+     * @dev Gets pending rewards for a user
+     */
+    function getPendingRewards(address user) external view override returns (uint256) {
+        if (address(rewardDistributor) == address(0)) return 0;
+        return rewardDistributor.pendingRewards(REWARD_POOL_ID, user);
+    }
+    
+    /**
+     * @dev Claims rewards for the caller
+     */
+    function claimRewards() external override returns (uint256) {
+        require(address(rewardDistributor) != address(0), "Reward distributor not set");
+        
+        uint256 pending = rewardDistributor.pendingRewards(REWARD_POOL_ID, msg.sender);
+        if (pending > 0) {
+            rewardDistributor.claimRewards(REWARD_POOL_ID);
+            emit RewardsClaimed(msg.sender, pending, REWARD_POOL_ID);
+        }
+        return pending;
+    }
+    
+    /**
+     * @dev Gets the reward pool ID for this contract
+     */
+    function getRewardPoolId() external pure override returns (bytes32) {
+        return REWARD_POOL_ID;
+    }
+    
+    /**
+     * @dev Gets reward distributor address
+     */
+    function getRewardDistributor() external view override returns (address) {
+        return address(rewardDistributor);
+    }
+    
+    /**
+     * @dev Sets the reward distributor (only owner)
+     */
+    function setRewardDistributor(address distributor) external override onlyOwner {
+        rewardDistributor = RewardDistributor(distributor);
+    }
+    
+    /**
+     * @dev Internal function to update rewards when collateral changes
+     */
+    function _updateUserRewards(address user, uint256 amount, bool isIncrease) internal {
+        if (address(rewardDistributor) != address(0)) {
+            rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
+            emit RewardsUpdated(user, amount, REWARD_POOL_ID);
+        }
     }
 }

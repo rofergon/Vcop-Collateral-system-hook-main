@@ -74,6 +74,11 @@ help:
 	@echo "----------------------"
 	@echo "make extract-abis             - Extract ABIs from compiled contracts"
 	@echo "make regenerate-abis          - Recompile contracts and extract fresh ABIs"
+	@echo ""
+	@echo "🚀 AUTOMATED DEPLOYMENT (NEW!)"
+	@echo "==============================="
+	@echo "make deploy-complete          - 🎯 FULL AUTO DEPLOY (Core + VCOP + Rewards)"
+	@echo "make test-all                 - 🧪 RUN ALL TESTS (Rewards + Core + VCOP)"
 
 # Check PSM status (testnet)
 check-psm:
@@ -296,3 +301,127 @@ regenerate-abis:
 	@echo "🔄 Recompiling contracts and extracting ABIs..."
 	forge build
 	./extract-abis.sh
+
+# ========== REWARD SYSTEM TESTING ==========
+
+# Test reward system core functionality
+test-rewards:
+	@echo "🧪 Testing Reward System..."
+	forge test --match-contract RewardSystemTest --fork-url $(RPC_URL) -vv
+
+# Test reward system integration
+test-rewards-integration:
+	@echo "🔗 Testing Reward System Integration..."
+	forge test --match-contract RewardIntegrationTest --fork-url $(RPC_URL) -vv
+
+# Test all reward-related functionality
+test-rewards-all:
+	@echo "🎯 Testing All Reward Functionality..."
+	forge test --match-path "test/Reward*.t.sol" --fork-url $(RPC_URL) -vv
+
+# Deploy reward system to testnet
+deploy-rewards-testnet:
+	@echo "🚀 Deploying Reward System to Base Sepolia..."
+	forge script script/DeployRewardSystem.s.sol:DeployRewardSystem --rpc-url $(RPC_URL) --broadcast -vvvv
+
+# Deploy reward system locally
+deploy-rewards-local:
+	@echo "🏠 Deploying Reward System Locally..."
+	forge script script/DeployRewardSystem.s.sol:DeployRewardSystem --rpc-url http://localhost:8545 --broadcast -vvvv
+
+# Generate reward system documentation
+docs-rewards:
+	@echo "📚 Generating Reward System Documentation..."
+	forge doc --out docs/rewards
+
+# Coverage for reward system
+coverage-rewards:
+	@echo "📊 Generating Coverage Report for Reward System..."
+	forge coverage --match-path "src/core/RewardDistributor.sol" --match-path "src/interfaces/IRewardable.sol"
+
+# Gas report for reward system
+gas-rewards:
+	@echo "⛽ Generating Gas Report for Reward System..."
+	forge test --match-contract RewardSystemTest --gas-report
+
+# Lint reward system contracts
+lint-rewards:
+	@echo "🔍 Linting Reward System Contracts..."
+	forge fmt src/core/RewardDistributor.sol src/interfaces/IRewardable.sol
+
+# Clean and rebuild with rewards
+build-rewards: clean
+	@echo "🔨 Building with Reward System..."
+	forge build
+
+# Run reward system simulation
+simulate-rewards:
+	@echo "🎮 Running Reward System Simulation..."
+	forge script script/SimulateRewards.s.sol --rpc-url $(RPC_URL) -vvvv
+
+# Verify reward system contracts
+verify-rewards:
+	@echo "✅ Verifying Reward System Contracts..."
+	forge verify-contract --chain-id 84532 --watch
+
+# Help for reward system commands
+help-rewards:
+	@echo "🎁 REWARD SYSTEM COMMANDS:"
+	@echo "  test-rewards              - Test core reward functionality"
+	@echo "  test-rewards-integration  - Test reward system integration"
+	@echo "  test-rewards-all          - Test all reward functionality"
+	@echo "  deploy-rewards-testnet    - Deploy to Base Sepolia"
+	@echo "  deploy-rewards-local      - Deploy locally"
+	@echo "  docs-rewards              - Generate documentation"
+	@echo "  coverage-rewards          - Generate coverage report"
+	@echo "  gas-rewards               - Generate gas report"
+	@echo "  lint-rewards              - Lint contracts"
+	@echo "  build-rewards             - Clean build with rewards"
+	@echo "  simulate-rewards          - Run simulation"
+	@echo "  verify-rewards            - Verify contracts"
+
+# ========== 🚀 AUTOMATED DEPLOYMENT COMMANDS ==========
+
+# 🎯 COMPLETE AUTOMATED DEPLOYMENT (1 command)
+deploy-complete:
+	@echo ""
+	@echo "🚀🚀🚀 STARTING COMPLETE AUTOMATED DEPLOYMENT 🚀🚀🚀"
+	@echo "======================================================="
+	@echo ""
+	@echo "⏳ Step 1/3: Compiling contracts with optimizations..."
+	@forge build --optimize --optimizer-runs 200
+	@echo ""
+	@echo "🏗️  Step 2/3: Deploying unified system (Core + VCOP + Liquidity)..."
+	@forge script script/deploy/DeployUnifiedSystem.s.sol --rpc-url $(RPC_URL) --broadcast
+	@echo ""
+	@echo "🎁 Step 3/3: Deploying reward system..."
+	@forge script script/DeployRewardSystem.s.sol:DeployRewardSystem --rpc-url $(RPC_URL) --broadcast -vvvv
+	@echo ""
+	@echo "✅ COMPLETE DEPLOYMENT FINISHED!"
+	@echo "📋 Check addresses: make check-addresses"
+	@echo "🧪 Run tests: make test-all"
+	@echo ""
+
+# 🧪 COMPLETE AUTOMATED TESTING (1 command)
+test-all:
+	@echo ""
+	@echo "🧪🧪🧪 RUNNING COMPLETE TEST SUITE 🧪🧪🧪"
+	@echo "=============================================="
+	@echo ""
+	@echo "🎁 Test 1/4: Reward System Tests..."
+	@forge test --match-contract RewardSystemTest --fork-url $(RPC_URL) -vv
+	@echo ""
+	@echo "🏦 Test 2/4: Core Lending System Tests..."
+	@forge script script/TestSimpleLoans.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+	@echo ""
+	@echo "💰 Test 3/4: VCOP Loan System Tests..."
+	@forge script script/TestVCOPLoans.sol:TestVCOPLoans --rpc-url $(RPC_URL) --broadcast -vv
+	@echo ""
+	@echo "🔒 Test 4/4: PSM Functionality Tests..."
+	@forge script script/TestVCOPPSM.sol:TestVCOPPSM --rpc-url $(RPC_URL) --broadcast -vv
+	@echo ""
+	@echo "✅ ALL TESTS COMPLETED!"
+	@echo "📊 Check results above for any failures"
+	@echo ""
+
+.PHONY: test-rewards test-rewards-integration test-rewards-all deploy-rewards-testnet deploy-rewards-local docs-rewards coverage-rewards gas-rewards lint-rewards build-rewards simulate-rewards verify-rewards help-rewards deploy-complete test-all

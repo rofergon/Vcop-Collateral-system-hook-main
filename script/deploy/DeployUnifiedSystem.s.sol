@@ -434,6 +434,9 @@ contract DeployUnifiedSystem is Script {
         // Write to file
         vm.writeFile("deployed-addresses.json", json);
         console.log("Addresses saved to deployed-addresses.json");
+        
+        // Update .env file with new addresses
+        _updateEnvFile();
     }
     
     function _updateOtherScripts() internal {
@@ -506,6 +509,43 @@ contract DeployUnifiedSystem is Script {
         vm.writeFile("script/generated/TestVCOPPSMAddresses.sol", addressUpdate);
     }
     
+    function _updateEnvFile() internal {
+        console.log("Updating .env file with new addresses...");
+        
+        // Create updated .env content
+        string memory envContent = string(abi.encodePacked(
+            "PRIVATE_KEY=0x5c07cca48c3afe197620d6217363a1d9f0aaecca739fdbd94f6a763a3dd12c3b\n",
+            "POOL_MANAGER_ADDRESS=", _addressToString(POOL_MANAGER_ADDRESS), "\n",
+            "POSITION_MANAGER_ADDRESS=0x4b2c77d209d3405f41a037ec6c77f7f5b8e2ca80\n",
+            "RPC_URL=https://sepolia.base.org\n",
+            "BASE_SEPOLIA_RPC_URL=https://sepolia.base.org\n\n",
+            "# Mock Tokens (newly deployed)\n",
+            "MOCK_ETH_ADDRESS=", _addressToString(mockETH), "\n",
+            "MOCK_WBTC_ADDRESS=", _addressToString(mockWBTC), "\n",
+            "MOCK_USDC_ADDRESS=", _addressToString(mockUSDC), "\n\n",
+            "# VCOP Collateral System (newly deployed)\n",
+            "VCOP_TOKEN_ADDRESS=", _addressToString(vcopToken), "\n",
+            "VCOP_ORACLE_ADDRESS=", _addressToString(vcopOracle), "\n",
+            "VCOP_PRICE_CALCULATOR_ADDRESS=", _addressToString(vcopPriceCalculator), "\n",
+            "COLLATERAL_MANAGER_ADDRESS=", _addressToString(vcopCollateralManager), "\n",
+            "VCOP_HOOK_ADDRESS=", _addressToString(vcopCollateralHook), "\n\n",
+            "# Core Lending System (newly deployed)\n",
+            "GENERIC_LOAN_MANAGER_ADDRESS=", _addressToString(genericLoanManager), "\n",
+            "FLEXIBLE_LOAN_MANAGER_ADDRESS=", _addressToString(flexibleLoanManager), "\n",
+            "VAULT_HANDLER_ADDRESS=", _addressToString(vaultBasedHandler), "\n",
+            "MINTABLE_BURNABLE_HANDLER_ADDRESS=", _addressToString(mintableBurnableHandler), "\n",
+            "FLEXIBLE_ASSET_HANDLER_ADDRESS=", _addressToString(flexibleAssetHandler), "\n",
+            "RISK_CALCULATOR_ADDRESS=", _addressToString(riskCalculator), "\n\n",
+            "# Chain Configuration\n",
+            "CHAIN_ID=84532\n",
+            "DEPLOYER_ADDRESS=", _addressToString(msg.sender), "\n"
+        ));
+        
+        // Write updated .env file
+        vm.writeFile(".env", envContent);
+        console.log(".env file updated with new addresses");
+    }
+
     // Helper functions
     function _addressToString(address addr) internal pure returns (string memory) {
         return vm.toString(addr);
