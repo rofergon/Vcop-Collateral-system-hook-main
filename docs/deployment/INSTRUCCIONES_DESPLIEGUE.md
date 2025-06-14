@@ -1,82 +1,82 @@
-# 📋 Instrucciones para Despliegue del Sistema VCOP
+# 📋 VCOP System Deployment Instructions
 
-> **⚠️ IMPORTANTE**: Para el sistema de **préstamos colateralizados corregido**, consulta la nueva guía:  
+> **⚠️ IMPORTANT**: For the **corrected collateralized loan system**, please refer to the new guide:  
 > 📄 **[SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md)**
 
 ---
 
-## 🚀 Sistema de Préstamos Colateralizados (Actualizado)
+## 🚀 Collateralized Loan System (Updated)
 
-### **Comando Simplificado (Recomendado)**
+### **Simplified Command (Recommended)**
 ```bash
-# Despliegue completo automatizado del sistema corregido
+# Automated complete deployment of the corrected system
 make deploy-corrected-system
 ```
 
-### **Workflow Completo Automatizado**
+### **Complete Automated Workflow**
 ```bash
-# Despliega + Configura + Prueba automáticamente
+# Deploy + Configure + Test automatically
 make deploy-and-auto-test
 ```
 
-### **Verificación del Sistema**
+### **System Verification**
 ```bash
-# Test del sistema desplegado
+# Test the deployed system
 make test-corrected-system
 ```
 
 ---
 
-## 🔧 Sistema VCOP Original (Legacy)
+## 🔧 Original VCOP System (Legacy)
 
-Para ejecutar el despliegue del sistema VCOP original en dos partes, siga estos pasos:
+To run the deployment of the original VCOP system in two parts, follow these steps:
 
-### **1. Desplegar Contratos Base**
+### **1. Deploy Base Contracts**
 
 ```bash
 forge script script/DeployVCOPBase.sol:DeployVCOPBase --via-ir --broadcast --fork-url https://sepolia.base.org
 ```
 
-Este comando desplegará:
-- USDC simulado
-- Token VCOP
-- Oráculo VCOP
+This command will deploy:
+- Simulated USDC
+- VCOP Token
+- VCOP Oracle
 - Collateral Manager
 
-### **2. Configurar el Sistema**
+### **2. Configure the System**
 
 ```bash
 forge script script/ConfigureVCOPSystem.sol:ConfigureVCOPSystem --via-ir --broadcast --fork-url https://sepolia.base.org
 ```
 
-Este segundo comando configurará:
-- El hook de Uniswap v4
-- Las referencias cruzadas entre contratos
-- Los colaterales y parámetros del sistema
-- El pool de Uniswap v4 y la liquidez inicial
-- El módulo de estabilidad del precio (PSM)
+This second command will configure:
+- The Uniswap v4 hook
+- Cross-references between contracts
+- System collaterals and parameters
+- The Uniswap v4 pool and initial liquidity
+- The Price Stability Module (PSM)
 
-### **Ventajas de esta separación**
+### **Advantages of this separation**
 
-1. **Mayor seguridad**: Se reduce el riesgo de problemas con las claves privadas al limitar el alcance de cada script.
-2. **Mejor recuperación ante errores**: Si hay un problema en la segunda parte, no es necesario redesplegar todos los contratos.
-3. **Claridad del código**: Cada script tiene una responsabilidad bien definida.
-4. **Control de permisos**: El segundo script verifica los propietarios antes de proceder con la configuración.
-
----
-
-## 📚 Documentación Relacionada
-
-- 📄 **[SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md)** - Guía completa del sistema corregido
-- 📄 **[PSM-README.md](./PSM-README.md)** - Configuración del Peg Stability Module
-- 📄 **[README.md](./README.md)** - Documentación general de despliegue
+1. **Enhanced security**: Reduces the risk of issues with private keys by limiting the scope of each script.
+2. **Better error recovery**: If there's a problem in the second part, there's no need to redeploy all contracts.
+3. **Code clarity**: Each script has a well-defined responsibility.
+4. **Permission control**: The second script verifies owners before proceeding with configuration.
 
 ---
 
-## 🎯 Sistemas Disponibles
+## 📚 Related Documentation
 
-| Sistema | Comando | Estado | Documentación |
+- 📄 **[SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md)** - Complete guide for the corrected system
+- 📄 **[PSM-README.md](./PSM-README.md)** - Peg Stability Module configuration
+- 📄 **[README.md](./README.md)** - General deployment documentation
+
+---
+
+## 🎯 Available Systems
+
+| System | Command | Status | Documentation |
 |---------|---------|--------|---------------|
-| **Préstamos Colateralizados** | `make deploy-corrected-system` | ✅ **Activo** | [SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md) |
-| VCOP Original | Scripts manuales | 🔄 Legacy | Esta página |
-| PSM Module | Ver PSM-README.md | 📋 Documentado | [PSM-README.md](./PSM-README.md) | 
+| **Collateralized Loans** | `make deploy-corrected-system` | ✅ **Active** | [SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md) |
+| Original VCOP | Manual scripts | 🔄 Legacy | This page |
+| PSM Module | See PSM-README.md | 📋 Documented | [PSM-README.md](./PSM-README.md) | 
