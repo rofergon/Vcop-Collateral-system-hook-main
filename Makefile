@@ -6,6 +6,16 @@ MAINNET_RPC_URL := https://mainnet.base.org
 BASE_SEPOLIA_CHAIN_ID := 84532
 BASE_MAINNET_CHAIN_ID := 8453
 
+# Deployed contract addresses (Base Sepolia) - UPDATED AFTER DEPLOY-COMPLETE
+DEPLOYED_REWARD_DISTRIBUTOR := 0x7db6fD53472De90188b7F07084fd5d020a7056Cd
+DEPLOYED_VCOP_TOKEN := 0xc20Ebef01568aA58f161cB7AA6dBeaEF61e8BF78
+DEPLOYED_FLEXIBLE_LOAN_MANAGER := 0xC923A9E973ad83Ac9aC273dE06563CDF81765F92
+DEPLOYED_GENERIC_LOAN_MANAGER := 0xc7506620C4Cb576686285099306318186Ff6CC25
+DEPLOYED_VAULT_HANDLER := 0x9cCae47Dc7BA896ED80C4765687418Fd22b65480
+DEPLOYED_ORACLE := 0x73C9a11F981cb9B24c2E0589F398A13BE7f9687A
+DEPLOYED_COLLATERAL_MANAGER := 0x3f71E9d68fD486903B8a5545429269EabDc9763F
+POOL_MANAGER_ADDRESS := 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408
+
 # Uniswap V4 Contract Addresses
 # Sepolia
 SEPOLIA_POOL_MANAGER_ADDRESS := 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408
@@ -22,6 +32,13 @@ COLLATERAL := 1000000000 # 1000 USDC (6 decimals)
 .PHONY: check-psm swap-vcop-to-usdc swap-usdc-to-vcop check-prices help update-oracle deploy-fixed-system clean-txs check-new-oracle test-new-system test-loans test-liquidation test-psm create-position deploy-mainnet check-psm-mainnet swap-vcop-to-usdc-mainnet swap-usdc-to-vcop-mainnet check-prices-mainnet check-new-oracle-mainnet deploy-risk-calculator test-core-loans test-eth-usdc-loan test-usdc-eth-loan test-advanced-operations test-risk-analysis test-loan-repayment provide-wbtc-liquidity provide-usdc-liquidity
 
 help:
+	@echo "🚀 AUTOMATED DEPLOYMENT WITH AUTO-CONFIGURATION (NEW!)"
+	@echo "========================================================="
+	@echo "make deploy-complete          - [FUNCTION] FULL AUTO DEPLOY + AUTO CONFIG (Core + VCOP + Rewards + Auth)"
+	@echo "make test-all                 - [TEST] RUN ALL TESTS (Rewards + Core + VCOP)"
+	@echo "make configure-system-integration - [CONFIG] Auto-configure all authorizations (reads from JSON)"
+	@echo "make verify-system-authorizations - [VERIFY] Check all authorizations are set correctly"
+	@echo "make check-deployment-status  - [DEBUG] Check deployment status (reads from JSON)"
 	@echo "PSM Swap Scripts"
 	@echo "----------------"
 	@echo "make check-psm                - Check PSM status and reserves (testnet)"
@@ -34,6 +51,7 @@ help:
 	@echo "make clean-txs                - Clean pending transactions"
 	@echo "make check-new-oracle         - Check rates from new oracle (testnet)"
 	@echo "make test-new-system          - Test a swap with the newly deployed system (testnet)"
+	@echo "make update-main-addresses    - Update deployed-addresses.json with RewardDistributor"
 	@echo ""
 	@echo "Base Mainnet Commands"
 	@echo "--------------------"
@@ -75,10 +93,7 @@ help:
 	@echo "make extract-abis             - Extract ABIs from compiled contracts"
 	@echo "make regenerate-abis          - Recompile contracts and extract fresh ABIs"
 	@echo ""
-	@echo "🚀 AUTOMATED DEPLOYMENT (NEW!)"
-	@echo "==============================="
-	@echo "make deploy-complete          - 🎯 FULL AUTO DEPLOY (Core + VCOP + Rewards)"
-	@echo "make test-all                 - 🧪 RUN ALL TESTS (Rewards + Core + VCOP)"
+	
 
 # Check PSM status (testnet)
 check-psm:
@@ -197,7 +212,7 @@ check-balance:
 
 # Verify contract on explorer (replace ADDRESS with actual address)
 verify-contract:
-	@echo "🔍 Verifying contract..."
+	@echo "[DEBUG] Verifying contract..."
 	@read -p "Enter contract address: " addr; \
 	read -p "Enter constructor args (optional): " args; \
 	forge verify-contract $$addr --watch --constructor-args $$args --etherscan-api-key $(ETHERSCAN_API_KEY)
@@ -235,7 +250,7 @@ check-tokens:
 
 # Probar prestamos con el sistema core
 test-core-loans:
-	@echo "🧪 Testing core lending system..."
+	@echo "[TEST] Testing core lending system..."
 	forge script script/TestSimpleLoans.s.sol --rpc-url $(RPC_URL) --broadcast -vv
 
 # Probar ETH como colateral -> USDC como prestamo
@@ -250,7 +265,7 @@ test-usdc-eth-loan:
 
 # Probar operaciones avanzadas (agregar colateral, retirar, intereses)
 test-advanced-operations:
-	@echo "🔧 Testing advanced loan operations..."
+	@echo "[FIX] Testing advanced loan operations..."
 	forge script script/TestSimpleLoans.s.sol --sig "testAdvancedOperations()" --rpc-url $(RPC_URL) --broadcast -vv
 
 # Probar analisis de riesgo basico
@@ -293,7 +308,7 @@ provide-usdc-liquidity:
 
 # Extract ABIs from all compiled contracts
 extract-abis:
-	@echo "🔧 Extracting ABIs from compiled contracts..."
+	@echo "[FIX] Extracting ABIs from compiled contracts..."
 	./extract-abis.sh
 
 # Regenerate ABIs after code changes
@@ -306,17 +321,17 @@ regenerate-abis:
 
 # Test reward system core functionality
 test-rewards:
-	@echo "🧪 Testing Reward System..."
+	@echo "[TEST] Testing Reward System..."
 	forge test --match-contract RewardSystemTest --fork-url $(RPC_URL) -vv
 
 # Test reward system integration
 test-rewards-integration:
-	@echo "🔗 Testing Reward System Integration..."
+	@echo "[INTEGRATION] Testing Reward System Integration..."
 	forge test --match-contract RewardIntegrationTest --fork-url $(RPC_URL) -vv
 
 # Test all reward-related functionality
 test-rewards-all:
-	@echo "🎯 Testing All Reward Functionality..."
+	@echo "[FUNCTION] Testing All Reward Functionality..."
 	forge test --match-path "test/Reward*.t.sol" --fork-url $(RPC_URL) -vv
 
 # Deploy reward system to testnet
@@ -346,7 +361,7 @@ gas-rewards:
 
 # Lint reward system contracts
 lint-rewards:
-	@echo "🔍 Linting Reward System Contracts..."
+	@echo "[DEBUG] Linting Reward System Contracts..."
 	forge fmt src/core/RewardDistributor.sol src/interfaces/IRewardable.sol
 
 # Clean and rebuild with rewards
@@ -382,30 +397,39 @@ help-rewards:
 
 # ========== 🚀 AUTOMATED DEPLOYMENT COMMANDS ==========
 
-# 🎯 COMPLETE AUTOMATED DEPLOYMENT (1 command)
+# [FUNCTION] COMPLETE AUTOMATED DEPLOYMENT WITH AUTO-CONFIGURATION (1 command)
 deploy-complete:
 	@echo ""
 	@echo "🚀🚀🚀 STARTING COMPLETE AUTOMATED DEPLOYMENT 🚀🚀🚀"
 	@echo "======================================================="
 	@echo ""
-	@echo "⏳ Step 1/3: Compiling contracts with optimizations..."
+	@echo "⏳ Step 1/5: Compiling contracts with optimizations..."
 	@forge build --optimize --optimizer-runs 200
 	@echo ""
-	@echo "🏗️  Step 2/3: Deploying unified system (Core + VCOP + Liquidity)..."
+	@echo "🏗️  Step 2/5: Deploying unified system (Core + VCOP + Liquidity)..."
 	@forge script script/deploy/DeployUnifiedSystem.s.sol --rpc-url $(RPC_URL) --broadcast
 	@echo ""
-	@echo "🎁 Step 3/3: Deploying reward system..."
-	@forge script script/DeployRewardSystem.s.sol:DeployRewardSystem --rpc-url $(RPC_URL) --broadcast -vvvv
+	@echo "🎁 Step 3/5: Deploying NEW reward system with VCOP minting (auto-updates JSON)..."
+	@forge script script/DeployRewardSystem.s.sol --rpc-url $(RPC_URL) --broadcast -vv
 	@echo ""
-	@echo "✅ COMPLETE DEPLOYMENT FINISHED!"
+	@echo "🔗 Step 4/5: Auto-configuring ALL system integrations and authorizations..."
+	@make configure-system-integration
+	@echo ""
+	@echo "✅ Step 5/5: Final verification..."
+	@make check-deployment-status
+	@echo ""
+	@echo "🎉🎉🎉 COMPLETE DEPLOYMENT FINISHED SUCCESSFULLY! 🎉🎉🎉"
+	@echo "==========================================================="
+	@echo "📋 All addresses loaded dynamically from deployed-addresses.json"
+	@echo "🔐 All authorizations configured automatically"
 	@echo "📋 Check addresses: make check-addresses"
-	@echo "🧪 Run tests: make test-all"
+	@echo "[TEST] Run full test suite: make test-all"
 	@echo ""
 
-# 🧪 COMPLETE AUTOMATED TESTING (1 command)
+# [TEST] COMPLETE AUTOMATED TESTING (1 command)
 test-all:
 	@echo ""
-	@echo "🧪🧪🧪 RUNNING COMPLETE TEST SUITE 🧪🧪🧪"
+	@echo "[TEST][TEST][TEST] RUNNING COMPLETE TEST SUITE [TEST][TEST][TEST]"
 	@echo "=============================================="
 	@echo ""
 	@echo "🎁 Test 1/4: Reward System Tests..."
@@ -424,4 +448,127 @@ test-all:
 	@echo "📊 Check results above for any failures"
 	@echo ""
 
-.PHONY: test-rewards test-rewards-integration test-rewards-all deploy-rewards-testnet deploy-rewards-local docs-rewards coverage-rewards gas-rewards lint-rewards build-rewards simulate-rewards verify-rewards help-rewards deploy-complete test-all
+# Test reward system directly on Base Sepolia
+test-rewards-sepolia:
+	@echo "[TEST] Testing Reward System on Base Sepolia..."
+	forge test --match-contract RewardSystemTest --rpc-url $(RPC_URL) -vvv
+
+# Test reward system integration on Base Sepolia
+test-rewards-integration-sepolia:
+	@echo "[INTEGRATION] Testing Reward System Integration on Base Sepolia..."
+	forge test --match-contract RewardIntegrationTest --rpc-url $(RPC_URL) -vvv
+
+# Test specific reward system function
+test-reward-function:
+	@echo "[FUNCTION] Testing specific reward function..."
+	@read -p "Enter function name (e.g., testCreateRewardPool): " func; \
+	forge test --match-test $$func --rpc-url $(RPC_URL) -vvv
+
+# Run all reward tests on Sepolia
+test-rewards-all-sepolia:
+	@echo "[TEST] Running All Reward Tests on Base Sepolia..."
+	forge test --match-path "test/Reward*.t.sol" --rpc-url $(RPC_URL) -vvv
+
+# Debug reward system authorization
+debug-reward-auth:
+	@echo "[DEBUG] Debugging Reward System Authorization..."
+	@echo "Checking deployed contract authorizations..."
+	@cast call $(DEPLOYED_REWARD_DISTRIBUTOR) "owner()" --rpc-url $(RPC_URL)
+	@cast call $(DEPLOYED_REWARD_DISTRIBUTOR) "authorizedUpdaters(address)" $(FLEXIBLE_LOAN_MANAGER_ADDRESS) --rpc-url $(RPC_URL)
+
+# Set reward system authorization (if needed)
+fix-reward-auth:
+	@echo "[FIX] Fixing Reward System Authorization..."
+	@. ./.env && cast send $(DEPLOYED_REWARD_DISTRIBUTOR) "setAuthorizedUpdater(address,bool)" \
+		$(FLEXIBLE_LOAN_MANAGER_ADDRESS) true \
+		--rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+
+# Deploy new reward system with VCOP minting
+deploy-rewards-with-minting:
+	@echo "[TEST] Deploying Reward System with VCOP Minting..."
+	forge script script/DeployRewardSystem.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+
+# Update existing reward distributor with VCOP minting
+update-reward-distributor:
+	@echo "[FIX] Updating Reward Distributor for VCOP minting..."
+	@. ./.env && cast send $(DEPLOYED_REWARD_DISTRIBUTOR) "setVCOPToken(address)" $(DEPLOYED_VCOP_TOKEN) --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@. ./.env && cast send $(DEPLOYED_VCOP_TOKEN) "setMinter(address,bool)" $(DEPLOYED_REWARD_DISTRIBUTOR) true --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "VCOP minting enabled for RewardDistributor"
+
+# Test with the new minting system
+test-rewards-minting:
+	@echo "[TEST] Testing Reward System with VCOP Minting..."
+	forge test --match-contract RewardSystemTest --rpc-url $(RPC_URL) -vvv --gas-report
+
+# Configure system integrations after deployment - WITH DYNAMIC ADDRESSES
+configure-system-integration:
+	@echo "[FIX] Configuring system integrations with dynamic addresses..."
+	@echo "Step 1: Loading addresses from deployed-addresses.json..."
+	@bash get-addresses.sh
+	@echo ""
+	@echo "Step 2: Configuring RewardDistributor authorizations..."
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_REWARD_DISTRIBUTOR "setAuthorizedUpdater(address,bool)" $$DEPLOYED_FLEXIBLE_LOAN_MANAGER true --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ FlexibleLoanManager authorized"
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_REWARD_DISTRIBUTOR "setAuthorizedUpdater(address,bool)" $$DEPLOYED_GENERIC_LOAN_MANAGER true --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ GenericLoanManager authorized"
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_REWARD_DISTRIBUTOR "setAuthorizedUpdater(address,bool)" $$DEPLOYED_VAULT_HANDLER true --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ VaultHandler authorized"
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_REWARD_DISTRIBUTOR "setAuthorizedUpdater(address,bool)" $$DEPLOYED_COLLATERAL_MANAGER true --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ CollateralManager authorized"
+	@echo ""
+	@echo "Step 3: Configuring RewardDistributor references in contracts..."
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_FLEXIBLE_LOAN_MANAGER "setRewardDistributor(address)" $$DEPLOYED_REWARD_DISTRIBUTOR --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ FlexibleLoanManager -> RewardDistributor configured"
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_COLLATERAL_MANAGER "setRewardDistributor(address)" $$DEPLOYED_REWARD_DISTRIBUTOR --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ CollateralManager -> RewardDistributor configured"
+	@. ./.env && . ./get-addresses.sh && cast send $$DEPLOYED_GENERIC_LOAN_MANAGER "setRewardDistributor(address)" $$DEPLOYED_REWARD_DISTRIBUTOR --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "✅ GenericLoanManager -> RewardDistributor configured"
+	@echo ""
+	@echo "Step 4: Verifying all authorizations..."
+	@make verify-system-authorizations
+	@echo ""
+	@echo "✅ SYSTEM INTEGRATION CONFIGURED SUCCESSFULLY!"
+
+# Update deployed-addresses.json with latest contract addresses  
+update-deployed-addresses:
+	@echo "[DEBUG] Updating deployed-addresses.json..."
+	@echo '{"network":"Base Sepolia","chainId":84532,"deploymentDate":"'`date +%s`'","rewards":{"rewardDistributor":"$(DEPLOYED_REWARD_DISTRIBUTOR)","usesMinting":true},"coreLending":{"flexibleLoanManager":"$(DEPLOYED_FLEXIBLE_LOAN_MANAGER)","genericLoanManager":"$(DEPLOYED_GENERIC_LOAN_MANAGER)","vaultBasedHandler":"$(DEPLOYED_VAULT_HANDLER)","rewardDistributor":"$(DEPLOYED_REWARD_DISTRIBUTOR)"},"vcopCollateral":{"vcopToken":"$(DEPLOYED_VCOP_TOKEN)","oracle":"$(DEPLOYED_ORACLE)","collateralManager":"$(DEPLOYED_COLLATERAL_MANAGER)","rewardDistributor":"$(DEPLOYED_REWARD_DISTRIBUTOR)"}}' > deployed-addresses-updated.json
+	@echo "✅ Contract addresses saved to deployed-addresses-updated.json"
+
+# Update the main deployed-addresses.json file automatically
+update-main-addresses:
+	@echo "[FIX] Updating main deployed-addresses.json with RewardDistributor..."
+	@if [ -f "deployed-addresses.json" ]; then \
+		echo "Reading current deployed-addresses.json..."; \
+		CURRENT_REWARD_ADDR=0x7db6fD53472De90188b7F07084fd5d020a7056Cd; \
+		echo "Adding RewardDistributor: $$CURRENT_REWARD_ADDR"; \
+		cat deployed-addresses.json | jq '. + {"rewards": {"rewardDistributor": "'$$CURRENT_REWARD_ADDR'"}}' > deployed-addresses-temp.json && \
+		mv deployed-addresses-temp.json deployed-addresses.json; \
+		echo "✅ deployed-addresses.json updated successfully"; \
+	else \
+		echo "❌ deployed-addresses.json not found"; \
+	fi
+
+# Check current deployment status - WITH DYNAMIC ADDRESSES
+check-deployment-status:
+	@echo "[DEBUG] Checking deployment status with dynamic addresses..."
+	@bash get-addresses.sh
+	@echo ""
+	@echo "=== VERIFICATION ==="
+	@echo "Checking if RewardDistributor is VCOP minter..."
+	@. ./get-addresses.sh && cast call $$DEPLOYED_VCOP_TOKEN "minters(address)" $$DEPLOYED_REWARD_DISTRIBUTOR --rpc-url $(RPC_URL)
+	@echo "Checking if FlexibleLoanManager is authorized updater..."
+	@. ./get-addresses.sh && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "authorizedUpdaters(address)" $$DEPLOYED_FLEXIBLE_LOAN_MANAGER --rpc-url $(RPC_URL)
+	@echo "Checking RewardDistributor owner..."
+	@. ./get-addresses.sh && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "owner()" --rpc-url $(RPC_URL)
+
+# Verify all system authorizations - NEW COMMAND
+verify-system-authorizations:
+	@echo "[VERIFY] Checking all system authorizations..."
+	@. ./get-addresses.sh && echo "FlexibleLoanManager authorized:" && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "authorizedUpdaters(address)" $$DEPLOYED_FLEXIBLE_LOAN_MANAGER --rpc-url $(RPC_URL)
+	@. ./get-addresses.sh && echo "GenericLoanManager authorized:" && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "authorizedUpdaters(address)" $$DEPLOYED_GENERIC_LOAN_MANAGER --rpc-url $(RPC_URL)
+	@. ./get-addresses.sh && echo "VaultHandler authorized:" && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "authorizedUpdaters(address)" $$DEPLOYED_VAULT_HANDLER --rpc-url $(RPC_URL)
+	@. ./get-addresses.sh && echo "CollateralManager authorized:" && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "authorizedUpdaters(address)" $$DEPLOYED_COLLATERAL_MANAGER --rpc-url $(RPC_URL)
+	@echo "✅ All authorizations verified!"
+
+.PHONY: test-rewards test-rewards-integration test-rewards-all deploy-rewards-testnet deploy-rewards-local docs-rewards coverage-rewards gas-rewards lint-rewards build-rewards simulate-rewards verify-rewards help-rewards deploy-complete test-all test-rewards-sepolia test-rewards-integration-sepolia test-reward-function test-rewards-all-sepolia debug-reward-auth fix-reward-auth deploy-rewards-with-minting update-reward-distributor test-rewards-minting configure-system-integration update-deployed-addresses update-main-addresses check-deployment-status verify-system-authorizations

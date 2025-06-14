@@ -5,9 +5,17 @@ import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/I
 import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
+// Import VCOP interface for minting
+interface IVCOPMintable {
+    function mint(address to, uint256 amount) external;
+    function burn(address from, uint256 amount) external;
+    function setMinter(address account, bool status) external;
+}
+
 /**
  * @title RewardDistributor
  * @notice Central contract for managing and distributing rewards across all protocol components
+ * @dev Now supports VCOP minting for rewards instead of requiring pre-funded tokens
  */
 contract RewardDistributor is Ownable {
     using SafeERC20 for IERC20;
@@ -21,6 +29,7 @@ contract RewardDistributor is Ownable {
         uint256 lastUpdateTime;        // Last time rewards were calculated
         uint256 rewardPerTokenStored;  // Accumulated reward per token
         bool active;                   // Whether pool is active
+        bool usesMinting;              // Whether this pool mints tokens instead of transferring
     }
     
     // User reward information per pool
@@ -50,14 +59,27 @@ contract RewardDistributor is Ownable {
     address public genericLoanManager;
     address public collateralManager;
     
+    // VCOP token address for minting
+    address public vcopToken;
+    
     // Events
-    event RewardPoolCreated(bytes32 indexed poolId, address rewardToken, uint256 rewardRate);
+    event RewardPoolCreated(bytes32 indexed poolId, address rewardToken, uint256 rewardRate, bool usesMinting);
     event RewardPoolUpdated(bytes32 indexed poolId, uint256 newRewardRate);
     event StakeUpdated(bytes32 indexed poolId, address indexed user, uint256 amount, bool isIncrease);
     event RewardsClaimed(bytes32 indexed poolId, address indexed user, uint256 amount);
     event RewardsDistributed(bytes32 indexed poolId, uint256 amount);
+    event VCOPTokenSet(address vcopToken);
     
     constructor() Ownable(msg.sender) {}
+    
+    /**
+     * @dev Sets the VCOP token address for minting
+     */
+    function setVCOPToken(address _vcopToken) external onlyOwner {
+        require(_vcopToken != address(0), "Invalid VCOP token address");
+        vcopToken = _vcopToken;
+        emit VCOPTokenSet(_vcopToken);
+    }
     
     /**
      * @dev Sets authorized updater contracts
@@ -92,6 +114,9 @@ contract RewardDistributor is Ownable {
         require(rewardPools[poolId].rewardToken == address(0), "Pool already exists");
         require(rewardToken != address(0), "Invalid reward token");
         
+        // Check if this is VCOP token (will use minting)
+        bool usesMinting = (rewardToken == vcopToken);
+        
         rewardPools[poolId] = RewardPool({
             rewardToken: rewardToken,
             totalRewards: 0,
@@ -99,12 +124,13 @@ contract RewardDistributor is Ownable {
             rewardRate: rewardRate,
             lastUpdateTime: block.timestamp,
             rewardPerTokenStored: 0,
-            active: true
+            active: true,
+            usesMinting: usesMinting
         });
         
         poolIds.push(poolId);
         
-        emit RewardPoolCreated(poolId, rewardToken, rewardRate);
+        emit RewardPoolCreated(poolId, rewardToken, rewardRate, usesMinting);
     }
     
     /**
@@ -159,7 +185,15 @@ contract RewardDistributor is Ownable {
             RewardPool storage pool = rewardPools[poolId];
             pool.totalDistributed += reward;
             
-            IERC20(pool.rewardToken).safeTransfer(msg.sender, reward);
+            // Check if this pool uses minting or transferring
+            if (pool.usesMinting && pool.rewardToken == vcopToken) {
+                // Mint VCOP tokens directly to user
+                require(vcopToken != address(0), "VCOP token not set");
+                IVCOPMintable(pool.rewardToken).mint(msg.sender, reward);
+            } else {
+                // Traditional transfer from contract balance
+                IERC20(pool.rewardToken).safeTransfer(msg.sender, reward);
+            }
             
             emit RewardsClaimed(poolId, msg.sender, reward);
         }
@@ -215,14 +249,20 @@ contract RewardDistributor is Ownable {
     }
     
     /**
-     * @dev Adds rewards to a pool
+     * @dev Adds rewards to a pool (only for non-minting pools)
      */
     function addRewards(bytes32 poolId, uint256 amount) external {
         RewardPool storage pool = rewardPools[poolId];
         require(pool.active, "Pool not active");
         
-        IERC20(pool.rewardToken).safeTransferFrom(msg.sender, address(this), amount);
-        pool.totalRewards += amount;
+        if (pool.usesMinting) {
+            // For minting pools, just track the virtual rewards
+            pool.totalRewards += amount;
+        } else {
+            // For non-minting pools, require actual token transfer
+            IERC20(pool.rewardToken).safeTransferFrom(msg.sender, address(this), amount);
+            pool.totalRewards += amount;
+        }
         
         emit RewardsDistributed(poolId, amount);
     }

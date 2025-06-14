@@ -9,23 +9,19 @@ import {VaultBasedHandler} from "../src/core/VaultBasedHandler.sol";
 import {VCOPCollateralManager} from "../src/VcopCollateral/VCOPCollateralManager.sol";
 import {VCOPCollateralized} from "../src/VcopCollateral/VCOPCollateralized.sol";
 
+/**
+ * @title DeployRewardSystem
+ * @notice Script to deploy and configure the reward system
+ */
 contract DeployRewardSystem is Script {
+    // Reward pool IDs
+    bytes32 public constant FLEXIBLE_LOAN_POOL = keccak256("FLEXIBLE_LOAN_COLLATERAL");
+    bytes32 public constant GENERIC_LOAN_POOL = keccak256("GENERIC_LOAN_COLLATERAL");
+    bytes32 public constant VAULT_HANDLER_POOL = keccak256("VAULT_HANDLER_LIQUIDITY");
+    bytes32 public constant VCOP_COLLATERAL_POOL = keccak256("VCOP_COLLATERAL_DEPOSITS");
     
-    // Pool IDs
-    bytes32 constant FLEXIBLE_LOAN_POOL = keccak256("FLEXIBLE_LOAN_COLLATERAL");
-    bytes32 constant GENERIC_LOAN_POOL = keccak256("GENERIC_LOAN_COLLATERAL");
-    bytes32 constant VAULT_ETH_POOL = keccak256("VAULT_ETH_LIQUIDITY");
-    bytes32 constant VAULT_WBTC_POOL = keccak256("VAULT_WBTC_LIQUIDITY");
-    bytes32 constant VAULT_USDC_POOL = keccak256("VAULT_USDC_LIQUIDITY");
-    bytes32 constant VCOP_COLLATERAL_POOL = keccak256("VCOP_COLLATERAL_DEPOSITS");
-    
-    // Reward rates (rewards per second, 18 decimals)
-    uint256 constant FLEXIBLE_LOAN_RATE = 1e15; // 0.001 VCOP per second
-    uint256 constant GENERIC_LOAN_RATE = 5e14;   // 0.0005 VCOP per second
-    uint256 constant VAULT_ETH_RATE = 2e15;      // 0.002 VCOP per second
-    uint256 constant VAULT_WBTC_RATE = 15e14;    // 0.0015 VCOP per second
-    uint256 constant VAULT_USDC_RATE = 1e15;     // 0.001 VCOP per second
-    uint256 constant VCOP_COLLATERAL_RATE = 5e14; // 0.0005 VCOP per second
+    // Reward rates (rewards per second)
+    uint256 public constant DEFAULT_REWARD_RATE = 1e15; // 0.001 VCOP per second
     
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -40,7 +36,7 @@ contract DeployRewardSystem is Script {
         RewardDistributor rewardDistributor = new RewardDistributor();
         console.log("RewardDistributor deployed at:", address(rewardDistributor));
         
-        // 2. Get existing contract addresses (you'll need to update these)
+        // 2. Get existing contract addresses
         address vcopToken = vm.envAddress("VCOP_TOKEN_ADDRESS");
         address flexibleLoanManager = vm.envAddress("FLEXIBLE_LOAN_MANAGER_ADDRESS");
         address genericLoanManager = vm.envAddress("GENERIC_LOAN_MANAGER_ADDRESS");
@@ -53,136 +49,175 @@ contract DeployRewardSystem is Script {
         console.log("Using VaultHandler at:", vaultHandler);
         console.log("Using CollateralManager at:", collateralManager);
         
-        // 3. Set protocol components in RewardDistributor
+        // 3. Configure VCOP token in RewardDistributor
+        rewardDistributor.setVCOPToken(vcopToken);
+        console.log("VCOP token set in RewardDistributor");
+        
+        // 4. Set RewardDistributor as minter in VCOP token
+        VCOPCollateralized vcop = VCOPCollateralized(vcopToken);
+        vcop.setMinter(address(rewardDistributor), true);
+        console.log("RewardDistributor set as VCOP minter");
+        
+        // 5. Set protocol components in RewardDistributor
         rewardDistributor.setProtocolComponents(
             vaultHandler,
             flexibleLoanManager,
             genericLoanManager,
             collateralManager
         );
+        console.log("Protocol components configured");
         
-        // 4. Authorize contracts to update stakes
+        // 6. Authorize contracts to update stakes
         rewardDistributor.setAuthorizedUpdater(flexibleLoanManager, true);
         rewardDistributor.setAuthorizedUpdater(genericLoanManager, true);
         rewardDistributor.setAuthorizedUpdater(vaultHandler, true);
         rewardDistributor.setAuthorizedUpdater(collateralManager, true);
+        console.log("Authorized updaters configured");
         
-        // 5. Create reward pools
+        // 7. Create reward pools
         console.log("Creating reward pools...");
         
-        // Flexible Loan Collateral Pool
+        // VCOP pools (use minting)
         rewardDistributor.createRewardPool(
             FLEXIBLE_LOAN_POOL,
             vcopToken,
-            FLEXIBLE_LOAN_RATE
+            DEFAULT_REWARD_RATE
         );
-        console.log("Created Flexible Loan Pool");
+        console.log("Flexible Loan Pool created with VCOP minting");
         
-        // Generic Loan Collateral Pool
         rewardDistributor.createRewardPool(
             GENERIC_LOAN_POOL,
             vcopToken,
-            GENERIC_LOAN_RATE
+            DEFAULT_REWARD_RATE
         );
-        console.log("Created Generic Loan Pool");
-        
-        // Vault Liquidity Pools
-        rewardDistributor.createRewardPool(
-            VAULT_ETH_POOL,
-            vcopToken,
-            VAULT_ETH_RATE
-        );
-        console.log("Created Vault ETH Pool");
+        console.log("Generic Loan Pool created with VCOP minting");
         
         rewardDistributor.createRewardPool(
-            VAULT_WBTC_POOL,
+            VAULT_HANDLER_POOL,
             vcopToken,
-            VAULT_WBTC_RATE
+            DEFAULT_REWARD_RATE
         );
-        console.log("Created Vault WBTC Pool");
+        console.log("Vault Handler Pool created with VCOP minting");
         
-        rewardDistributor.createRewardPool(
-            VAULT_USDC_POOL,
-            vcopToken,
-            VAULT_USDC_RATE
-        );
-        console.log("Created Vault USDC Pool");
-        
-        // VCOP Collateral Pool
         rewardDistributor.createRewardPool(
             VCOP_COLLATERAL_POOL,
             vcopToken,
-            VCOP_COLLATERAL_RATE
+            DEFAULT_REWARD_RATE
         );
-        console.log("Created VCOP Collateral Pool");
+        console.log("VCOP Collateral Pool created with VCOP minting");
         
-        // 6. Set RewardDistributor in existing contracts
-        console.log("Setting RewardDistributor in existing contracts...");
-        
-        if (flexibleLoanManager != address(0)) {
-            FlexibleLoanManager(flexibleLoanManager).setRewardDistributor(address(rewardDistributor));
-            console.log("Set RewardDistributor in FlexibleLoanManager");
-        }
-        
-        if (genericLoanManager != address(0)) {
-            GenericLoanManager(genericLoanManager).setRewardDistributor(address(rewardDistributor));
-            console.log("Set RewardDistributor in GenericLoanManager");
-        }
-        
-        if (vaultHandler != address(0)) {
-            VaultBasedHandler(vaultHandler).setRewardDistributor(address(rewardDistributor));
-            console.log("Set RewardDistributor in VaultHandler");
-        }
-        
-        if (collateralManager != address(0)) {
-            VCOPCollateralManager(collateralManager).setRewardDistributor(address(rewardDistributor));
-            console.log("Set RewardDistributor in CollateralManager");
-        }
-        
-        // 7. Add initial rewards to pools (optional)
-        uint256 initialRewardAmount = 1000000 * 1e6; // 1M VCOP tokens
-        
-        if (vcopToken != address(0)) {
-            VCOPCollateralized vcop = VCOPCollateralized(vcopToken);
-            
-            // Mint rewards to deployer first
-            vcop.mint(deployer, initialRewardAmount * 6); // 6 pools
-            
-            // Approve RewardDistributor to spend VCOP
-            vcop.approve(address(rewardDistributor), initialRewardAmount * 6);
-            
-            // Add rewards to each pool
-            rewardDistributor.addRewards(FLEXIBLE_LOAN_POOL, initialRewardAmount);
-            rewardDistributor.addRewards(GENERIC_LOAN_POOL, initialRewardAmount);
-            rewardDistributor.addRewards(VAULT_ETH_POOL, initialRewardAmount);
-            rewardDistributor.addRewards(VAULT_WBTC_POOL, initialRewardAmount);
-            rewardDistributor.addRewards(VAULT_USDC_POOL, initialRewardAmount);
-            rewardDistributor.addRewards(VCOP_COLLATERAL_POOL, initialRewardAmount);
-            
-            console.log("Added initial rewards to all pools");
-        }
+        // 8. Add virtual rewards to pools (for minting pools, this just tracks potential rewards)
+        uint256 virtualRewards = 10000000 * 1e6; // 10M VCOP virtual rewards per pool
+        rewardDistributor.addRewards(FLEXIBLE_LOAN_POOL, virtualRewards);
+        rewardDistributor.addRewards(GENERIC_LOAN_POOL, virtualRewards);
+        rewardDistributor.addRewards(VAULT_HANDLER_POOL, virtualRewards);
+        rewardDistributor.addRewards(VCOP_COLLATERAL_POOL, virtualRewards);
+        console.log("Virtual rewards added to all pools");
         
         vm.stopBroadcast();
         
-        // 8. Log deployment summary
-        console.log("\n=== DEPLOYMENT SUMMARY ===");
-        console.log("RewardDistributor:", address(rewardDistributor));
-        console.log("Total Pools Created: 6");
-        console.log("Initial Rewards per Pool:", initialRewardAmount);
-        console.log("Deployment completed successfully!");
+        // 9. Update deployed-addresses.json automatically
+        _updateDeployedAddresses(address(rewardDistributor));
         
-        // 9. Save deployment info to file
-        string memory deploymentInfo = string(abi.encodePacked(
-            "REWARD_DISTRIBUTOR_ADDRESS=", vm.toString(address(rewardDistributor)), "\n",
-            "FLEXIBLE_LOAN_POOL_ID=", vm.toString(FLEXIBLE_LOAN_POOL), "\n",
-            "GENERIC_LOAN_POOL_ID=", vm.toString(GENERIC_LOAN_POOL), "\n",
-            "VAULT_ETH_POOL_ID=", vm.toString(VAULT_ETH_POOL), "\n",
-            "VAULT_WBTC_POOL_ID=", vm.toString(VAULT_WBTC_POOL), "\n",
-            "VAULT_USDC_POOL_ID=", vm.toString(VAULT_USDC_POOL), "\n",
-            "VCOP_COLLATERAL_POOL_ID=", vm.toString(VCOP_COLLATERAL_POOL), "\n"
+        console.log("=================================");
+        console.log("REWARD SYSTEM DEPLOYMENT COMPLETE");
+        console.log("===============================");
+        console.log("RewardDistributor:", address(rewardDistributor));
+        console.log("VCOP Token:", vcopToken);
+        console.log("FlexibleLoanManager authorized:", rewardDistributor.authorizedUpdaters(flexibleLoanManager));
+        console.log("GenericLoanManager authorized:", rewardDistributor.authorizedUpdaters(genericLoanManager));
+        console.log("VaultHandler authorized:", rewardDistributor.authorizedUpdaters(vaultHandler));
+        console.log("CollateralManager authorized:", rewardDistributor.authorizedUpdaters(collateralManager));
+        
+        // Display pool information
+        console.log("\nCreated Pools:");
+        console.log("- Flexible Loan Pool:", vm.toString(FLEXIBLE_LOAN_POOL));
+        console.log("- Generic Loan Pool:", vm.toString(GENERIC_LOAN_POOL));
+        console.log("- Vault Handler Pool:", vm.toString(VAULT_HANDLER_POOL));
+        console.log("- VCOP Collateral Pool:", vm.toString(VCOP_COLLATERAL_POOL));
+        
+        console.log("\n=== POST-DEPLOYMENT ACTIONS ===");
+        console.log("RewardDistributor deployed at:", address(rewardDistributor));
+        console.log("deployed-addresses.json updated automatically");
+        console.log("To configure system integration, run: make configure-system-integration");
+    }
+    
+    /**
+     * @notice Update deployed-addresses.json with RewardDistributor address
+     */
+    function _updateDeployedAddresses(address rewardDistributor) internal {
+        string memory currentJson = vm.readFile("deployed-addresses.json");
+        
+        // Parse current JSON to get existing values
+        address deployer = abi.decode(vm.parseJson(currentJson, ".deployer"), (address));
+        uint256 chainId = abi.decode(vm.parseJson(currentJson, ".chainId"), (uint256));
+        string memory network = abi.decode(vm.parseJson(currentJson, ".network"), (string));
+        address poolManager = abi.decode(vm.parseJson(currentJson, ".poolManager"), (address));
+        uint256 deploymentDate = block.timestamp;
+        
+        // Get mock tokens
+        address ethToken = abi.decode(vm.parseJson(currentJson, ".mockTokens.ETH"), (address));
+        address wbtcToken = abi.decode(vm.parseJson(currentJson, ".mockTokens.WBTC"), (address));
+        address usdcToken = abi.decode(vm.parseJson(currentJson, ".mockTokens.USDC"), (address));
+        
+        // Get vcopCollateral
+        address vcopToken = abi.decode(vm.parseJson(currentJson, ".vcopCollateral.vcopToken"), (address));
+        address oracle = abi.decode(vm.parseJson(currentJson, ".vcopCollateral.oracle"), (address));
+        address priceCalculator = abi.decode(vm.parseJson(currentJson, ".vcopCollateral.priceCalculator"), (address));
+        address collateralManager = abi.decode(vm.parseJson(currentJson, ".vcopCollateral.collateralManager"), (address));
+        address hook = abi.decode(vm.parseJson(currentJson, ".vcopCollateral.hook"), (address));
+        
+        // Get coreLending
+        address genericLoanManager = abi.decode(vm.parseJson(currentJson, ".coreLending.genericLoanManager"), (address));
+        address flexibleLoanManager = abi.decode(vm.parseJson(currentJson, ".coreLending.flexibleLoanManager"), (address));
+        address vaultBasedHandler = abi.decode(vm.parseJson(currentJson, ".coreLending.vaultBasedHandler"), (address));
+        address mintableBurnableHandler = abi.decode(vm.parseJson(currentJson, ".coreLending.mintableBurnableHandler"), (address));
+        address flexibleAssetHandler = abi.decode(vm.parseJson(currentJson, ".coreLending.flexibleAssetHandler"), (address));
+        address riskCalculator = abi.decode(vm.parseJson(currentJson, ".coreLending.riskCalculator"), (address));
+        
+        // Create updated JSON with rewards section
+        string memory updatedJson = string(abi.encodePacked(
+            "{\n",
+            '  "network": "', network, '",\n',
+            '  "chainId": ', vm.toString(chainId), ',\n',
+            '  "deployer": "', _addressToString(deployer), '",\n',
+            '  "deploymentDate": "', vm.toString(deploymentDate), '",\n',
+            '  "poolManager": "', _addressToString(poolManager), '",\n',
+            '  "mockTokens": {\n',
+            '    "ETH": "', _addressToString(ethToken), '",\n',
+            '    "WBTC": "', _addressToString(wbtcToken), '",\n',
+            '    "USDC": "', _addressToString(usdcToken), '"\n',
+            '  },\n',
+            '  "vcopCollateral": {\n',
+            '    "vcopToken": "', _addressToString(vcopToken), '",\n',
+            '    "oracle": "', _addressToString(oracle), '",\n',
+            '    "priceCalculator": "', _addressToString(priceCalculator), '",\n',
+            '    "collateralManager": "', _addressToString(collateralManager), '",\n',
+            '    "hook": "', _addressToString(hook), '"\n',
+            '  },\n',
+            '  "coreLending": {\n',
+            '    "genericLoanManager": "', _addressToString(genericLoanManager), '",\n',
+            '    "flexibleLoanManager": "', _addressToString(flexibleLoanManager), '",\n',
+            '    "vaultBasedHandler": "', _addressToString(vaultBasedHandler), '",\n',
+            '    "mintableBurnableHandler": "', _addressToString(mintableBurnableHandler), '",\n',
+            '    "flexibleAssetHandler": "', _addressToString(flexibleAssetHandler), '",\n',
+            '    "riskCalculator": "', _addressToString(riskCalculator), '"\n',
+            '  },\n',
+            '  "rewards": {\n',
+            '    "rewardDistributor": "', _addressToString(rewardDistributor), '"\n',
+            '  }\n',
+            '}'
         ));
         
-        vm.writeFile("./deployments/reward-system.env", deploymentInfo);
-        console.log("Deployment info saved to ./deployments/reward-system.env");
+        // Write updated JSON to file
+        vm.writeFile("deployed-addresses.json", updatedJson);
+        console.log("deployed-addresses.json updated with RewardDistributor:", _addressToString(rewardDistributor));
+    }
+    
+    /**
+     * @notice Convert address to string
+     */
+    function _addressToString(address addr) internal pure returns (string memory) {
+        return vm.toString(addr);
     }
 } 
