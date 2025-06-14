@@ -1,70 +1,70 @@
-# 🚀 Sistema de Préstamos Colateralizados - Guía de Despliegue Corregido
+# 🚀 Collateralized Loan System - Corrected Deployment Guide
 
-## 📋 Resumen Ejecutivo
+## 📋 Executive Summary
 
-Esta guía documenta el procedimiento **completo y corregido** para desplegar el sistema de préstamos colateralizados. Incluye todas las correcciones implementadas para resolver problemas de oracle, direcciones hardcodeadas y configuración automatizada.
+This guide documents the **complete and corrected** procedure for deploying the collateralized loan system. It includes all implemented fixes to resolve oracle issues, hardcoded addresses, and automated configuration.
 
 ---
 
-## 🎯 Componentes del Sistema
+## 🎯 System Components
 
 ### **Core Contracts**
-- **MockOracle**: Sistema de precios con configuración dinámica
-- **GenericLoanManager**: Gestor principal de préstamos 
-- **VaultBasedHandler**: Manejador de assets con vaults
-- **Mock Tokens**: ETH, WBTC, USDC para testing
+- **MockOracle**: Price system with dynamic configuration
+- **GenericLoanManager**: Main loan manager
+- **VaultBasedHandler**: Asset handler with vaults
+- **Mock Tokens**: ETH, WBTC, USDC for testing
 
-### **Configuraciones Clave**
-- **ETH**: 130% colateral, 110% liquidación, 8% interés, $3,000 precio
-- **WBTC**: 140% colateral, 115% liquidación, 7.5% interés, $95,000 precio  
-- **USDC**: 110% colateral, 105% liquidación, 4% interés, $1 precio
+### **Key Configurations**
+- **ETH**: 130% collateral, 110% liquidation, 8% interest, $3,000 price
+- **WBTC**: 140% collateral, 115% liquidation, 7.5% interest, $95,000 price
+- **USDC**: 110% collateral, 105% liquidation, 4% interest, $1 price
 
 ---
 
-## 🛠️ Preparación del Entorno
+## 🛠️ Environment Preparation
 
-### **1. Configurar Variables de Entorno**
+### **1. Configure Environment Variables**
 ```bash
-# Crear archivo .env
+# Create .env file
 cat > .env << EOF
-PRIVATE_KEY=tu_private_key_aqui
+PRIVATE_KEY=your_private_key_here
 RPC_URL=https://sepolia.base.org
-ETHERSCAN_API_KEY=tu_api_key_aqui
+ETHERSCAN_API_KEY=your_api_key_here
 EOF
 ```
 
-### **2. Verificar Herramientas**
+### **2. Verify Tools**
 ```bash
-# Verificar Foundry
+# Verify Foundry
 forge --version
 cast --version
 
-# Verificar conexión a red
+# Verify network connection
 cast chain-id --rpc-url https://sepolia.base.org
 
-# Verificar balance para gas
+# Verify gas balance
 cast balance $DEPLOYER_ADDRESS --rpc-url https://sepolia.base.org --ether
 ```
 
 ---
 
-## 🚀 Procedimiento de Despliegue
+## 🚀 Deployment Procedure
 
-### **Comando Principal (Recomendado)**
+### **Main Command (Recommended)**
 ```bash
-# Despliegue completo automatizado
+# Complete automated deployment
 make deploy-corrected-system
 ```
 
-**Este comando despliega:**
+**This command deploys:**
 1. ✅ Mock Tokens (ETH, WBTC, USDC)
-2. ✅ MockOracle con precios correctos
+2. ✅ MockOracle with correct prices
 3. ✅ Asset Handlers (Vault, Flexible, MintableBurnable)
 4. ✅ Loan Managers (Generic, Flexible)
-5. ✅ Configuración automática de assets
-6. ✅ Configuración de ratios y parámetros
+5. ✅ Automatic asset configuration
+6. ✅ Ratio and parameter configuration
 
-### **Output Esperado**
+### **Expected Output**
 ```
 === DEPLOYMENT ADDRESSES (Copy these for tests) ===
 MOCK_ETH: 0xAbC123...
@@ -78,77 +78,77 @@ VAULT_BASED_HANDLER: 0xStU901...
 
 ---
 
-## ⚙️ Configuración Post-Despliegue
+## ⚙️ Post-Deployment Configuration
 
-### **1. Actualizar Scripts de Testing**
+### **1. Update Test Scripts**
 
-**Ubicación:** `script/TestCoreLoans.s.sol`
+**Location:** `script/TestCoreLoans.s.sol`
 
 ```solidity
-// Actualizar estas direcciones con las del output
-address constant MOCK_ETH = 0xNuevasDirecciones...;
-address constant MOCK_WBTC = 0xNuevasDirecciones...;
-address constant MOCK_USDC = 0xNuevasDirecciones...;
-address constant MOCK_ORACLE = 0xNuevasDirecciones...;
-address constant GENERIC_LOAN_MANAGER = 0xNuevasDirecciones...;
-address constant VAULT_BASED_HANDLER = 0xNuevasDirecciones...;
+// Update these addresses with the output ones
+address constant MOCK_ETH = 0xNewAddresses...;
+address constant MOCK_WBTC = 0xNewAddresses...;
+address constant MOCK_USDC = 0xNewAddresses...;
+address constant MOCK_ORACLE = 0xNewAddresses...;
+address constant GENERIC_LOAN_MANAGER = 0xNewAddresses...;
+address constant VAULT_BASED_HANDLER = 0xNewAddresses...;
 ```
 
-### **2. Actualizar Comandos de Liquidez**
+### **2. Update Liquidity Commands**
 
-**Ubicación:** `Makefile` - sección `provide-corrected-liquidity`
+**Location:** `Makefile` - `provide-corrected-liquidity` section
 
 ```bash
-# Actualizar direcciones en los comandos cast send
-ETH_ADDRESS=0xNuevasDirecciones...
-USDC_ADDRESS=0xNuevasDirecciones...
-VAULT_HANDLER=0xNuevasDirecciones...
+# Update addresses in cast send commands
+ETH_ADDRESS=0xNewAddresses...
+USDC_ADDRESS=0xNewAddresses...
+VAULT_HANDLER=0xNewAddresses...
 ```
 
-### **3. Provision de Liquidez Inicial**
+### **3. Initial Liquidity Provision**
 ```bash
 make provide-corrected-liquidity
 ```
 
-**Este comando:**
-- ✅ Aprueba 100 ETH al VaultBasedHandler
-- ✅ Proporciona 100 ETH de liquidez
-- ✅ Aprueba 100,000 USDC al VaultBasedHandler  
-- ✅ Proporciona 100,000 USDC de liquidez
+**This command:**
+- ✅ Approves 100 ETH to VaultBasedHandler
+- ✅ Provides 100 ETH liquidity
+- ✅ Approves 100,000 USDC to VaultBasedHandler
+- ✅ Provides 100,000 USDC liquidity
 
 ---
 
-## 🧪 Verificación del Sistema
+## 🧪 System Verification
 
-### **Test Principal**
+### **Main Test**
 ```bash
 make test-corrected-system
 ```
 
-**Resultado Esperado:**
+**Expected Result:**
 ```
 ==================================================
-PRUEBA ESPECIFICA: ETH COMO COLATERAL -> USDC PRESTAMO
+SPECIFIC TEST: ETH AS COLLATERAL -> USDC LOAN
 ==================================================
 
-✅ Liquidez asegurada
-✅ Máximo prestable: ~34,650 USDC
-✅ Préstamo creado. Position ID: 1
+✅ Liquidity secured
+✅ Maximum loanable: ~34,650 USDC
+✅ Loan created. Position ID: 1
 ✅ 5 ETH → 10,000 USDC
-✅ Ratio de colateralización: ~1,157% (muy seguro)
-✅ Tasa de interés: 8%
+✅ Collateralization ratio: ~1,157% (very safe)
+✅ Interest rate: 8%
 
 ==================================================
-PRUEBA ETH -> USDC COMPLETADA EXITOSAMENTE
+ETH -> USDC TEST COMPLETED SUCCESSFULLY
 ==================================================
 ```
 
-### **Tests Adicionales**
+### **Additional Tests**
 ```bash
-# Suite completa de tests
+# Complete test suite
 make test-core-loans
 
-# Tests específicos
+# Specific tests
 make test-eth-usdc-loan
 make test-usdc-eth-loan
 make test-advanced-operations
@@ -158,85 +158,85 @@ make test-loan-repayment
 
 ---
 
-## 🚨 Solución de Problemas Comunes
+## 🚨 Common Problem Solutions
 
 ### **Error: "Insufficient collateral"**
 
-**Diagnóstico:**
+**Diagnosis:**
 ```bash
-# Verificar precio del oracle
+# Verify oracle price
 cast call <ORACLE_ADDRESS> "getPrice(address,address)" <ETH_ADDRESS> <USDC_ADDRESS> --rpc-url $RPC_URL
 ```
 
-**Resultado Esperado:** `0xb2d05e00` (3,000,000,000 = $3,000)
+**Expected Result:** `0xb2d05e00` (3,000,000,000 = $3,000)
 
-**Si devuelve `0x000f4240` (1,000,000 = $1):**
+**If returns `0x000f4240` (1,000,000 = $1):**
 ```bash
-# Actualizar precio en oracle
+# Update oracle price
 . ./.env && cast send <ORACLE_ADDRESS> "updatePrice(address,address,uint256)" \
   <ETH_ADDRESS> <USDC_ADDRESS> 3000000000 \
   --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 ```
 
-### **Error: Direcciones Hardcodeadas Incorrectas**
+### **Error: Incorrect Hardcoded Addresses**
 
-**Síntoma:** Oracle llamado con direcciones obsoletas
+**Symptom:** Oracle called with obsolete addresses
 
-**Solución:**
-1. Verificar `src/core/GenericLoanManager.sol` función `_getAssetValue`
-2. Actualizar direcciones hardcodeadas:
+**Solution:**
+1. Check `src/core/GenericLoanManager.sol` function `_getAssetValue`
+2. Update hardcoded addresses:
 ```solidity
-address usdcAddress = 0xNUEVA_DIRECCION_USDC;
-if (asset == 0xNUEVA_DIRECCION_ETH) { // Actualizar ETH
-if (asset == 0xNUEVA_DIRECCION_WBTC) { // Actualizar WBTC
+address usdcAddress = 0xNEW_USDC_ADDRESS;
+if (asset == 0xNEW_ETH_ADDRESS) { // Update ETH
+if (asset == 0xNEW_WBTC_ADDRESS) { // Update WBTC
 ```
-3. Redesplegar: `make deploy-corrected-system`
+3. Redeploy: `make deploy-corrected-system`
 
 ### **Error: "No liquidity available"**
 
-**Verificación:**
+**Verification:**
 ```bash
 cast call <VAULT_HANDLER> "getAvailableLiquidity(address)" <TOKEN_ADDRESS> --rpc-url $RPC_URL
 ```
 
-**Solución:**
+**Solution:**
 ```bash
 make provide-corrected-liquidity
 ```
 
 ---
 
-## 🔧 Comandos de Mantenimiento
+## 🔧 Maintenance Commands
 
-### **Monitoreo del Sistema**
+### **System Monitoring**
 ```bash
-make check-system-status    # Estado general
-make check-tokens          # Balances de tokens
-make check-vault           # Información de vaults
-make check-balance         # Balance del deployer
+make check-system-status    # General status
+make check-tokens          # Token balances
+make check-vault           # Vault information
+make check-balance         # Deployer balance
 ```
 
-### **Gestión de Direcciones**
+### **Address Management**
 ```bash
-make update-addresses      # Helper para gestión de direcciones
+make update-addresses      # Address management helper
 ```
 
-### **Verificación en Block Explorer**
+### **Block Explorer Verification**
 ```bash
 make verify-contract
-# Sigue las instrucciones para verificar contratos
+# Follow instructions to verify contracts
 ```
 
 ---
 
-## 📊 Parámetros del Sistema
+## 📊 System Parameters
 
 ### **Oracle Prices (6 decimals)**
-| Asset | Price USD | Formato Oracle |
-|-------|-----------|----------------|
-| ETH   | $3,000    | 3000000000     |
-| WBTC  | $95,000   | 95000000000    |
-| USDC  | $1        | 1000000        |
+| Asset | Price USD | Oracle Format |
+|-------|-----------|---------------|
+| ETH   | $3,000    | 3000000000    |
+| WBTC  | $95,000   | 95000000000   |
+| USDC  | $1        | 1000000       |
 
 ### **Asset Configurations**
 | Asset | Collateral Ratio | Liquidation Ratio | Interest Rate | Max Loan |
@@ -245,105 +245,105 @@ make verify-contract
 | WBTC  | 140% (1400000)   | 115% (1150000)    | 7.5% (75000)  | 50 WBTC  |
 | USDC  | 110% (1100000)   | 105% (1050000)    | 4% (40000)    | 1M USDC  |
 
-### **Liquidez Inicial**
+### **Initial Liquidity**
 - **ETH**: 100 tokens
 - **USDC**: 100,000 tokens
-- **WBTC**: 10 tokens (opcional)
+- **WBTC**: 10 tokens (optional)
 
 ---
 
-## ✅ Workflow Automatizado Completo
+## ✅ Complete Automated Workflow
 
-### **Para Nuevos Despliegues:**
+### **For New Deployments:**
 ```bash
-# Un comando que hace todo
+# One command that does everything
 make deploy-and-auto-test
 ```
 
-**Este comando:**
-1. ✅ Despliega sistema completo
-2. ✅ Proporciona liquidez automáticamente  
-3. ✅ Ejecuta tests de verificación
-4. ✅ No requiere intervención manual
+**This command:**
+1. ✅ Deploys complete system
+2. ✅ Provides liquidity automatically
+3. ✅ Runs verification tests
+4. ✅ No manual intervention required
 
-### **Para Verificar Sistema Existente:**
+### **To Verify Existing System:**
 ```bash
-# Test rápido del sistema actual
+# Quick test of current system
 make quick-test-corrected
 ```
 
 ---
 
-## 📋 Checklist de Despliegue
+## 📋 Deployment Checklist
 
-### **Pre-Despliegue**
-- [ ] Variables de entorno configuradas (`.env`)
-- [ ] Foundry instalado y actualizado
-- [ ] Red blockchain accesible (Base Sepolia)
-- [ ] Balance suficiente para gas fees (~0.01 ETH)
+### **Pre-Deployment**
+- [ ] Environment variables configured (`.env`)
+- [ ] Foundry installed and updated
+- [ ] Blockchain network accessible (Base Sepolia)
+- [ ] Sufficient balance for gas fees (~0.01 ETH)
 
-### **Despliegue**
-- [ ] Ejecutar `make deploy-corrected-system`
-- [ ] Verificar direcciones en output
-- [ ] Copiar direcciones del output
+### **Deployment**
+- [ ] Run `make deploy-corrected-system`
+- [ ] Verify addresses in output
+- [ ] Copy addresses from output
 
-### **Configuración**
-- [ ] Actualizar `script/TestCoreLoans.s.sol` con nuevas direcciones
-- [ ] Actualizar `Makefile` con nuevas direcciones (opcional)
-- [ ] Ejecutar `make provide-corrected-liquidity`
+### **Configuration**
+- [ ] Update `script/TestCoreLoans.s.sol` with new addresses
+- [ ] Update `Makefile` with new addresses (optional)
+- [ ] Run `make provide-corrected-liquidity`
 
-### **Verificación**
-- [ ] Ejecutar `make test-corrected-system`
-- [ ] Verificar output exitoso:
-  - [ ] Préstamo creado (Position ID: 1)
-  - [ ] Ratio ~150% para 5 ETH → 10,000 USDC
-  - [ ] Sin errores "Insufficient collateral"
+### **Verification**
+- [ ] Run `make test-corrected-system`
+- [ ] Verify successful output:
+  - [ ] Loan created (Position ID: 1)
+  - [ ] Ratio ~150% for 5 ETH → 10,000 USDC
+  - [ ] No "Insufficient collateral" errors
 
-### **Post-Despliegue**
-- [ ] Documentar direcciones desplegadas
-- [ ] Configurar monitoreo (opcional)
-- [ ] Verificar contratos en block explorer (opcional)
+### **Post-Deployment**
+- [ ] Document deployed addresses
+- [ ] Configure monitoring (optional)
+- [ ] Verify contracts on block explorer (optional)
 
 ---
 
-## 🎯 Métricas de Éxito
+## 🎯 Success Metrics
 
-### **Indicadores de Sistema Funcional:**
-- ✅ **Oracle responsivo**: Precios correctos ($3,000 ETH)
-- ✅ **Liquidez suficiente**: >50 ETH y >50,000 USDC en vaults
-- ✅ **Préstamos funcionales**: Creación exitosa con ratios esperados
-- ✅ **Ratios correctos**: ~150% para préstamo ETH→USDC estándar
+### **Functional System Indicators:**
+- ✅ **Responsive Oracle**: Correct prices ($3,000 ETH)
+- ✅ **Sufficient Liquidity**: >50 ETH and >50,000 USDC in vaults
+- ✅ **Functional Loans**: Successful creation with expected ratios
+- ✅ **Correct Ratios**: ~150% for standard ETH→USDC loan
 
-### **Test de Validación Final:**
+### **Final Validation Test:**
 ```bash
-# Debe crear préstamo exitosamente:
+# Should create loan successfully:
 # 5 ETH ($15,000) → 10,000 USDC = 150% ratio
 make test-corrected-system
 ```
 
 ---
 
-## 🚀 Comandos Rápidos de Referencia
+## 🚀 Quick Reference Commands
 
 ```bash
-# Despliegue completo automatizado
+# Complete automated deployment
 make deploy-and-auto-test
 
-# Solo despliegue 
+# Deployment only
 make deploy-corrected-system
 
-# Solo liquidez
+# Liquidity only
 make provide-corrected-liquidity
 
-# Solo testing
+# Testing only
 make test-corrected-system
 
-# Verificar sistema
+# Verify system
 make check-system-status
 ```
 
 ---
 
-**✅ Sistema Completamente Funcional y Documentado**
+**✅ Fully Functional and Documented System**
 
-Esta guía garantiza un despliegue exitoso del sistema de préstamos colateralizados con todas las correcciones implementadas y verificadas. 
+This guide ensures successful deployment of the collateralized loan system with all implemented and verified fixes. 

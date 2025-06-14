@@ -1,40 +1,40 @@
-# 🚨 Troubleshooting - Sistema de Préstamos Colateralizados
+# 🚨 Troubleshooting - Collateralized Loan System
 
-## 📋 Problemas Comunes y Soluciones
+## 📋 Common Problems and Solutions
 
-Esta guía documenta todos los problemas encontrados durante el desarrollo y sus soluciones verificadas.
+This guide documents all issues encountered during development and their verified solutions.
 
 ---
 
 ## 🔥 Error: "Insufficient collateral"
 
-### **Síntomas**
+### **Symptoms**
 ```bash
 Error: script failed: Insufficient collateral
 make: *** [Makefile:228: test-corrected-system] Error 1
 ```
 
-### **Causa Raíz**
-Oracle devolviendo precio incorrecto para ETH (devuelve $1 en lugar de $3,000)
+### **Root Cause**
+Oracle returning incorrect price for ETH (returns $1 instead of $3,000)
 
-### **Diagnóstico**
+### **Diagnosis**
 ```bash
-# Verificar precio del oracle
+# Verify oracle price
 cast call <ORACLE_ADDRESS> "getPrice(address,address)" <ETH_ADDRESS> <USDC_ADDRESS> --rpc-url $RPC_URL
 ```
 
-**Resultados:**
-- ✅ **Correcto**: `0xb2d05e00` (3,000,000,000 = $3,000)
-- ❌ **Incorrecto**: `0x000f4240` (1,000,000 = $1)
+**Results:**
+- ✅ **Correct**: `0xb2d05e00` (3,000,000,000 = $3,000)
+- ❌ **Incorrect**: `0x000f4240` (1,000,000 = $1)
 
-### **Solución Verificada**
+### **Verified Solution**
 ```bash
-# Actualizar precio manualmente en oracle
+# Manually update price in oracle
 . ./.env && cast send <ORACLE_ADDRESS> "updatePrice(address,address,uint256)" \
   <ETH_ADDRESS> <USDC_ADDRESS> 3000000000 \
   --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 
-# También actualizar precio inverso
+# Also update inverse price
 . ./.env && cast send <ORACLE_ADDRESS> "updatePrice(address,address,uint256)" \
   <USDC_ADDRESS> <ETH_ADDRESS> 333 \
   --rpc-url $RPC_URL --private-key $PRIVATE_KEY
@@ -44,65 +44,65 @@ cast call <ORACLE_ADDRESS> "getPrice(address,address)" <ETH_ADDRESS> <USDC_ADDRE
 
 ## 📁 Error: "vm.writeFile not allowed"
 
-### **Síntomas**
+### **Symptoms**
 ```bash
 Error: You have a restriction on `ffi` and `fs_permission`, so `vm.writeFile` is not allowed
 ```
 
-### **Causa Raíz**
-Foundry bloquea escritura de archivos por seguridad
+### **Root Cause**
+Foundry blocks file writing for security
 
-### **Solución Implementada**
-✅ **Corregido en el código** - Reemplazado `vm.writeFile` con `console.log`:
+### **Implemented Solution**
+✅ **Fixed in code** - Replaced `vm.writeFile` with `console.log`:
 
 ```solidity
-// ❌ Antes (causaba error)
+// ❌ Before (caused error)
 vm.writeFile("latest-deployment.json", json);
 
-// ✅ Después (funciona)
+// ✅ After (works)
 console.log("=== DEPLOYMENT ADDRESSES (Copy these for tests) ===");
 console.log("MOCK_ETH:", mockETH);
 console.log("MOCK_USDC:", mockUSDC);
 ```
 
-**Archivo afectado:** `script/deploy/DeploySimpleCore.s.sol`
+**Affected file:** `script/deploy/DeploySimpleCore.s.sol`
 
 ---
 
-## 🔗 Error: Direcciones Hardcodeadas Obsoletas
+## 🔗 Error: Obsolete Hardcoded Addresses
 
-### **Síntomas**
-Oracle llamado con direcciones incorrectas en traces:
+### **Symptoms**
+Oracle called with incorrect addresses in traces:
 ```bash
 [4965] MockOracle::getPrice(..., 0x06c61154F530BC1c9D5E0ecFc855Fb744Bc6d5Cc) [staticcall]
 ```
 
-### **Causa Raíz**
-Función `_getAssetValue` en GenericLoanManager con direcciones hardcodeadas obsoletas
+### **Root Cause**
+`_getAssetValue` function in GenericLoanManager with obsolete hardcoded addresses
 
-### **Archivos Afectados**
-- `src/core/GenericLoanManager.sol` - líneas 389-415
+### **Affected Files**
+- `src/core/GenericLoanManager.sol` - lines 389-415
 
-### **Solución Verificada**
+### **Verified Solution**
 ```solidity
-// En src/core/GenericLoanManager.sol
+// In src/core/GenericLoanManager.sol
 function _getAssetValue(address asset, uint256 amount) internal view returns (uint256) {
-    // ✅ Actualizar con dirección USDC correcta
-    address usdcAddress = 0xe981A9ef78BA6E852FceE8221Ac731ed8d1a73b4; // NUEVA
+    // ✅ Update with correct USDC address
+    address usdcAddress = 0xe981A9ef78BA6E852FceE8221Ac731ed8d1a73b4; // NEW
     
-    // ✅ Actualizar direcciones ETH y WBTC
-    if (asset == 0xcEA74D109F9B6F6c17Bf0dA4BE7a1a279e89a11f) { // ETH NUEVA
+    // ✅ Update ETH and WBTC addresses
+    if (asset == 0xcEA74D109F9B6F6c17Bf0dA4BE7a1a279e89a11f) { // ETH NEW
         return (amount * priceInUsdc) / 1e18;
     }
-    else if (asset == 0xB42c21ae911C889a887f79dE329bEf8fa0a83Ab8) { // WBTC NUEVA
+    else if (asset == 0xB42c21ae911C889a887f79dE329bEf8fa0a83Ab8) { // WBTC NEW
         return (amount * priceInUsdc) / 1e8;
     }
 }
 ```
 
-**Comando para aplicar:**
+**Command to apply:**
 ```bash
-# Redesplegar después de corregir
+# Redeploy after fixing
 make deploy-corrected-system
 ```
 
@@ -110,25 +110,25 @@ make deploy-corrected-system
 
 ## 💧 Error: "No liquidity available"
 
-### **Síntomas**
+### **Symptoms**
 ```bash
 ETH Vault: 0 ETH
 USDC Vault: 0 USDC
 ```
 
-### **Diagnóstico**
+### **Diagnosis**
 ```bash
-# Verificar liquidez en vault
+# Verify vault liquidity
 cast call <VAULT_HANDLER> "getAvailableLiquidity(address)" <TOKEN_ADDRESS> --rpc-url $RPC_URL
 ```
 
-### **Solución**
+### **Solution**
 ```bash
-# Proporcionar liquidez inicial
+# Provide initial liquidity
 make provide-corrected-liquidity
 ```
 
-**Resultado esperado:**
+**Expected result:**
 ```bash
 ✅ Liquidity provided successfully!
    ETH Vault: 100 ETH
@@ -139,20 +139,20 @@ make provide-corrected-liquidity
 
 ## 🔑 Error: "a value is required for '--private-key'"
 
-### **Síntomas**
+### **Symptoms**
 ```bash
 error: a value is required for '--private-key <RAW_PRIVATE_KEY>' but none was supplied
 ```
 
-### **Causa**
-Variables de entorno no cargadas correctamente
+### **Cause**
+Environment variables not loaded correctly
 
-### **Solución**
+### **Solution**
 ```bash
-# Cargar variables de entorno primero
+# Load environment variables first
 . ./.env && cast send ...
 
-# O verificar que .env existe y tiene PRIVATE_KEY
+# Or verify .env exists and has PRIVATE_KEY
 cat .env | grep PRIVATE_KEY
 ```
 
@@ -160,70 +160,70 @@ cat .env | grep PRIVATE_KEY
 
 ## 🌐 Error: Network Connection Issues
 
-### **Síntomas**
+### **Symptoms**
 ```bash
 Error: Failed to get chain ID
 ```
 
-### **Diagnóstico**
+### **Diagnosis**
 ```bash
-# Verificar conectividad
+# Verify connectivity
 cast chain-id --rpc-url https://sepolia.base.org
 ```
 
-### **Soluciones**
-1. **Verificar RPC URL**: Usar Base Sepolia oficial
-2. **Verificar internet**: Ping a la URL
-3. **Verificar rate limits**: Esperar y reintentar
+### **Solutions**
+1. **Verify RPC URL**: Use official Base Sepolia
+2. **Check internet**: Ping the URL
+3. **Check rate limits**: Wait and retry
 
 ---
 
-## 📊 Ratios Incorrectos en Output
+## 📊 Incorrect Ratios in Output
 
-### **Síntomas**
-Ratio de colateralización extremadamente alto o bajo
+### **Symptoms**
+Extremely high or low collateralization ratio
 
-### **Ejemplo Problemático**
+### **Problematic Example**
 ```bash
-Ratio de colateralizacion: 11579208923731619542357098500868790785326998466564056403945758400791312963 %
+Collateralization ratio: 11579208923731619542357098500868790785326998466564056403945758400791312963 %
 ```
 
-### **Causa**
-Cálculos con decimales incorrectos o overflow
+### **Cause**
+Incorrect decimal calculations or overflow
 
-### **Verificación**
+### **Verification**
 ```bash
-# El ratio debe estar cerca de 150% (1500000 en formato interno)
-# Para 5 ETH ($15,000) → 10,000 USDC = 150% ratio
+# Ratio should be around 150% (1500000 in internal format)
+# For 5 ETH ($15,000) → 10,000 USDC = 150% ratio
 ```
 
-### **Solución**
-✅ **Verificado funcionando** con oracle corregido:
-- 5 ETH × $3,000 = $15,000 colateral
-- 10,000 USDC préstamo  
+### **Solution**
+✅ **Verified working** with corrected oracle:
+- 5 ETH × $3,000 = $15,000 collateral
+- 10,000 USDC loan
 - Ratio = $15,000 / $10,000 = 150%
 
 ---
 
-## 🔄 Error: "Position not active" 
+## 🔄 Error: "Position not active"
 
-### **Síntomas**
-Error al intentar operar con posición de préstamo
+### **Symptoms**
+Error when trying to operate with loan position
 
-### **Diagnóstico**
+### **Diagnosis**
 ```bash
-# Verificar estado de la posición
+# Verify position status
 cast call <LOAN_MANAGER> "getPosition(uint256)" <POSITION_ID> --rpc-url $RPC_URL
 ```
 
-### **Causas Comunes**
-1. Position ID incorrecto
-2. Préstamo ya cerrado/liquidado
-3. Error en la creación del préstamo
+### **Common Causes**
+1. Incorrect Position ID
+2. Loan already closed/liquidated
+3. Error in loan creation
 
-### **Solución**
+### **Solution**
 ```bash
-# Crear nueva posición si es necesario
+# Create new position if needed
 make test-corrected-system
 ```
 
@@ -231,89 +231,89 @@ make test-corrected-system
 
 ## ⛽ Error: "Insufficient gas"
 
-### **Síntomas**
+### **Symptoms**
 ```bash
 Error: Transaction failed with out of gas
 ```
 
-### **Solución**
+### **Solution**
 ```bash
-# Verificar balance para gas
+# Verify gas balance
 cast balance <DEPLOYER_ADDRESS> --rpc-url $RPC_URL --ether
 
-# Debe tener al menos 0.01 ETH para despliegue completo
+# Should have at least 0.01 ETH for complete deployment
 ```
 
 ---
 
-## 🔧 Comandos de Diagnóstico Útiles
+## 🔧 Useful Diagnostic Commands
 
-### **Verificar Estado del Sistema**
+### **Verify System Status**
 ```bash
-# Estado general
+# General status
 make check-system-status
 
-# Verificar oracle específico
+# Verify specific oracle
 cast call <ORACLE_ADDRESS> "getPrice(address,address)" <ETH> <USDC> --rpc-url $RPC_URL
 
-# Verificar liquidez
+# Verify liquidity
 cast call <VAULT_HANDLER> "getAvailableLiquidity(address)" <TOKEN> --rpc-url $RPC_URL
 
-# Verificar balances
+# Verify balances
 cast call <TOKEN_ADDRESS> "balanceOf(address)" <DEPLOYER_ADDRESS> --rpc-url $RPC_URL
 ```
 
-### **Verificar Configuraciones**
+### **Verify Configurations**
 ```bash
-# Verificar configuración de asset
+# Verify asset configuration
 cast call <VAULT_HANDLER> "getAssetConfig(address)" <TOKEN_ADDRESS> --rpc-url $RPC_URL
 
-# Verificar si asset está soportado
+# Verify if asset is supported
 cast call <VAULT_HANDLER> "isAssetSupported(address)" <TOKEN_ADDRESS> --rpc-url $RPC_URL
 ```
 
 ---
 
-## 📋 Checklist de Diagnóstico
+## 📋 Diagnostic Checklist
 
-### **Antes de Buscar Ayuda**
-- [ ] ¿Variables de entorno configuradas? (`cat .env`)
-- [ ] ¿Balance suficiente para gas? (`cast balance ...`)
-- [ ] ¿Red accesible? (`cast chain-id --rpc-url ...`)
-- [ ] ¿Direcciones actualizadas? (verificar scripts de test)
-- [ ] ¿Oracle funcionando? (`cast call oracle getPrice ...`)
-- [ ] ¿Liquidez proporcionada? (`make provide-corrected-liquidity`)
+### **Before Seeking Help**
+- [ ] Environment variables configured? (`cat .env`)
+- [ ] Sufficient gas balance? (`cast balance ...`)
+- [ ] Network accessible? (`cast chain-id --rpc-url ...`)
+- [ ] Addresses updated? (verify test scripts)
+- [ ] Oracle working? (`cast call oracle getPrice ...`)
+- [ ] Liquidity provided? (`make provide-corrected-liquidity`)
 
-### **Información a Incluir en Reportes**
-1. **Comando exacto ejecutado**
-2. **Error completo** (no solo el mensaje final)
-3. **Direcciones de contratos** desplegados
-4. **Output del comando de diagnóstico**
-5. **Network y chain ID**
+### **Information to Include in Reports**
+1. **Exact command executed**
+2. **Complete error** (not just final message)
+3. **Deployed contract addresses**
+4. **Diagnostic command output**
+5. **Network and chain ID**
 
 ---
 
-## 🚀 Comandos de Recuperación Rápida
+## 🚀 Quick Recovery Commands
 
 ```bash
-# Reset completo del sistema
-make deploy-corrected-system      # 1. Redesplegar
-make provide-corrected-liquidity  # 2. Proporcionar liquidez
-make test-corrected-system        # 3. Verificar funcionamiento
+# Complete system reset
+make deploy-corrected-system      # 1. Redeploy
+make provide-corrected-liquidity  # 2. Provide liquidity
+make test-corrected-system        # 3. Verify operation
 
-# Solo arreglar oracle
+# Fix oracle only
 . ./.env && cast send <ORACLE> "updatePrice(address,address,uint256)" \
   <ETH> <USDC> 3000000000 --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 
-# Solo proporcionar liquidez
+# Provide liquidity only
 make provide-corrected-liquidity
 
-# Solo testing
+# Testing only
 make test-corrected-system
 ```
 
 ---
 
-**✅ Con esta guía, la mayoría de problemas pueden resolverse rápidamente**
+**✅ With this guide, most problems can be resolved quickly**
 
-Si el problema persiste después de seguir esta guía, es posible que sea un problema nuevo que requiera investigación adicional. 
+If the problem persists after following this guide, it may be a new issue requiring additional investigation. 

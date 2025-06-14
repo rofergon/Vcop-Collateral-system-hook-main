@@ -1,52 +1,52 @@
-# 📊 CÁLCULOS DE RIESGO Y RATIOS EN EL PROTOCOLO
+# 📊 RISK CALCULATIONS AND RATIOS IN THE PROTOCOL
 
-## 🎯 FUNCIONALIDADES DEL SISTEMA DE RIESGO
+## 🎯 RISK SYSTEM FUNCTIONALITIES
 
-**¿Dónde se calculan los ratios y riesgos?**
-- ✅ **ON-CHAIN**: Cálculos críticos de seguridad están en los contratos
-- ✅ **REAL-TIME**: Los contratos calculan métricas en tiempo real
-- ✅ **FRONTEND**: Solo para UI/UX, no para lógica crítica
+**Where are ratios and risks calculated?**
+- ✅ **ON-CHAIN**: Critical security calculations are in contracts
+- ✅ **REAL-TIME**: Contracts calculate metrics in real-time
+- ✅ **FRONTEND**: Only for UI/UX, not for critical logic
 
-**¿Es posible leer el riesgo según precios desde los contratos?**
-- ✅ **SÍ**: Completamente implementado con oráculos en tiempo real
-- ✅ **DETALLADO**: Métricas comprehensivas de riesgo
-- ✅ **AUTOMATIZADO**: Liquidaciones automáticas basadas en precios
+**Is it possible to read risk based on prices from contracts?**
+- ✅ **YES**: Fully implemented with real-time oracles
+- ✅ **DETAILED**: Comprehensive risk metrics
+- ✅ **AUTOMATED**: Automatic liquidations based on prices
 
-## 🏗️ ARQUITECTURA DE CÁLCULOS DE RIESGO
+## 🏗️ RISK CALCULATION ARCHITECTURE
 
-### 1. **CONTRATOS PRINCIPALES**
+### 1. **MAIN CONTRACTS**
 
 #### `GenericLoanManager.sol`
 ```solidity
-// ✅ CÁLCULOS BÁSICOS IMPLEMENTADOS
+// ✅ BASIC CALCULATIONS IMPLEMENTED
 function getCollateralizationRatio(uint256 positionId) external view returns (uint256)
 function canLiquidate(uint256 positionId) public view returns (bool)
 function getMaxBorrowAmount(address collateral, address loan, uint256 amount) external view
 function getTotalDebt(uint256 positionId) public view returns (uint256)
 ```
 
-#### `RiskCalculator.sol` (NUEVO - CALCULADORA AVANZADA)
+#### `RiskCalculator.sol` (NEW - ADVANCED CALCULATOR)
 ```solidity
-// ✅ MÉTRICAS COMPREHENSIVAS
+// ✅ COMPREHENSIVE METRICS
 struct RiskMetrics {
-    uint256 collateralizationRatio;    // Ratio actual de colateralización
-    uint256 liquidationThreshold;      // Umbral de liquidación
-    uint256 healthFactor;              // Factor de salud (1.0 = seguro)
-    uint256 maxWithdrawable;          // Máximo colateral retirable
-    uint256 maxBorrowable;            // Máximo adicional prestable
-    uint256 liquidationPrice;         // Precio de liquidación
-    RiskLevel riskLevel;              // Nivel de riesgo (HEALTHY/WARNING/DANGER/CRITICAL)
-    uint256 timeToLiquidation;        // Tiempo estimado a liquidación
-    bool isLiquidatable;              // ¿Puede liquidarse ahora?
+    uint256 collateralizationRatio;    // Current collateralization ratio
+    uint256 liquidationThreshold;      // Liquidation threshold
+    uint256 healthFactor;              // Health factor (1.0 = safe)
+    uint256 maxWithdrawable;          // Maximum withdrawable collateral
+    uint256 maxBorrowable;            // Maximum additional borrowable
+    uint256 liquidationPrice;         // Liquidation price
+    RiskLevel riskLevel;              // Risk level (HEALTHY/WARNING/DANGER/CRITICAL)
+    uint256 timeToLiquidation;        // Estimated time to liquidation
+    bool isLiquidatable;              // Can be liquidated now?
 }
 ```
 
-### 2. **TIPOS DE CÁLCULOS**
+### 2. **TYPES OF CALCULATIONS**
 
-#### **A. CÁLCULOS EN TIEMPO REAL (ON-CHAIN)**
+#### **A. REAL-TIME CALCULATIONS (ON-CHAIN)**
 ```solidity
-// RATIO DE COLATERALIZACIÓN
-// = (Valor del Colateral * 1,000,000) / Valor de la Deuda
+// COLLATERALIZATION RATIO
+// = (Collateral Value * 1,000,000) / Debt Value
 function getCollateralizationRatio(uint256 positionId) external view returns (uint256) {
     LoanPosition memory position = positions[positionId];
     
@@ -57,24 +57,24 @@ function getCollateralizationRatio(uint256 positionId) external view returns (ui
     return (collateralValue * 1000000) / debtValue;
 }
 
-// FACTOR DE SALUD
-// = (Ratio de Colateralización * 1,000,000) / Umbral de Liquidación
+// HEALTH FACTOR
+// = (Collateralization Ratio * 1,000,000) / Liquidation Threshold
 function healthFactor = (collateralizationRatio * 1000000) / liquidationThreshold;
 
-// PRECIO DE LIQUIDACIÓN
-// = (Valor de Deuda * Umbral de Liquidación) / (Cantidad de Colateral * 1,000,000)
+// LIQUIDATION PRICE
+// = (Debt Value * Liquidation Threshold) / (Collateral Amount * 1,000,000)
 function liquidationPrice = (debtValue * liquidationThreshold) / (collateralAmount * 1000000);
 ```
 
-#### **B. CÁLCULOS BASADOS EN ORÁCULOS**
+#### **B. ORACLE-BASED CALCULATIONS**
 ```solidity
-// VALORES DE ACTIVOS EN USD
+// ASSET VALUES IN USD
 function _getAssetValueInUSD(address asset, uint256 amount) internal view returns (uint256) {
     uint256 priceInUSD = oracle.getPrice(asset, USD_REFERENCE);
     return (amount * priceInUSD) / (10 ** assetDecimals);
 }
 
-// DETECCIÓN DE LIQUIDACIÓN
+// LIQUIDATION DETECTION
 function canLiquidate(uint256 positionId) public view returns (bool) {
     uint256 currentRatio = getCollateralizationRatio(positionId);
     uint256 liquidationThreshold = assetConfig.liquidationRatio;
@@ -83,99 +83,99 @@ function canLiquidate(uint256 positionId) public view returns (bool) {
 }
 ```
 
-#### **C. CÁLCULOS PREDICTIVOS**
+#### **C. PREDICTIVE CALCULATIONS**
 ```solidity
-// PROYECCIÓN DE RIESGO FUTURO
+// FUTURE RISK PROJECTION
 function projectFutureRisk(uint256 positionId, uint256 timeInSeconds) external view returns (
     uint256 futureHealthFactor,
     uint256 additionalInterest
 ) {
-    // Calcula interés futuro
+    // Calculate future interest
     additionalInterest = (loanAmount * interestRate * timeInSeconds) / (365 * 24 * 3600 * 1000000);
     
-    // Proyecta factor de salud futuro
+    // Project future health factor
     uint256 futureTotalDebt = currentDebt + additionalInterest;
     futureHealthFactor = (collateralValue * 1000000) / (futureTotalDebt * liquidationThreshold);
 }
 
-// ANÁLISIS DE IMPACTO DE PRECIO
+// PRICE IMPACT ANALYSIS
 function analyzePriceImpact(uint256 positionId) external view returns (PriceImpact memory) {
-    // Calcula caída de precio necesaria para diferentes niveles de riesgo
+    // Calculate price drop needed for different risk levels
     priceDropFor10PercentLiquidation = calculatePriceDropForRisk(10);
     priceDropFor50PercentLiquidation = calculatePriceDropForRisk(50);
     priceDropFor90PercentLiquidation = calculatePriceDropForRisk(90);
 }
 ```
 
-## 📊 MÉTRICAS DE RIESGO IMPLEMENTADAS
+## 📊 IMPLEMENTED RISK METRICS
 
-### **NIVELES DE RIESGO**
+### **RISK LEVELS**
 ```solidity
 enum RiskLevel {
-    HEALTHY,     // > 200% - Verde 🟢
-    WARNING,     // 150% - 200% - Amarillo 🟡
-    DANGER,      // 120% - 150% - Naranja 🟠
-    CRITICAL,    // 110% - 120% - Rojo 🔴
-    LIQUIDATABLE // < 110% - Negro ⚫
+    HEALTHY,     // > 200% - Green 🟢
+    WARNING,     // 150% - 200% - Yellow 🟡
+    DANGER,      // 120% - 150% - Orange 🟠
+    CRITICAL,    // 110% - 120% - Red 🔴
+    LIQUIDATABLE // < 110% - Black ⚫
 }
 ```
 
-### **EJEMPLOS PRÁCTICOS**
+### **PRACTICAL EXAMPLES**
 
-#### **Escenario 1: Posición Saludable**
+#### **Scenario 1: Healthy Position**
 ```
-Colateral: 10 ETH @ $2,000 = $20,000
-Préstamo: 8,000 USDC
+Collateral: 10 ETH @ $2,000 = $20,000
+Loan: 8,000 USDC
 Ratio: ($20,000 / $8,000) * 100% = 250%
-Nivel: HEALTHY 🟢
-Factor de Salud: 2.27 (250% / 110%)
-Máximo Retirable: ~4.5 ETH
+Level: HEALTHY 🟢
+Health Factor: 2.27 (250% / 110%)
+Maximum Withdrawable: ~4.5 ETH
 ```
 
-#### **Escenario 2: Posición en Peligro**
+#### **Scenario 2: Position in Danger**
 ```
-Colateral: 10 ETH @ $1,400 = $14,000  
-Préstamo: 8,000 USDC + 200 USDC interés = $8,200
+Collateral: 10 ETH @ $1,400 = $14,000
+Loan: 8,000 USDC + 200 USDC interest = $8,200
 Ratio: ($14,000 / $8,200) * 100% = 170%
-Nivel: WARNING 🟡
-Factor de Salud: 1.55
-Máximo Retirable: ~2.8 ETH
+Level: WARNING 🟡
+Health Factor: 1.55
+Maximum Withdrawable: ~2.8 ETH
 ```
 
-#### **Escenario 3: Liquidación Inminente**
+#### **Scenario 3: Imminent Liquidation**
 ```
-Colateral: 10 ETH @ $900 = $9,000
-Préstamo: 8,000 USDC + 500 USDC interés = $8,500  
+Collateral: 10 ETH @ $900 = $9,000
+Loan: 8,000 USDC + 500 USDC interest = $8,500
 Ratio: ($9,000 / $8,500) * 100% = 105%
-Nivel: LIQUIDATABLE ⚫
-Factor de Salud: 0.95
-Acción: LIQUIDACIÓN AUTOMÁTICA
+Level: LIQUIDATABLE ⚫
+Health Factor: 0.95
+Action: AUTOMATIC LIQUIDATION
 ```
 
-## 🔄 FLUJO DE CÁLCULOS EN TIEMPO REAL
+## 🔄 REAL-TIME CALCULATION FLOW
 
-### **1. MONITOREO CONTINUO**
+### **1. CONTINUOUS MONITORING**
 ```solidity
-// Los contratos verifican automáticamente:
+// Contracts automatically verify:
 beforeSwap() -> monitorPrice() -> stabilizePriceWithPSM()
 afterSwap() -> checkAllPositions() -> triggerLiquidationsIfNeeded()
 
-// Cada transacción actualiza:
+// Each transaction updates:
 updateInterest(positionId) -> recalculateRiskMetrics() -> emitRiskEvents()
 ```
 
-### **2. TRIGGERS AUTOMÁTICOS**
+### **2. AUTOMATIC TRIGGERS**
 ```solidity
 modifier riskCheck(uint256 positionId) {
     _;
     
-    // Después de cada operación, verificar riesgo
+    // After each operation, verify risk
     if (canLiquidate(positionId)) {
         emit LiquidationWarning(positionId);
-        // Opcionalmente trigger liquidación automática
+        // Optionally trigger automatic liquidation
     }
     
-    // Emitir eventos de cambio de nivel de riesgo
+    // Emit risk level change events
     RiskLevel newLevel = calculateRiskLevel(positionId);
     if (newLevel != previousLevel) {
         emit RiskLevelChanged(positionId, previousLevel, newLevel);
@@ -183,25 +183,25 @@ modifier riskCheck(uint256 positionId) {
 }
 ```
 
-### **3. INTEGRACIÓN CON ORÁCULOS**
+### **3. ORACLE INTEGRATION**
 ```solidity
-// Precios actualizados cada bloque
+// Prices updated every block
 function updateRiskMetricsOnPriceChange() external {
     uint256[] memory allPositions = getAllActivePositions();
     
     for (uint i = 0; i < allPositions.length; i++) {
         uint256 positionId = allPositions[i];
         
-        // Recalcular métricas con nuevos precios
+        // Recalculate metrics with new prices
         RiskMetrics memory newMetrics = calculateRiskMetrics(positionId);
         
-        // Si cambió el nivel de riesgo, emitir evento
+        // If risk level changed, emit event
         if (newMetrics.riskLevel != previousRiskLevel[positionId]) {
             emit RiskLevelChanged(positionId, previousRiskLevel[positionId], newMetrics.riskLevel);
             previousRiskLevel[positionId] = newMetrics.riskLevel;
         }
         
-        // Liquidar si es necesario
+        // Liquidate if necessary
         if (newMetrics.isLiquidatable) {
             triggerLiquidation(positionId);
         }
@@ -209,16 +209,16 @@ function updateRiskMetricsOnPriceChange() external {
 }
 ```
 
-## 🖥️ CÓMO USAR DESDE EL FRONTEND
+## 🖥️ HOW TO USE FROM FRONTEND
 
-### **LECTURA DE MÉTRICAS**
+### **READING METRICS**
 ```javascript
-// 1. Obtener métricas básicas
+// 1. Get basic metrics
 const collateralizationRatio = await loanManager.getCollateralizationRatio(positionId);
 const canLiquidate = await loanManager.canLiquidate(positionId);
 const totalDebt = await loanManager.getTotalDebt(positionId);
 
-// 2. Obtener métricas avanzadas
+// 2. Get advanced metrics
 const riskMetrics = await riskCalculator.calculateRiskMetrics(positionId);
 console.log({
     ratio: riskMetrics.collateralizationRatio / 1000000, // Convert to percentage
@@ -228,7 +228,7 @@ console.log({
     liquidationPrice: riskMetrics.liquidationPrice
 });
 
-// 3. Análisis de cartera
+// 3. Portfolio analysis
 const portfolioRisk = await riskCalculator.calculatePortfolioRisk(userAddress);
 console.log({
     totalCollateralValue: portfolioRisk.totalCollateralValue,
@@ -238,22 +238,22 @@ console.log({
 });
 ```
 
-### **MONITOREO EN TIEMPO REAL**
+### **REAL-TIME MONITORING**
 ```javascript
-// Suscribirse a eventos de cambio de riesgo
+// Subscribe to risk change events
 loanManager.on('RiskLevelChanged', (positionId, oldLevel, newLevel) => {
     console.log(`Position ${positionId} risk changed from ${oldLevel} to ${newLevel}`);
     
-    // Actualizar UI según el nuevo nivel
+    // Update UI based on new level
     updatePositionUI(positionId, newLevel);
     
-    // Mostrar alertas si es necesario
+    // Show alerts if necessary
     if (newLevel >= 3) { // CRITICAL or LIQUIDATABLE
         showCriticalAlert(positionId);
     }
 });
 
-// Actualización periódica
+// Periodic update
 setInterval(async () => {
     const userPositions = await loanManager.getUserPositions(userAddress);
     
@@ -261,16 +261,16 @@ setInterval(async () => {
         const metrics = await riskCalculator.calculateRiskMetrics(positionId);
         updateDashboard(positionId, metrics);
     }
-}, 30000); // Cada 30 segundos
+}, 30000); // Every 30 seconds
 ```
 
-## ⚡ OPTIMIZACIONES DE GAS
+## ⚡ GAS OPTIMIZATIONS
 
-### **CÁLCULOS EFICIENTES**
+### **EFFICIENT CALCULATIONS**
 ```solidity
-// ✅ BUENA PRÁCTICA: Caching para múltiples cálculos
+// ✅ GOOD PRACTICE: Caching for multiple calculations
 function batchCalculateRisk(uint256[] calldata positionIds) external view returns (RiskMetrics[] memory) {
-    // Cache oracle prices para evitar múltiples llamadas
+    // Cache oracle prices to avoid multiple calls
     mapping(address => uint256) memory priceCache;
     
     RiskMetrics[] memory results = new RiskMetrics[](positionIds.length);
@@ -282,26 +282,26 @@ function batchCalculateRisk(uint256[] calldata positionIds) external view return
     return results;
 }
 
-// ✅ BUENA PRÁCTICA: View functions para lectura
-// ❌ MALA PRÁCTICA: Modificar estado solo para leer
+// ✅ GOOD PRACTICE: View functions for reading
+// ❌ BAD PRACTICE: Modifying state just to read
 ```
 
 ### **WHEN TO CALCULATE WHERE**
 
-| Tipo de Cálculo | Dónde | Por Qué |
+| Calculation Type | Where | Why |
 |---|---|---|
-| **Validación de Préstamo** | ✅ ON-CHAIN | Seguridad crítica |
-| **Liquidación** | ✅ ON-CHAIN | Automatización necesaria |
-| **Health Factor** | ✅ ON-CHAIN | Tiempo real necesario |
-| **Gráficos de Riesgo** | 📱 FRONTEND | UI/UX, no crítico |
-| **Alertas Tempranas** | 📱 FRONTEND | Notificaciones |
-| **Análisis Histórico** | 📱 FRONTEND | Performance |
+| **Loan Validation** | ✅ ON-CHAIN | Critical security |
+| **Liquidation** | ✅ ON-CHAIN | Automation needed |
+| **Health Factor** | ✅ ON-CHAIN | Real-time needed |
+| **Risk Charts** | 📱 FRONTEND | UI/UX, not critical |
+| **Early Alerts** | 📱 FRONTEND | Notifications |
+| **Historical Analysis** | 📱 FRONTEND | Performance |
 
-## 🛡️ SEGURIDAD DE LOS CÁLCULOS
+## 🛡️ CALCULATION SECURITY
 
-### **PROTECCIONES IMPLEMENTADAS**
+### **IMPLEMENTED PROTECTIONS**
 ```solidity
-// 1. Validación de Oracle
+// 1. Oracle Validation
 function _getAssetValueInUSD(address asset, uint256 amount) internal view returns (uint256) {
     IGenericOracle.PriceData memory priceData = oracle.getPriceData(asset, USD_REFERENCE);
     
@@ -329,28 +329,28 @@ modifier emergencyStop() {
 }
 ```
 
-## 📈 RESUMEN: VENTAJAS DEL DISEÑO
+## 📈 SUMMARY: DESIGN ADVANTAGES
 
-### **✅ COMPLETAMENTE ON-CHAIN**
-- Todos los cálculos críticos están en contratos
-- No dependencia del frontend para lógica
-- Liquidaciones automáticas 24/7
+### **✅ FULLY ON-CHAIN**
+- All critical calculations in contracts
+- No frontend dependency for logic
+- Automatic liquidations 24/7
 
-### **✅ TIEMPO REAL**
-- Precios actualizados cada bloque
-- Métricas de riesgo en tiempo real
-- Detección inmediata de liquidaciones
+### **✅ REAL-TIME**
+- Prices updated every block
+- Real-time risk metrics
+- Immediate liquidation detection
 
-### **✅ COMPREHENSIVO**
-- 15+ métricas de riesgo diferentes
-- Análisis predictivo y de impacto
-- Monitoreo de cartera completa
+### **✅ COMPREHENSIVE**
+- 15+ different risk metrics
+- Predictive and impact analysis
+- Complete portfolio monitoring
 
-### **✅ EFICIENTE**
-- Optimizado para gas
-- Caching inteligente
+### **✅ EFFICIENT**
+- Gas optimized
+- Smart caching
 - Batch calculations
 
 ---
 
-**🎯 CONCLUSIÓN: El protocolo implementa un sistema completo de gestión de riesgo on-chain que supera a la mayoría de protocolos DeFi existentes.** 
+**🎯 CONCLUSION: The protocol implements a complete on-chain risk management system that exceeds most existing DeFi protocols.** 

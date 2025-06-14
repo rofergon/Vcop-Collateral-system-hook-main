@@ -1,85 +1,85 @@
-# ⚡ Referencia Rápida - Sistema de Préstamos Colateralizados
+# ⚡ Quick Reference - Collateralized Loan System
 
-## 🚀 Comandos Esenciales
+## 🚀 Essential Commands
 
-### **Despliegue Completo**
+### **Complete Deployment**
 ```bash
-# Un comando que hace todo (RECOMENDADO)
+# One command that does everything (RECOMMENDED)
 make deploy-and-auto-test
 
-# Solo despliegue
+# Deployment only
 make deploy-corrected-system
 
-# Solo testing
+# Testing only
 make test-corrected-system
 ```
 
-### **Configuración Post-Despliegue**
+### **Post-Deployment Configuration**
 ```bash
-# Proporcionar liquidez inicial
+# Provide initial liquidity
 make provide-corrected-liquidity
 
-# Verificar estado del sistema
+# Verify system status
 make check-system-status
 ```
 
-### **Comandos de Diagnóstico**
+### **Diagnostic Commands**
 ```bash
-# Verificar precio del oracle
+# Verify oracle price
 cast call <ORACLE> "getPrice(address,address)" <ETH> <USDC> --rpc-url $RPC_URL
 
-# Verificar liquidez en vault
+# Verify vault liquidity
 cast call <VAULT> "getAvailableLiquidity(address)" <TOKEN> --rpc-url $RPC_URL
 
-# Verificar balance para gas
+# Verify gas balance
 cast balance <DEPLOYER> --rpc-url $RPC_URL --ether
 ```
 
-## 🔧 Soluciones Rápidas
+## 🔧 Quick Solutions
 
 ### **Error "Insufficient collateral"**
 ```bash
-# Arreglar precio en oracle
+# Fix oracle price
 . ./.env && cast send <ORACLE> "updatePrice(address,address,uint256)" \
   <ETH> <USDC> 3000000000 --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 ```
 
-### **Sin liquidez**
+### **No liquidity**
 ```bash
 make provide-corrected-liquidity
 ```
 
-### **Reset completo**
+### **Complete reset**
 ```bash
 make deploy-corrected-system
 make provide-corrected-liquidity
 make test-corrected-system
 ```
 
-## 📊 Valores de Referencia
+## 📊 Reference Values
 
-### **Precios Oracle (6 decimals)**
+### **Oracle Prices (6 decimals)**
 - **ETH**: 3000000000 ($3,000)
-- **WBTC**: 95000000000 ($95,000)  
+- **WBTC**: 95000000000 ($95,000)
 - **USDC**: 1000000 ($1)
 
-### **Configuraciones Asset**
-| Asset | Ratio Colateral | Ratio Liquidación | Interés |
-|-------|-----------------|-------------------|---------|
-| ETH   | 130% (1300000)  | 110% (1100000)    | 8%      |
-| WBTC  | 140% (1400000)  | 115% (1150000)    | 7.5%    |
-| USDC  | 110% (1100000)  | 105% (1050000)    | 4%      |
+### **Asset Configurations**
+| Asset | Collateral Ratio | Liquidation Ratio | Interest |
+|-------|------------------|-------------------|----------|
+| ETH   | 130% (1300000)   | 110% (1100000)    | 8%       |
+| WBTC  | 140% (1400000)   | 115% (1150000)    | 7.5%     |
+| USDC  | 110% (1100000)   | 105% (1050000)    | 4%       |
 
-### **Test Estándar: ETH → USDC**
-- **Colateral**: 5 ETH ($15,000)
-- **Préstamo**: 10,000 USDC  
-- **Ratio Esperado**: ~150%
-- **Máximo Prestable**: ~$11,538
+### **Standard Test: ETH → USDC**
+- **Collateral**: 5 ETH ($15,000)
+- **Loan**: 10,000 USDC
+- **Expected Ratio**: ~150%
+- **Maximum Loanable**: ~$11,538
 
-## 🎯 Direcciones Template
+## 🎯 Address Template
 
 ```solidity
-// Actualizar en script/TestCoreLoans.s.sol
+// Update in script/TestCoreLoans.s.sol
 address constant MOCK_ETH = 0x...;
 address constant MOCK_WBTC = 0x...;
 address constant MOCK_USDC = 0x...;
@@ -88,21 +88,21 @@ address constant GENERIC_LOAN_MANAGER = 0x...;
 address constant VAULT_BASED_HANDLER = 0x...;
 ```
 
-## ✅ Checklist Rápido
+## ✅ Quick Checklist
 
-### **Pre-Despliegue**
-- [ ] `.env` configurado
+### **Pre-Deployment**
+- [ ] `.env` configured
 - [ ] Balance ≥ 0.01 ETH
-- [ ] Red accesible
+- [ ] Network accessible
 
-### **Post-Despliegue**  
-- [ ] Copiar direcciones del output
-- [ ] Actualizar `TestCoreLoans.s.sol`
-- [ ] Ejecutar `make test-corrected-system`
-- [ ] Verificar préstamo exitoso
+### **Post-Deployment**
+- [ ] Copy addresses from output
+- [ ] Update `TestCoreLoans.s.sol`
+- [ ] Run `make test-corrected-system`
+- [ ] Verify successful loan
 
-## 📚 Documentación Relacionada
+## 📚 Related Documentation
 
-- 📄 **[SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md)** - Guía completa
-- 🚨 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Solución de problemas
-- 📄 **[INSTRUCCIONES_DESPLIEGUE.md](./INSTRUCCIONES_DESPLIEGUE.md)** - Sistemas legacy 
+- 📄 **[SISTEMA_CORREGIDO_DESPLIEGUE.md](./SISTEMA_CORREGIDO_DESPLIEGUE.md)** - Complete guide
+- 🚨 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Problem solving
+- 📄 **[INSTRUCCIONES_DESPLIEGUE.md](./INSTRUCCIONES_DESPLIEGUE.md)** - Legacy systems 
