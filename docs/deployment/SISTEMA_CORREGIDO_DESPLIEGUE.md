@@ -1,5 +1,25 @@
 # 🚀 Collateralized Loan System - Corrected Deployment Guide
 
+## ⚡ **NEW: AUTOMATED COMMANDS** (RECOMMENDED)
+
+### **🎯 Ultra-Fast Deployment**
+```bash
+# ✅ NEW: One-command complete deployment (recommended)
+make deploy-complete
+```
+**Includes:** Core + VCOP + Rewards + Auto-configuration + Authorization
+
+### **🧪 Ultra-Fast Testing**
+```bash
+# ✅ NEW: One-command complete testing (recommended) 
+make test-all
+```
+**Tests:** Rewards + Core + VCOP systems comprehensively
+
+> **💡 TIP**: For new deployments, use the commands above. The detailed procedures below are for reference and specific scenarios.
+
+---
+
 ## 📋 Executive Summary
 
 This guide documents the **complete and corrected** procedure for deploying the collateralized loan system. It includes all implemented fixes to resolve oracle issues, hardcoded addresses, and automated configuration.
@@ -50,9 +70,24 @@ cast balance $DEPLOYER_ADDRESS --rpc-url https://sepolia.base.org --ether
 
 ## 🚀 Deployment Procedure
 
-### **Main Command (Recommended)**
+### **🔥 NEW: Complete Automated Deployment (RECOMMENDED)**
 ```bash
-# Complete automated deployment
+# ✅ NEW: Complete automated deployment + configuration + authorization
+make deploy-complete
+```
+
+**This NEW command automatically:**
+1. ✅ Compiles contracts with optimizations
+2. ✅ Deploys unified system (Core + VCOP + Rewards)
+3. ✅ Configures all system integrations and authorizations
+4. ✅ Verifies deployment status
+5. ✅ Updates deployed-addresses.json automatically
+
+### **Legacy: Manual Deployment (For Reference)**
+
+#### **Main Command (Original)**
+```bash
+# Original automated deployment
 make deploy-corrected-system
 ```
 
@@ -64,7 +99,7 @@ make deploy-corrected-system
 5. ✅ Automatic asset configuration
 6. ✅ Ratio and parameter configuration
 
-### **Expected Output**
+#### **Expected Output**
 ```
 === DEPLOYMENT ADDRESSES (Copy these for tests) ===
 MOCK_ETH: 0xAbC123...
@@ -79,6 +114,8 @@ VAULT_BASED_HANDLER: 0xStU901...
 ---
 
 ## ⚙️ Post-Deployment Configuration
+
+> **💡 NOTE**: If using `make deploy-complete`, most configuration is automatic. These steps are for manual deployments.
 
 ### **1. Update Test Scripts**
 
@@ -107,6 +144,11 @@ VAULT_HANDLER=0xNewAddresses...
 
 ### **3. Initial Liquidity Provision**
 ```bash
+# For automated systems (NEW)
+make provide-eth-liquidity
+make provide-usdc-liquidity
+
+# For legacy systems
 make provide-corrected-liquidity
 ```
 
@@ -120,7 +162,21 @@ make provide-corrected-liquidity
 
 ## 🧪 System Verification
 
-### **Main Test**
+### **🔥 NEW: Complete Testing (RECOMMENDED)**
+```bash
+# ✅ NEW: Run all tests (Rewards + Core + VCOP)
+make test-all
+```
+
+**This NEW command tests:**
+- ✅ **Reward System** functionality and integration
+- ✅ **Core Lending** system with multiple assets
+- ✅ **VCOP Loan** system with PSM
+- ✅ **Complete workflow** verification
+
+### **Legacy: Manual Testing (For Reference)**
+
+#### **Main Test**
 ```bash
 make test-corrected-system
 ```
@@ -143,7 +199,7 @@ ETH -> USDC TEST COMPLETED SUCCESSFULLY
 ==================================================
 ```
 
-### **Additional Tests**
+#### **Additional Tests**
 ```bash
 # Complete test suite
 make test-core-loans
@@ -190,7 +246,7 @@ address usdcAddress = 0xNEW_USDC_ADDRESS;
 if (asset == 0xNEW_ETH_ADDRESS) { // Update ETH
 if (asset == 0xNEW_WBTC_ADDRESS) { // Update WBTC
 ```
-3. Redeploy: `make deploy-corrected-system`
+3. Redeploy: `make deploy-complete` (NEW) or `make deploy-corrected-system` (legacy)
 
 ### **Error: "No liquidity available"**
 
@@ -201,6 +257,11 @@ cast call <VAULT_HANDLER> "getAvailableLiquidity(address)" <TOKEN_ADDRESS> --rpc
 
 **Solution:**
 ```bash
+# For NEW systems
+make provide-eth-liquidity
+make provide-usdc-liquidity
+
+# For legacy systems
 make provide-corrected-liquidity
 ```
 
@@ -208,7 +269,16 @@ make provide-corrected-liquidity
 
 ## 🔧 Maintenance Commands
 
-### **System Monitoring**
+### **NEW: System Monitoring**
+```bash
+make check-addresses           # All deployed contract addresses  
+make check-deployment-status   # Deployment status with dynamic addresses
+make verify-system-authorizations # Verify all system authorizations
+make check-balance             # Deployer balance
+make check-tokens             # Token balances
+```
+
+### **Legacy: System Monitoring**
 ```bash
 make check-system-status    # General status
 make check-tokens          # Token balances
@@ -254,7 +324,19 @@ make verify-contract
 
 ## ✅ Complete Automated Workflow
 
-### **For New Deployments:**
+### **🔥 NEW: For New Deployments (RECOMMENDED):**
+```bash
+# One-command deployment + testing
+make deploy-complete && make test-all
+```
+
+**This approach:**
+1. ✅ Deploys complete system automatically
+2. ✅ Configures all integrations automatically
+3. ✅ Tests all functionality comprehensively
+4. ✅ No manual intervention required
+
+### **Legacy: For New Deployments:**
 ```bash
 # One command that does everything
 make deploy-and-auto-test
@@ -268,7 +350,10 @@ make deploy-and-auto-test
 
 ### **To Verify Existing System:**
 ```bash
-# Quick test of current system
+# NEW: Quick comprehensive test
+make test-all
+
+# Legacy: Quick test of current system
 make quick-test-corrected
 ```
 
@@ -282,18 +367,24 @@ make quick-test-corrected
 - [ ] Blockchain network accessible (Base Sepolia)
 - [ ] Sufficient balance for gas fees (~0.01 ETH)
 
-### **Deployment**
+### **🔥 NEW: Automated Deployment**
+- [ ] Run `make deploy-complete`
+- [ ] Run `make test-all` for verification
+- [ ] Check `make check-addresses` for deployed contracts
+- [ ] Provide liquidity if needed: `make provide-eth-liquidity`
+
+### **Legacy: Manual Deployment**
 - [ ] Run `make deploy-corrected-system`
 - [ ] Verify addresses in output
 - [ ] Copy addresses from output
 
-### **Configuration**
+### **Legacy: Configuration**
 - [ ] Update `script/TestCoreLoans.s.sol` with new addresses
 - [ ] Update `Makefile` with new addresses (optional)
 - [ ] Run `make provide-corrected-liquidity`
 
 ### **Verification**
-- [ ] Run `make test-corrected-system`
+- [ ] Run `make test-all` (NEW) or `make test-corrected-system` (legacy)
 - [ ] Verify successful output:
   - [ ] Loan created (Position ID: 1)
   - [ ] Ratio ~150% for 5 ETH → 10,000 USDC
@@ -316,6 +407,10 @@ make quick-test-corrected
 
 ### **Final Validation Test:**
 ```bash
+# NEW: Comprehensive validation
+make test-all
+
+# Legacy: Specific validation  
 # Should create loan successfully:
 # 5 ETH ($15,000) → 10,000 USDC = 150% ratio
 make test-corrected-system
@@ -325,6 +420,20 @@ make test-corrected-system
 
 ## 🚀 Quick Reference Commands
 
+### **🔥 NEW: Automated Commands (RECOMMENDED)**
+```bash
+# Complete automated deployment + configuration + authorization
+make deploy-complete
+
+# Complete automated testing (all systems)
+make test-all
+
+# Check deployment status
+make check-addresses
+make check-deployment-status
+```
+
+### **Legacy: Manual Commands (For Reference)**
 ```bash
 # Complete automated deployment
 make deploy-and-auto-test
@@ -346,4 +455,4 @@ make check-system-status
 
 **✅ Fully Functional and Documented System**
 
-This guide ensures successful deployment of the collateralized loan system with all implemented and verified fixes. 
+This guide ensures successful deployment of the collateralized loan system with all implemented and verified fixes. Use the NEW automated commands for the best experience. 
