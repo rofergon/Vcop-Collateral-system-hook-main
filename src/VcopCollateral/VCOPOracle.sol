@@ -11,12 +11,14 @@ import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {VCOPPriceCalculator} from "./VCOPPriceCalculator.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
+import {AggregatorV3Interface} from "../interfaces/AggregatorV3Interface.sol";
 
 /**
  * @title VCOPOracle
  * @notice Oracle to provide VCOP price in relation to Colombian Peso (COP) and US Dollar (USD)
  * @dev Uses 6 decimals to maintain consistency with VCOP and USDC
  * @dev Now implements IGenericOracle to be compatible with the core lending system
+ * @dev Integrates Chainlink Data Feeds for BTC/USD and ETH/USD real-time prices
  */
 contract VCOPOracle is Ownable, IGenericOracle {
     using PoolIdLibrary for PoolKey;
@@ -62,6 +64,22 @@ contract VCOPOracle is Ownable, IGenericOracle {
     mapping(address => mapping(address => PriceFeedConfig)) private priceFeedConfigs;
     mapping(address => mapping(address => bool)) private hasPriceFeedMapping;
 
+    // ========== CHAINLINK DATA FEEDS ==========
+    
+    // Chainlink Data Feed interfaces for Base Sepolia
+    AggregatorV3Interface internal btcUsdFeed;
+    AggregatorV3Interface internal ethUsdFeed;
+    
+    // Chainlink feed addresses (Base Sepolia)
+    address public constant BTC_USD_FEED = 0x0FB99723Aee6f420beAD13e6bBB79b7E6F034298;
+    address public constant ETH_USD_FEED = 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1;
+    
+    // Flags to enable/disable Chainlink feeds
+    bool public chainlinkEnabled = true;
+    
+    // Fallback price staleness threshold (24 hours)
+    uint256 public constant PRICE_STALENESS_THRESHOLD = 24 hours;
+
     // Events emitted when prices are updated
     event UsdToCopRateUpdated(uint256 oldRate, uint256 newRate);
     event VcopToCopRateUpdated(uint256 oldRate, uint256 newRate);
@@ -71,6 +89,11 @@ contract VCOPOracle is Ownable, IGenericOracle {
     event PriceProvided(address requester, string rateType, uint256 rate);
     event PoolPriceUpdated(uint256 sqrtPriceX96, uint256 price);
     event PriceCalculatorSet(address calculator);
+    
+    // Chainlink specific events
+    event ChainlinkPriceObtained(address indexed token, uint256 price, uint256 timestamp);
+    event ChainlinkFeedStatusChanged(bool enabled);
+    event FallbackPriceUsed(address indexed token, string reason);
 
     /**
      * @dev Constructor that initializes the oracle with initial rates and pool configuration
@@ -105,12 +128,136 @@ contract VCOPOracle is Ownable, IGenericOracle {
         // Determine if VCOP is token0 or token1 (lexicographic ordering)
         isVCOPToken0 = uint160(_vcopAddress) < uint160(_usdcAddress);
         
-        console.log("VCOPOracle initialized with Uniswap v4");
+        // Initialize Chainlink Data Feeds
+        btcUsdFeed = AggregatorV3Interface(BTC_USD_FEED);
+        ethUsdFeed = AggregatorV3Interface(ETH_USD_FEED);
+        
+        console.log("VCOPOracle initialized with Uniswap v4 and Chainlink Data Feeds");
         console.log("Initial USD/COP rate:", _usdToCopRate);
         console.log("Initial VCOP/COP rate:", _vcopToCopRate);
         console.log("VCOP is token0:", isVCOPToken0);
+        console.log("BTC/USD Feed:", BTC_USD_FEED);
+        console.log("ETH/USD Feed:", ETH_USD_FEED);
     }
     
+    // ========== CHAINLINK DATA FEED FUNCTIONS ==========
+    
+    /**
+     * @dev Gets the latest BTC/USD price from Chainlink
+     * @return price BTC price in USD with 6 decimals
+     */
+    function getBtcPriceFromChainlink() public view returns (uint256 price) {
+        if (!chainlinkEnabled) {
+            return 0;
+        }
+        
+        try btcUsdFeed.latestRoundData() returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        ) {
+            // Check if price is valid and not stale
+            if (answer <= 0) {
+                return 0;
+            }
+            
+            if (block.timestamp - updatedAt > PRICE_STALENESS_THRESHOLD) {
+                return 0;
+            }
+            
+            // Convert to 6 decimals (Chainlink BTC/USD has 8 decimals)
+            price = uint256(answer) / 100; // 8 decimals -> 6 decimals
+            
+            console.log("Chainlink BTC/USD price obtained:", price);
+            return price;
+        } catch {
+            return 0;
+        }
+    }
+    
+    /**
+     * @dev Gets the latest ETH/USD price from Chainlink
+     * @return price ETH price in USD with 6 decimals
+     */
+    function getEthPriceFromChainlink() public view returns (uint256 price) {
+        if (!chainlinkEnabled) {
+            return 0;
+        }
+        
+        try ethUsdFeed.latestRoundData() returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        ) {
+            // Check if price is valid and not stale
+            if (answer <= 0) {
+                return 0;
+            }
+            
+            if (block.timestamp - updatedAt > PRICE_STALENESS_THRESHOLD) {
+                return 0;
+            }
+            
+            // Convert to 6 decimals (Chainlink ETH/USD has 8 decimals)
+            price = uint256(answer) / 100; // 8 decimals -> 6 decimals
+            
+            console.log("Chainlink ETH/USD price obtained:", price);
+            return price;
+        } catch {
+            return 0;
+        }
+    }
+    
+    /**
+     * @dev Enables or disables Chainlink feeds (owner only)
+     * @param enabled True to enable Chainlink feeds, false to use manual prices
+     */
+    function setChainlinkEnabled(bool enabled) external onlyOwner {
+        chainlinkEnabled = enabled;
+        emit ChainlinkFeedStatusChanged(enabled);
+        console.log("Chainlink feeds status changed to:", enabled);
+    }
+    
+    /**
+     * @dev Gets Chainlink feed information for a token
+     * @param token Token address (mockETH or mockWBTC)
+     * @return feedAddress Address of the Chainlink aggregator
+     * @return latestPrice Latest price from the feed
+     * @return updatedAt Timestamp of last price update
+     * @return isStale Whether the price is considered stale
+     */
+    function getChainlinkFeedInfo(address token) external view returns (
+        address feedAddress,
+        uint256 latestPrice,
+        uint256 updatedAt,
+        bool isStale
+    ) {
+        if (token == mockWBTC) {
+            feedAddress = BTC_USD_FEED;
+            latestPrice = getBtcPriceFromChainlink();
+        } else if (token == mockETH) {
+            feedAddress = ETH_USD_FEED;
+            latestPrice = getEthPriceFromChainlink();
+        } else {
+            return (address(0), 0, 0, true);
+        }
+        
+        // Get timestamp from the feed
+        try AggregatorV3Interface(feedAddress).latestRoundData() returns (
+            uint80, int256, uint256, uint256 timestamp, uint80
+        ) {
+            updatedAt = timestamp;
+            isStale = (block.timestamp - timestamp) > PRICE_STALENESS_THRESHOLD;
+        } catch {
+            updatedAt = 0;
+            isStale = true;
+        }
+    }
+
     /**
      * @dev Sets mock token addresses for price feeds
      */
@@ -120,6 +267,7 @@ contract VCOPOracle is Ownable, IGenericOracle {
         mockUSDC = _mockUSDC;
         
         // Initialize default prices (all prices normalized to 6 decimals output)
+        // These will be used as fallback if Chainlink fails
         // ETH (18 decimals) = $2500 USD (6 decimals) => 1 ETH = 2500 USDC
         _setManualPrice(mockETH, mockUSDC, 2500 * 1e6);
         // WBTC (8 decimals) = $45000 USD (6 decimals) => 1 WBTC = 45000 USDC  
@@ -137,7 +285,7 @@ contract VCOPOracle is Ownable, IGenericOracle {
         // 1 WBTC (8 dec) = 18 ETH (18 dec) => price = 18000000 (6 dec result)
         _setManualPrice(mockWBTC, mockETH, 18 * 1e6);
         
-        console.log("Mock tokens configured with default prices");
+        console.log("Mock tokens configured with fallback prices");
     }
     
     /**
@@ -175,14 +323,40 @@ contract VCOPOracle is Ownable, IGenericOracle {
             quoteToken = mockUSDC;
         }
         
-        // Check if we have a manual price
+        // ========== CHAINLINK INTEGRATION ==========
+        // Priority 1: Try to get real-time prices from Chainlink for BTC and ETH
+        if (chainlinkEnabled && quoteToken == mockUSDC) {
+            if (baseToken == mockWBTC) {
+                uint256 chainlinkPrice = getBtcPriceFromChainlink();
+                if (chainlinkPrice > 0) {
+                    console.log("Oracle: Returning Chainlink BTC/USD price:", chainlinkPrice);
+                    return chainlinkPrice;
+                }
+                // If Chainlink fails, continue to fallback manual price
+                console.log("Oracle: Chainlink BTC/USD failed, using fallback price");
+            }
+            
+            if (baseToken == mockETH) {
+                uint256 chainlinkPrice = getEthPriceFromChainlink();
+                if (chainlinkPrice > 0) {
+                    console.log("Oracle: Returning Chainlink ETH/USD price:", chainlinkPrice);
+                    return chainlinkPrice;
+                }
+                // If Chainlink fails, continue to fallback manual price
+                console.log("Oracle: Chainlink ETH/USD failed, using fallback price");
+            }
+        }
+        
+        // ========== FALLBACK TO MANUAL PRICES ==========
+        // Priority 2: Check if we have a manual price (fallback)
         if (hasPriceFeedMapping[baseToken][quoteToken]) {
             price = manualPrices[baseToken][quoteToken];
-            console.log("Oracle: Returning manual price for pair:", price);
+            console.log("Oracle: Returning manual/fallback price for pair:", price);
             return price;
         }
         
-        // Handle VCOP prices
+        // ========== VCOP PRICES (UNCHANGED) ==========
+        // Priority 3: Handle VCOP prices from Uniswap pool
         if (baseToken == vcopAddress && quoteToken == mockUSDC) {
             return getVcopToUsdPriceFromPool();
         }
@@ -191,6 +365,42 @@ contract VCOPOracle is Ownable, IGenericOracle {
             uint256 vcopToUsd = getVcopToUsdPriceFromPool();
             if (vcopToUsd > 0) {
                 return (1e12) / vcopToUsd;
+            }
+        }
+        
+        // ========== CROSS-PAIR CALCULATIONS ==========
+        // Priority 4: Try to calculate cross pairs using available prices
+        if (baseToken == mockETH && quoteToken == mockWBTC) {
+            // ETH/BTC = ETH/USD ÷ BTC/USD
+            uint256 ethUsdPrice = chainlinkEnabled ? getEthPriceFromChainlink() : 0;
+            uint256 btcUsdPrice = chainlinkEnabled ? getBtcPriceFromChainlink() : 0;
+            
+            if (ethUsdPrice > 0 && btcUsdPrice > 0) {
+                // Convert to 6 decimals: (ETH/USD * 1e6) / BTC/USD
+                price = (ethUsdPrice * 1e6) / btcUsdPrice;
+                console.log("Oracle: Calculated ETH/BTC from Chainlink prices:", price);
+                return price;
+            }
+            // Fallback to manual price if available
+            if (hasPriceFeedMapping[baseToken][quoteToken]) {
+                return manualPrices[baseToken][quoteToken];
+            }
+        }
+        
+        if (baseToken == mockWBTC && quoteToken == mockETH) {
+            // BTC/ETH = BTC/USD ÷ ETH/USD
+            uint256 btcUsdPrice = chainlinkEnabled ? getBtcPriceFromChainlink() : 0;
+            uint256 ethUsdPrice = chainlinkEnabled ? getEthPriceFromChainlink() : 0;
+            
+            if (btcUsdPrice > 0 && ethUsdPrice > 0) {
+                // Convert to 6 decimals: (BTC/USD * 1e6) / ETH/USD
+                price = (btcUsdPrice * 1e6) / ethUsdPrice;
+                console.log("Oracle: Calculated BTC/ETH from Chainlink prices:", price);
+                return price;
+            }
+            // Fallback to manual price if available
+            if (hasPriceFeedMapping[baseToken][quoteToken]) {
+                return manualPrices[baseToken][quoteToken];
             }
         }
         

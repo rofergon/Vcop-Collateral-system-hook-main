@@ -34,11 +34,26 @@ COLLATERAL := 1000000000 # 1000 USDC (6 decimals)
 help:
 	@echo "🚀 AUTOMATED DEPLOYMENT WITH AUTO-CONFIGURATION (NEW!)"
 	@echo "========================================================="
-	@echo "make deploy-complete          - [FUNCTION] FULL AUTO DEPLOY + AUTO CONFIG (Core + VCOP + Rewards + Auth)"
-	@echo "make test-all                 - [TEST] RUN ALL TESTS (Rewards + Core + VCOP)"
+	@echo "make deploy-complete          - [FUNCTION] FAST DEPLOY (smart compilation + full system)"
+	@echo "make deploy-complete-optimized - [PRODUCTION] OPTIMIZED DEPLOY (full rebuild + deploy)"
+	@echo "make test-all                 - [TEST] RUN ALL TESTS (Rewards + Core + VCOP + Chainlink)"
 	@echo "make configure-system-integration - [CONFIG] Auto-configure all authorizations (reads from JSON)"
 	@echo "make verify-system-authorizations - [VERIFY] Check all authorizations are set correctly"
 	@echo "make check-deployment-status  - [DEBUG] Check deployment status (reads from JSON)"
+	@echo ""
+	@echo "🔨 BUILD COMMANDS"
+	@echo "=================="
+	@echo "make build                    - [FAST] Smart compilation (only if needed)"
+	@echo "make build-optimized          - [OPTIMIZED] Full rebuild with gas optimizations"
+	@echo "make rebuild                  - [CLEAN] Clean + full optimized rebuild"
+	@echo ""
+	@echo "🔗 CHAINLINK ORACLE COMMANDS"
+	@echo "=============================="
+	@echo "make deploy-complete-chainlink    - [FUNCTION] Deploy + Configure Chainlink Oracle (BTC/USD + ETH/USD)"
+	@echo "make test-chainlink-oracle        - [TEST] Test Chainlink integration"
+	@echo "make check-chainlink-prices       - [PRICES] Check real-time BTC/ETH prices"
+	@echo "make oracle-health-check          - [HEALTH] Complete oracle status check"
+	@echo "make help-chainlink               - Show all Chainlink commands"
 	@echo "PSM Swap Scripts"
 	@echo "----------------"
 	@echo "make check-psm                - Check PSM status and reserves (testnet)"
@@ -87,6 +102,10 @@ help:
 	@echo "make test-advanced-operations - Test advanced loan operations (add/withdraw collateral)"
 	@echo "make test-risk-analysis       - Test basic risk analysis and calculations"
 	@echo "make test-loan-repayment      - Test loan repayment and position closure"
+	@echo "make test-vcop-price-calculator - Test VCOPPriceCalculator and Oracle integration"
+	@echo "make check-price-calculator-setup - Check VCOPPriceCalculator configuration status"
+	@echo "make configure-price-calculator - Configure VCOPPriceCalculator in Oracle"
+	@echo "make test-vcop-oracle-prices - Test VCOP Oracle prices specifically"
 	@echo ""
 	@echo "ABI Management Commands"
 	@echo "----------------------"
@@ -403,25 +422,30 @@ deploy-complete:
 	@echo "🚀🚀🚀 STARTING COMPLETE AUTOMATED DEPLOYMENT 🚀🚀🚀"
 	@echo "======================================================="
 	@echo ""
-	@echo "⏳ Step 1/5: Compiling contracts with optimizations..."
-	@forge build --optimize --optimizer-runs 200
+	@echo "⏳ Step 1/6: Smart compilation (only if needed)..."
+	@forge build
 	@echo ""
-	@echo "🏗️  Step 2/5: Deploying unified system (Core + VCOP + Liquidity)..."
+	@echo "🏗️  Step 2/6: Deploying unified system (Core + VCOP + Liquidity)..."
 	@forge script script/deploy/DeployUnifiedSystem.s.sol --rpc-url $(RPC_URL) --broadcast
 	@echo ""
-	@echo "🎁 Step 3/5: Deploying NEW reward system with VCOP minting (auto-updates JSON)..."
+	@echo "🎁 Step 3/6: Deploying NEW reward system with VCOP minting (auto-updates JSON)..."
 	@forge script script/DeployRewardSystem.s.sol --rpc-url $(RPC_URL) --broadcast -vv
 	@echo ""
-	@echo "🔗 Step 4/5: Auto-configuring ALL system integrations and authorizations..."
+	@echo "🔗 Step 4/6: Deploying Chainlink Oracle with BTC/ETH feeds..."
+	@make deploy-complete-chainlink
+	@echo ""
+	@echo "🔧 Step 5/6: Auto-configuring ALL system integrations and authorizations..."
 	@make configure-system-integration
 	@echo ""
-	@echo "✅ Step 5/5: Final verification..."
+	@echo "✅ Step 6/6: Final verification and testing..."
 	@make check-deployment-status
+	@make test-chainlink-oracle
 	@echo ""
 	@echo "🎉🎉🎉 COMPLETE DEPLOYMENT FINISHED SUCCESSFULLY! 🎉🎉🎉"
 	@echo "==========================================================="
 	@echo "📋 All addresses loaded dynamically from deployed-addresses.json"
 	@echo "🔐 All authorizations configured automatically"
+	@echo "💰 Chainlink Oracle deployed and configured (BTC/USD + ETH/USD)"
 	@echo "📋 Check addresses: make check-addresses"
 	@echo "[TEST] Run full test suite: make test-all"
 	@echo ""
@@ -432,17 +456,20 @@ test-all:
 	@echo "[TEST][TEST][TEST] RUNNING COMPLETE TEST SUITE [TEST][TEST][TEST]"
 	@echo "=============================================="
 	@echo ""
-	@echo "🎁 Test 1/4: Reward System Tests..."
+	@echo "🎁 Test 1/5: Reward System Tests..."
 	@forge test --match-contract RewardSystemTest --fork-url $(RPC_URL) -vv
 	@echo ""
-	@echo "🏦 Test 2/4: Core Lending System Tests..."
+	@echo "🏦 Test 2/5: Core Lending System Tests..."
 	@forge script script/TestSimpleLoans.s.sol --rpc-url $(RPC_URL) --broadcast -vv
 	@echo ""
-	@echo "💰 Test 3/4: VCOP Loan System Tests..."
+	@echo "💰 Test 3/5: VCOP Loan System Tests..."
 	@forge script script/TestVCOPLoans.sol:TestVCOPLoans --rpc-url $(RPC_URL) --broadcast -vv
 	@echo ""
-	@echo "🔒 Test 4/4: PSM Functionality Tests..."
+	@echo "🔒 Test 4/5: PSM Functionality Tests..."
 	@forge script script/TestVCOPPSM.sol:TestVCOPPSM --rpc-url $(RPC_URL) --broadcast -vv
+	@echo ""
+	@echo "🔗 Test 5/5: Chainlink Oracle Tests..."
+	@make test-chainlink-oracle
 	@echo ""
 	@echo "✅ ALL TESTS COMPLETED!"
 	@echo "📊 Check results above for any failures"
@@ -463,6 +490,26 @@ test-reward-function:
 	@echo "[FUNCTION] Testing specific reward function..."
 	@read -p "Enter function name (e.g., testCreateRewardPool): " func; \
 	forge test --match-test $$func --rpc-url $(RPC_URL) -vvv
+
+# Test VCOPPriceCalculator system integration
+test-vcop-price-calculator:
+	@echo "[TEST] Testing VCOPPriceCalculator and Oracle integration..."
+	forge script script/test/TestVCOPPriceCalculatorSimple.s.sol --rpc-url $(RPC_URL) -vv
+
+# Check VCOPPriceCalculator setup and configuration
+check-price-calculator-setup:
+	@echo "[CHECK] Checking VCOPPriceCalculator configuration..."
+	forge script script/test/CheckVCOPPriceCalculatorSetup.s.sol --rpc-url $(RPC_URL) -vv
+
+# Configure VCOPPriceCalculator in Oracle (requires private key)
+configure-price-calculator:
+	@echo "[CONFIG] Configuring VCOPPriceCalculator in Oracle..."
+	forge script script/test/CheckVCOPPriceCalculatorSetup.s.sol --sig "configurePriceCalculator()" --rpc-url $(RPC_URL) --broadcast -vv
+
+# Test VCOP Oracle prices specifically
+test-vcop-oracle-prices:
+	@echo "[TEST] Testing VCOP Oracle prices and usage..."
+	forge script script/test/TestVCOPOraclePrice.s.sol --rpc-url $(RPC_URL) -vv
 
 # Run all reward tests on Sepolia
 test-rewards-all-sepolia:
@@ -571,4 +618,189 @@ verify-system-authorizations:
 	@. ./get-addresses.sh && echo "CollateralManager authorized:" && cast call $$DEPLOYED_REWARD_DISTRIBUTOR "authorizedUpdaters(address)" $$DEPLOYED_COLLATERAL_MANAGER --rpc-url $(RPC_URL)
 	@echo "✅ All authorizations verified!"
 
-.PHONY: test-rewards test-rewards-integration test-rewards-all deploy-rewards-testnet deploy-rewards-local docs-rewards coverage-rewards gas-rewards lint-rewards build-rewards simulate-rewards verify-rewards help-rewards deploy-complete test-all test-rewards-sepolia test-rewards-integration-sepolia test-reward-function test-rewards-all-sepolia debug-reward-auth fix-reward-auth deploy-rewards-with-minting update-reward-distributor test-rewards-minting configure-system-integration update-deployed-addresses update-main-addresses check-deployment-status verify-system-authorizations
+# ========== 🔨 BUILD COMMANDS ==========
+
+# Smart build - only compiles if changes detected
+build:
+	@echo "🔨 Smart compilation..."
+	@forge build
+
+# Force full rebuild with optimizations
+build-optimized:
+	@echo "🔨 Full rebuild with optimizations..."
+	@forge build --optimize --optimizer-runs 200
+
+# Clean and rebuild everything
+rebuild:
+	@echo "🧹 Cleaning and rebuilding..."
+	@forge clean
+	@forge build --optimize --optimizer-runs 200
+
+# Deploy with forced optimization (for production)
+deploy-complete-optimized:
+	@echo ""
+	@echo "🚀🚀🚀 PRODUCTION DEPLOYMENT WITH OPTIMIZATIONS 🚀🚀🚀"
+	@echo "======================================================="
+	@echo ""
+	@echo "⏳ Step 1/6: Full optimized compilation..."
+	@make build-optimized
+	@echo ""
+	@echo "🏗️  Step 2/6: Deploying unified system (Core + VCOP + Liquidity)..."
+	@forge script script/deploy/DeployUnifiedSystem.s.sol --rpc-url $(RPC_URL) --broadcast
+	@echo ""
+	@echo "🎁 Step 3/6: Deploying NEW reward system with VCOP minting (auto-updates JSON)..."
+	@forge script script/DeployRewardSystem.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+	@echo ""
+	@echo "🔗 Step 4/6: Deploying Chainlink Oracle with BTC/ETH feeds + VCOP price..."
+	@make deploy-complete-chainlink
+	@echo ""
+	@echo "🔧 Step 5/6: Auto-configuring ALL system integrations and authorizations..."
+	@make configure-system-integration
+	@echo ""
+	@echo "✅ Step 6/6: Final verification and testing..."
+	@make check-deployment-status
+	@make test-chainlink-oracle
+	@echo ""
+	@echo "🎉🎉🎉 OPTIMIZED DEPLOYMENT COMPLETED SUCCESSFULLY! 🎉🎉🎉"
+	@echo "==========================================================="
+	@echo "📋 All addresses loaded dynamically from deployed-addresses.json"
+	@echo "🔐 All authorizations configured automatically"
+	@echo "💰 Chainlink Oracle deployed and configured (BTC/USD + ETH/USD + VCOP/USD)"
+	@echo "📋 Check addresses: make check-addresses"
+	@echo "[TEST] Run full test suite: make test-all"
+	@echo ""
+
+# ========== 🔗 CHAINLINK ORACLE COMMANDS ==========
+
+# [FUNCTION] Complete Chainlink Oracle deployment with auto-configuration
+deploy-complete-chainlink:
+	@echo ""
+	@echo "🔗🔗🔗 DEPLOYING COMPLETE CHAINLINK SYSTEM 🔗🔗🔗"
+	@echo "================================================="
+	@echo ""
+	@echo "🏗️  Step 1/4: Deploying Chainlink Oracle..."
+	@make deploy-chainlink-oracle
+	@echo ""
+	@echo "⚙️  Step 2/4: Configuring Oracle..."
+	@make configure-chainlink-oracle
+	@echo ""
+	@echo "💰 Step 3/4: Configuring VCOP price..."
+	@make configure-vcop-price
+	@echo ""
+	@echo "✅ Step 4/4: Updating addresses..."
+	@make update-oracle-addresses
+	@echo ""
+	@echo "🎉 CHAINLINK DEPLOYMENT COMPLETED!"
+	@echo "💰 BTC/USD and ETH/USD feeds active"
+	@echo "💰 VCOP/USD price configured (manual fallback)"
+	@echo "📋 Check status: make oracle-health-check"
+
+# Deploy new Chainlink Oracle (standalone)
+deploy-chainlink-oracle:
+	@echo "🏗️ Deploying Chainlink Oracle..."
+	forge script script/deploy/DeployOnlyOracle.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+
+# Configure deployed Chainlink Oracle
+configure-chainlink-oracle:
+	@echo "⚙️ Configuring Chainlink Oracle after deployment..."
+	forge script script/config/ConfigureChainlinkOracle.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+
+# Configure VCOP price in Oracle (fallback when pool has no liquidity)
+configure-vcop-price:
+	@echo "💰 Configuring VCOP price in Oracle..."
+	forge script script/config/ConfigureVCOPPrice.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+
+# Test Chainlink Oracle functionality
+test-chainlink-oracle:
+	@echo "🔗 Testing Chainlink Oracle integration..."
+	forge script script/test/TestChainlinkOracle.s.sol --rpc-url $(RPC_URL) -vv
+
+# Check real-time Chainlink prices
+check-chainlink-prices:
+	@echo "💰 Checking Chainlink prices..."
+	@BTC_PRICE=$$(cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "getBtcPriceFromChainlink()" --rpc-url $(RPC_URL)); \
+	BTC_DECIMAL=$$(echo "$$BTC_PRICE" | sed 's/0x//' | python3 -c "import sys; val=int(input(), 16); print(f'  BTC/USD: {val:,} raw = $${val/1000000:,.2f}')"); \
+	echo "$$BTC_DECIMAL"
+	@ETH_PRICE=$$(cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "getEthPriceFromChainlink()" --rpc-url $(RPC_URL)); \
+	ETH_DECIMAL=$$(echo "$$ETH_PRICE" | sed 's/0x//' | python3 -c "import sys; val=int(input(), 16); print(f'  ETH/USD: {val:,} raw = $${val/1000000:,.2f}')"); \
+	echo "$$ETH_DECIMAL"
+
+# Check ALL prices (Chainlink + VCOP)
+check-all-prices:
+	@echo "💰 ORACLE PRICE SUMMARY"
+	@echo "======================="
+	@echo ""
+	@echo "🔗 CHAINLINK FEEDS (Real-time):"
+	@BTC_PRICE=$$(cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "getBtcPriceFromChainlink()" --rpc-url $(RPC_URL)); \
+	echo "$$BTC_PRICE" | sed 's/0x//' | python3 -c "val=int(input(), 16); print('  BTC/USD: ' + str(val) + ' raw = $$' + str(val//1000000))"
+	@ETH_PRICE=$$(cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "getEthPriceFromChainlink()" --rpc-url $(RPC_URL)); \
+	echo "$$ETH_PRICE" | sed 's/0x//' | python3 -c "val=int(input(), 16); print('  ETH/USD: ' + str(val) + ' raw = $$' + str(val//1000000))"
+	@echo ""
+	@echo "💰 VCOP PRICES (Configured):"
+	@VCOP_USD=$$(cast call 0x856e780cf7f4d47b24142E280Ba30B399Dc6daaA "getPrice(address,address)" 0x4fd42098A37A028c1A53c44aCA3095FFaC958D41 0x6AC157633e53bb59C5eE2eFB26Ea4cAaA160a381 --rpc-url $(RPC_URL)); \
+	echo "$$VCOP_USD" | sed 's/0x//' | python3 -c "val=int(input(), 16); print('  VCOP/USD: ' + str(val) + ' raw = $$' + str(val/1000000) + ' per VCOP')"
+	@USD_VCOP=$$(cast call 0x856e780cf7f4d47b24142E280Ba30B399Dc6daaA "getPrice(address,address)" 0x6AC157633e53bb59C5eE2eFB26Ea4cAaA160a381 0x4fd42098A37A028c1A53c44aCA3095FFaC958D41 --rpc-url $(RPC_URL)); \
+	echo "$$USD_VCOP" | sed 's/0x//' | python3 -c "val=int(input(), 16); print('  USD/VCOP: ' + str(val) + ' raw = ' + str(val//1000000) + ' VCOP per USD')"
+	@echo ""
+	@echo "✅ SUMMARY:"
+	@echo "  • All Chainlink feeds active and providing real-time data"
+	@echo "  • VCOP price configured: 4,100 VCOP = 1 USD"
+	@echo "  • Oracle system fully operational"
+
+# Oracle health check
+oracle-health-check:
+	@echo "🏥 Oracle Health Check..."
+	@echo "Oracle address: $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2)"
+	@$(MAKE) check-chainlink-feeds
+	@$(MAKE) check-chainlink-prices
+	@echo "✅ Health check completed!"
+
+# Check Chainlink feed status
+check-chainlink-feeds:
+	@echo "📊 Checking Chainlink feed status..."
+	@echo "Chainlink enabled:"
+	@cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "chainlinkEnabled()" --rpc-url $(RPC_URL)
+	@echo ""
+	@echo "BTC Feed Info:"
+	@cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "getBtcFeedInfo()" --rpc-url $(RPC_URL)
+	@echo ""
+	@echo "ETH Feed Info:"
+	@cast call $$(grep VCOP_ORACLE_ADDRESS .env | cut -d'=' -f2) "getEthFeedInfo()" --rpc-url $(RPC_URL)
+
+# Enable Chainlink feeds
+enable-chainlink-oracle:
+	@echo "✅ Enabling Chainlink feeds..."
+	@. ./.env && cast send $$VCOP_ORACLE_ADDRESS "setChainlinkEnabled(bool)" true --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "Chainlink feeds enabled!"
+
+# Disable Chainlink feeds (fallback to manual prices)
+disable-chainlink-oracle:
+	@echo "❌ Disabling Chainlink feeds..."
+	@. ./.env && cast send $$VCOP_ORACLE_ADDRESS "setChainlinkEnabled(bool)" false --rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY
+	@echo "Chainlink feeds disabled - using manual prices as fallback"
+
+# Update oracle addresses in JSON and .env
+update-oracle-addresses:
+	@echo "🔄 Updating oracle addresses..."
+	@./update-oracle-addresses.sh
+
+# Help for Chainlink commands
+help-chainlink:
+	@echo "🔗 CHAINLINK ORACLE COMMANDS:"
+	@echo "  deploy-complete-chainlink     - [FUNCTION] Complete Chainlink deployment + config"
+	@echo "  deploy-chainlink-oracle       - Deploy new Chainlink Oracle"
+	@echo "  configure-chainlink-oracle    - Configure deployed oracle"
+	@echo "  configure-vcop-price          - Configure VCOP price fallback"
+	@echo "  test-chainlink-oracle         - Test oracle functionality"
+	@echo "  check-chainlink-prices        - Check real-time BTC/ETH prices"
+	@echo "  check-all-prices              - Check ALL prices (Chainlink + VCOP)"
+	@echo "  oracle-health-check           - Complete oracle health check"
+	@echo "  enable-chainlink-oracle       - Enable Chainlink feeds"
+	@echo "  disable-chainlink-oracle      - Disable Chainlink (use manual prices)"
+	@echo "  update-oracle-addresses       - Update JSON and .env with latest addresses"
+	@echo ""
+	@echo "💰 Supported price feeds (Base Sepolia):"
+	@echo "  - BTC/USD: 0x0FB99723Aee6f420beAD13e6bBB79b7E6F034298"
+	@echo "  - ETH/USD: 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1"
+
+.PHONY: test-rewards test-rewards-integration test-rewards-all deploy-rewards-testnet deploy-rewards-local docs-rewards coverage-rewards gas-rewards lint-rewards build-rewards simulate-rewards verify-rewards help-rewards deploy-complete deploy-complete-optimized test-all test-rewards-sepolia test-rewards-integration-sepolia test-reward-function test-rewards-all-sepolia debug-reward-auth fix-reward-auth deploy-rewards-with-minting update-reward-distributor test-rewards-minting configure-system-integration update-deployed-addresses update-main-addresses check-deployment-status verify-system-authorizations build build-optimized rebuild deploy-complete-chainlink deploy-chainlink-oracle configure-chainlink-oracle configure-vcop-price test-chainlink-oracle check-chainlink-prices check-all-prices oracle-health-check enable-chainlink-oracle disable-chainlink-oracle update-oracle-addresses

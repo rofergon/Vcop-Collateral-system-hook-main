@@ -124,56 +124,21 @@ function psmSwapCollateralForVCOP(uint256 collateralAmount) external {
     uint256 vcopAmount = calculateVCOPForCollateral(collateralAmount);
     
     // Transfer collateral and mint VCOP
+    IERC20(collateralTokenAddress).safeTransferFrom(msg.sender, addr), vcopAmount);
+    collateralManager().transferPSMCollateral(msg.sender, collateralTokenAddress, amountOut);
+}
+```
+
+#### Swap Collateral for VCOP
+```solidity
+function psmSwapCollateralForVCOP(uint256 collateralAmount) external {
+    // Validations and calculations
+    uint256 vcopAmount = calculateVCOPForCollateral(collateralAmount);
+    
+    // Transfer collateral and mint VCOP
     IERC20(collateralTokenAddress).safeTransferFrom(msg.sender, address(collateralManager()), collateralAmount);
     collateralManager().mintPSMVcop(msg.sender, collateralTokenAddress, amountOut);
 }
-```
-
-### 🎛️ Automatic Stabilization
-
-```solidity
-function stabilizePriceWithPSM() public {
-    uint256 vcopToCopRate = oracle.getVcopToCopRate();
-    
-    if (vcopToCopRate < pegLowerBound) {
-        // Low price - buy VCOP with collateral
-        uint256 stabilizationAmount = calculateStabilizationAmount();
-        _executePSMBuy(stabilizationAmount);
-    } else if (vcopToCopRate > pegUpperBound) {
-        // High price - sell VCOP for collateral
-        uint256 stabilizationAmount = calculateStabilizationAmount();
-        _executePSMSell(stabilizationAmount);
-    }
-}
-```
-
-## 📊 Configuration Parameters
-
-### Stability Parameters
-```solidity
-uint256 public pegUpperBound = 1010000;    // 1.01 * 1e6
-uint256 public pegLowerBound = 990000;     // 0.99 * 1e6
-uint256 public largeSwapThreshold = 5000 * 1e6; // 5,000 VCOP
-```
-
-### PSM Parameters
-```solidity
-uint256 public psmFee = 1000;              // 0.1% (1e6 basis)
-uint256 public psmMaxSwapAmount = 10000 * 1e6; // 10,000 VCOP
-bool public psmPaused = false;
-```
-
-## 🔐 Access Control
-
-### Administration Functions
-- `pausePSM()`: Pauses/unpauses the PSM
-- `updateStabilityParameters()`: Updates stability limits
-- `updatePSMParameters()`: Modifies PSM parameters
-- `setCollateralManager()`: Configures the collateral manager
-
-### Authorization
-```solidity
-require(msg.sender == collateralManager().owner(), "Not authorized");
 ```
 
 ## 📈 Metrics and Monitoring
