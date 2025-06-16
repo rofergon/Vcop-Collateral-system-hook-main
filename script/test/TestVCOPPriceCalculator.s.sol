@@ -63,7 +63,7 @@ contract TestVCOPPriceCalculator is Script {
         testPoolStateAnalysis();
         
         console.log("");
-        console.log("✅✅✅ ALL TESTS COMPLETED! ✅✅✅");
+        console.log(" ALL TESTS COMPLETED! ");
         console.log("=================================");
     }
     
@@ -71,7 +71,7 @@ contract TestVCOPPriceCalculator is Script {
      * @dev Test 1: Basic Configuration Check
      */
     function testBasicConfiguration() internal view {
-        console.log("🔧 TEST 1: BASIC CONFIGURATION CHECK");
+        console.log(" TEST 1: BASIC CONFIGURATION CHECK");
         console.log("=====================================");
         
         // Check calculator configuration
@@ -99,11 +99,11 @@ contract TestVCOPPriceCalculator is Script {
         console.log("  Price Calculator in Oracle:", oracleCalculator);
         
         if (oracleCalculator == PRICE_CALCULATOR) {
-            console.log("  ✅ Price calculator correctly configured in oracle");
+            console.log("   Price calculator correctly configured in oracle");
         } else if (oracleCalculator == address(0)) {
-            console.log("  ⚠️  Price calculator not set in oracle");
+            console.log("    Price calculator not set in oracle");
         } else {
-            console.log("  ❌ Price calculator mismatch!");
+            console.log("   Price calculator mismatch!");
         }
         
         console.log("");
@@ -113,11 +113,11 @@ contract TestVCOPPriceCalculator is Script {
      * @dev Test 2: Price Calculator Functions
      */
     function testPriceCalculatorFunctions() internal view {
-        console.log("💰 TEST 2: PRICE CALCULATOR FUNCTIONS");
+        console.log(" TEST 2: PRICE CALCULATOR FUNCTIONS");
         console.log("=====================================");
         
         try calculator.getVcopToUsdPriceFromPool() returns (uint256 price, int24 tick) {
-            console.log("✅ getVcopToUsdPriceFromPool() works");
+            console.log(" getVcopToUsdPriceFromPool() works");
             console.log("  VCOP/USD Price:", price);
             console.log("  Current Tick:", tick);
             
@@ -131,14 +131,14 @@ contract TestVCOPPriceCalculator is Script {
                     console.log("  Inverse: ", vcopPerDollar, "VCOP per USD");
                 }
             } else {
-                console.log("  ⚠️  Pool price is 0 - pool might be uninitialized");
+                console.log("    Pool price is 0 - pool might be uninitialized");
             }
         } catch Error(string memory reason) {
-            console.log("❌ getVcopToUsdPriceFromPool() failed:", reason);
+            console.log(" getVcopToUsdPriceFromPool() failed:", reason);
         }
         
         try calculator.getVcopToCopPrice() returns (uint256 copPrice, int24 tick) {
-            console.log("✅ getVcopToCopPrice() works");
+            console.log(" getVcopToCopPrice() works");
             console.log("  VCOP/COP Price:", copPrice);
             console.log("  Current Tick:", tick);
             
@@ -147,14 +147,14 @@ contract TestVCOPPriceCalculator is Script {
             uint256 fraction = copPrice % 1e6;
             console.log("  VCOP/COP as decimal:", integer, ".", fraction);
         } catch Error(string memory reason) {
-            console.log("❌ getVcopToCopPrice() failed:", reason);
+            console.log(" getVcopToCopPrice() failed:", reason);
         }
         
         try calculator.isVcopAtParity() returns (bool atParity) {
-            console.log("✅ isVcopAtParity() works");
+            console.log(" isVcopAtParity() works");
             console.log("  At 1:1 Parity:", atParity);
         } catch Error(string memory reason) {
-            console.log("❌ isVcopAtParity() failed:", reason);
+            console.log(" isVcopAtParity() failed:", reason);
         }
         
         try calculator.calculateAllPrices() returns (
@@ -163,13 +163,13 @@ contract TestVCOPPriceCalculator is Script {
             int24 currentTick,
             bool isAtParity
         ) {
-            console.log("✅ calculateAllPrices() works");
+            console.log(" calculateAllPrices() works");
             console.log("  VCOP/USD:", vcopToUsdPrice);
             console.log("  VCOP/COP:", vcopToCopPrice);
             console.log("  Tick:", currentTick);
             console.log("  At Parity:", isAtParity);
         } catch Error(string memory reason) {
-            console.log("❌ calculateAllPrices() failed:", reason);
+            console.log(" calculateAllPrices() failed:", reason);
         }
         
         console.log("");
@@ -179,7 +179,7 @@ contract TestVCOPPriceCalculator is Script {
      * @dev Test 3: Oracle Integration
      */
     function testOracleIntegration() internal {
-        console.log("🔗 TEST 3: ORACLE INTEGRATION");
+        console.log(" TEST 3: ORACLE INTEGRATION");
         console.log("==============================");
         
         // Check if oracle has calculator set
@@ -187,23 +187,23 @@ contract TestVCOPPriceCalculator is Script {
         console.log("Calculator in Oracle:", oracleCalculator);
         
         if (oracleCalculator != address(0)) {
-            console.log("✅ Oracle has price calculator configured");
+            console.log(" Oracle has price calculator configured");
             
             // Test oracle functions that use calculator
             try oracle.getVcopToUsdPriceFromPool() returns (uint256 price) {
-                console.log("✅ Oracle.getVcopToUsdPriceFromPool():", price);
+                console.log(" Oracle.getVcopToUsdPriceFromPool():", price);
             } catch Error(string memory reason) {
-                console.log("❌ Oracle.getVcopToUsdPriceFromPool() failed:", reason);
+                console.log(" Oracle.getVcopToUsdPriceFromPool() failed:", reason);
             }
             
             try oracle.isVcopAtParity() returns (bool atParity) {
-                console.log("✅ Oracle.isVcopAtParity():", atParity);
+                console.log(" Oracle.isVcopAtParity():", atParity);
             } catch Error(string memory reason) {
-                console.log("❌ Oracle.isVcopAtParity() failed:", reason);
+                console.log(" Oracle.isVcopAtParity() failed:", reason);
             }
             
         } else {
-            console.log("⚠️  Oracle doesn't have price calculator set");
+            console.log("  Oracle doesn't have price calculator set");
             console.log("   Oracle will use fallback implementation");
         }
         
@@ -220,7 +220,7 @@ contract TestVCOPPriceCalculator is Script {
      * @dev Test 4: Chainlink Integration
      */
     function testChainlinkIntegration() internal view {
-        console.log("🔗 TEST 4: CHAINLINK INTEGRATION");
+        console.log(" TEST 4: CHAINLINK INTEGRATION");
         console.log("=================================");
         
         // Check Chainlink status
@@ -228,47 +228,47 @@ contract TestVCOPPriceCalculator is Script {
         console.log("Chainlink Enabled:", chainlinkEnabled);
         
         if (chainlinkEnabled) {
-            console.log("✅ Chainlink is enabled");
+            console.log(" Chainlink is enabled");
             
             // Test BTC price
             try oracle.getBtcPriceFromChainlink() returns (uint256 btcPrice) {
-                console.log("✅ BTC/USD from Chainlink:", btcPrice);
+                console.log(" BTC/USD from Chainlink:", btcPrice);
                 if (btcPrice > 0) {
                     console.log("  BTC Price: $", btcPrice / 1000000);
                 } else {
-                    console.log("  ⚠️  BTC price is 0 - feed might be stale");
+                    console.log("    BTC price is 0 - feed might be stale");
                 }
             } catch Error(string memory reason) {
-                console.log("❌ getBtcPriceFromChainlink() failed:", reason);
+                console.log(" getBtcPriceFromChainlink() failed:", reason);
             }
             
             // Test ETH price
             try oracle.getEthPriceFromChainlink() returns (uint256 ethPrice) {
-                console.log("✅ ETH/USD from Chainlink:", ethPrice);
+                console.log(" ETH/USD from Chainlink:", ethPrice);
                 if (ethPrice > 0) {
                     console.log("  ETH Price: $", ethPrice / 1000000);
                 } else {
-                    console.log("  ⚠️  ETH price is 0 - feed might be stale");
+                    console.log("    ETH price is 0 - feed might be stale");
                 }
             } catch Error(string memory reason) {
-                console.log("❌ getEthPriceFromChainlink() failed:", reason);
+                console.log(" getEthPriceFromChainlink() failed:", reason);
             }
             
             // Test generic price function with Chainlink tokens
             try oracle.getPrice(MOCK_WBTC, MOCK_USDC) returns (uint256 price) {
-                console.log("✅ WBTC/USDC price via getPrice():", price);
+                console.log(" WBTC/USDC price via getPrice():", price);
             } catch Error(string memory reason) {
-                console.log("❌ WBTC/USDC getPrice() failed:", reason);
+                console.log(" WBTC/USDC getPrice() failed:", reason);
             }
             
             try oracle.getPrice(MOCK_ETH, MOCK_USDC) returns (uint256 price) {
-                console.log("✅ ETH/USDC price via getPrice():", price);
+                console.log(" ETH/USDC price via getPrice():", price);
             } catch Error(string memory reason) {
-                console.log("❌ ETH/USDC getPrice() failed:", reason);
+                console.log(" ETH/USDC getPrice() failed:", reason);
             }
             
         } else {
-            console.log("⚠️  Chainlink is disabled - using manual prices");
+            console.log("  Chainlink is disabled - using manual prices");
         }
         
         console.log("");
@@ -278,7 +278,7 @@ contract TestVCOPPriceCalculator is Script {
      * @dev Test 5: Price Consistency Check
      */
     function testPriceConsistency() internal view {
-        console.log("⚖️  TEST 5: PRICE CONSISTENCY CHECK");
+        console.log("  TEST 5: PRICE CONSISTENCY CHECK");
         console.log("===================================");
         
         // Compare calculator vs oracle prices
@@ -288,20 +288,21 @@ contract TestVCOPPriceCalculator is Script {
                 console.log("Oracle VCOP/USD:    ", oraclePrice);
                 
                 if (calcPrice == oraclePrice) {
-                    console.log("✅ Prices match perfectly");
+                    console.log(" Prices match perfectly");
                 } else if (calcPrice > 0 && oraclePrice > 0) {
                     uint256 diff = calcPrice > oraclePrice ? 
                         calcPrice - oraclePrice : oraclePrice - calcPrice;
                     uint256 percentDiff = (diff * 100) / calcPrice;
-                    console.log("⚠️  Price difference:", diff, "(", percentDiff, "%)");
+                    console.log("  Price difference:", diff);
+                    console.log("  Percentage diff:", percentDiff, "%");
                 } else {
-                    console.log("❌ One or both prices are zero");
+                    console.log(" One or both prices are zero");
                 }
             } catch {
-                console.log("❌ Could not get oracle price");
+                console.log(" Could not get oracle price");
             }
         } catch {
-            console.log("❌ Could not get calculator price");
+            console.log(" Could not get calculator price");
         }
         
         // Check parity consistency
@@ -311,15 +312,15 @@ contract TestVCOPPriceCalculator is Script {
                 console.log("Oracle Parity:    ", oracleParity);
                 
                 if (calcParity == oracleParity) {
-                    console.log("✅ Parity status matches");
+                    console.log(" Parity status matches");
                 } else {
-                    console.log("⚠️  Parity status differs");
+                    console.log("  Parity status differs");
                 }
             } catch {
-                console.log("❌ Could not get oracle parity");
+                console.log(" Could not get oracle parity");
             }
         } catch {
-            console.log("❌ Could not get calculator parity");
+            console.log(" Could not get calculator parity");
         }
         
         console.log("");
@@ -329,7 +330,7 @@ contract TestVCOPPriceCalculator is Script {
      * @dev Test 6: Pool State Analysis
      */
     function testPoolStateAnalysis() internal view {
-        console.log("🏊 TEST 6: POOL STATE ANALYSIS");
+        console.log(" TEST 6: POOL STATE ANALYSIS");
         console.log("==============================");
         
         try calculator.getVcopToUsdPriceFromPool() returns (uint256 price, int24 tick) {
@@ -339,27 +340,27 @@ contract TestVCOPPriceCalculator is Script {
             console.log("  Current Tick:", tick);
             
             if (price > 0) {
-                console.log("  ✅ Pool is initialized and has liquidity");
+                console.log("   Pool is initialized and has liquidity");
                 
                 // Calculate price ranges
                 console.log("");
                 console.log("Price Analysis:");
                 if (price < 100) { // Less than $0.0001
-                    console.log("  📊 VCOP is very cheap (< $0.0001)");
+                    console.log("   VCOP is very cheap (< $0.0001)");
                 } else if (price < 1000) { // Less than $0.001
-                    console.log("  📊 VCOP is cheap (< $0.001)");
+                    console.log("   VCOP is cheap (< $0.001)");
                 } else if (price < 10000) { // Less than $0.01
-                    console.log("  📊 VCOP is moderately priced (< $0.01)");
+                    console.log("   VCOP is moderately priced (< $0.01)");
                 } else {
-                    console.log("  📊 VCOP is expensive (> $0.01)");
+                    console.log("   VCOP is expensive (> $0.01)");
                 }
                 
                 // Calculate inverse
                 uint256 vcopPerUsd = 1000000 * 1000000 / price;
-                console.log("  📊 VCOP per USD:", vcopPerUsd);
+                console.log("   VCOP per USD:", vcopPerUsd);
                 
             } else {
-                console.log("  ⚠️  Pool price is 0");
+                console.log("    Pool price is 0");
                 console.log("     This could mean:");
                 console.log("     - Pool is not initialized");
                 console.log("     - Pool has no liquidity");
@@ -370,15 +371,15 @@ contract TestVCOPPriceCalculator is Script {
             console.log("");
             console.log("Tick Analysis:");
             if (tick == 0) {
-                console.log("  📊 Tick is at zero (1:1 price)");
+                console.log("   Tick is at zero (1:1 price)");
             } else if (tick > 0) {
-                console.log("  📊 Positive tick (VCOP > USDC in this tick range)");
+                console.log("  Positive tick (VCOP > USDC in this tick range)");
             } else {
-                console.log("  📊 Negative tick (VCOP < USDC in this tick range)");
+                console.log("   Negative tick (VCOP < USDC in this tick range)");
             }
             
         } catch Error(string memory reason) {
-            console.log("❌ Could not analyze pool state:", reason);
+            console.log(" Could not analyze pool state:", reason);
         }
         
         console.log("");
