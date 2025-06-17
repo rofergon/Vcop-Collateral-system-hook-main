@@ -299,7 +299,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     }
     
     /**
-     * @dev FLEXIBLE liquidation check - uses asset handler thresholds but can be overridden
+     * @dev CORREGIDO: liquidation check más realista
      */
     function canLiquidate(uint256 positionId) public view override returns (bool) {
         LoanPosition memory position = positions[positionId];
@@ -313,9 +313,10 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
             IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
             
-            // ✅ FLEXIBLE: Use asset config as guideline, but allow very low ratios
-            // Only liquidate if EXTREMELY undercollateralized (e.g., debt > 99% of collateral value)
-            return currentRatio < (config.liquidationRatio / 2); // Allow much riskier positions
+            // ✅ CORREGIDO: Usar un factor más conservador pero realista
+            // Aplicar un buffer del 10% sobre el umbral original
+            uint256 adjustedThreshold = (config.liquidationRatio * 110) / 100; // 110% del umbral original
+            return currentRatio < adjustedThreshold;
         } catch {
             // If ratio calculation fails, don't allow liquidation
             return false;

@@ -28,6 +28,22 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     using PoolIdLibrary for PoolKey;
     using SafeERC20 for IERC20;
     
+    // ===== STRUCTS TO AVOID STACK TOO DEEP =====
+    
+    struct PSMSwapParams {
+        uint256 inputAmount;
+        uint256 outputAmount; 
+        uint256 fee;
+        address tokenAddress;
+    }
+    
+    struct StabilizationParams {
+        uint256 currentRate;
+        uint256 deviationPercent;
+        uint256 stabilizationAmount;
+        bool isVcopSell;
+    }
+    
     // VCOP collateral manager
     address public collateralManagerAddress;
     
@@ -296,40 +312,39 @@ contract VCOPCollateralHook is BaseHook, Ownable {
         require(!psmPaused, "PSM is paused");
         require(vcopAmount <= psmMaxSwapAmount, "Amount exceeds PSM limit");
         
-        // Calculate collateral amount based on current rates
-        uint256 collateralAmount = calculateCollateralForVCOP(vcopAmount);
-        uint256 fee = (collateralAmount * psmFee) / 1000000;
-        uint256 amountOut = collateralAmount - fee;
+        PSMSwapParams memory params;
+        params.inputAmount = vcopAmount;
+        params.tokenAddress = Currency.unwrap(stablecoinCurrency);
         
+        // Calculate amounts using helper
+        (params.outputAmount, params.fee) = _calculatePSMAmounts(vcopAmount, true);
+        
+        // Execute the swap
+        _executePSMVCOPToCollateral(params);
+        
+        emit PSMSwap(msg.sender, true, vcopAmount, params.outputAmount);
+    }
+    
+    /**
+     * @dev Helper function to execute VCOP to collateral swap
+     */
+    function _executePSMVCOPToCollateral(PSMSwapParams memory params) internal {
         // Verify reserves
-        address collateralTokenAddress = Currency.unwrap(stablecoinCurrency);
         require(
-            collateralManager().hasPSMReservesFor(collateralTokenAddress, amountOut), 
+            collateralManager().hasPSMReservesFor(params.tokenAddress, params.outputAmount), 
             "Insufficient PSM reserves"
         );
         
-        // Burn VCOP received from user
+        // Handle VCOP transfer and burn
         VCOPCollateralized vcop = VCOPCollateralized(Currency.unwrap(vcopCurrency));
+        require(vcop.transferFrom(msg.sender, address(this), params.inputAmount), "VCOP transfer failed");
+        vcop.burn(address(this), params.inputAmount);
         
-        // Check allowance and transfer VCOP from user
-        uint256 allowance = vcop.allowance(msg.sender, address(this));
-        require(allowance >= vcopAmount, "Insufficient VCOP allowance");
-        
-        // Transfer VCOP from user to this contract
-        require(vcop.transferFrom(msg.sender, address(this), vcopAmount), "VCOP transfer failed");
-        
-        // Burn the VCOP
-        vcop.burn(address(this), vcopAmount);
-        
-        // Transfer collateral to user
-        collateralManager().transferPSMCollateral(msg.sender, collateralTokenAddress, amountOut);
-        
-        // Transfer fee to treasury if any
-        if (fee > 0) {
-            collateralManager().transferPSMCollateral(treasury, collateralTokenAddress, fee);
+        // Transfer collateral and fee
+        collateralManager().transferPSMCollateral(msg.sender, params.tokenAddress, params.outputAmount);
+        if (params.fee > 0) {
+            collateralManager().transferPSMCollateral(treasury, params.tokenAddress, params.fee);
         }
-        
-        emit PSMSwap(msg.sender, true, vcopAmount, amountOut);
     }
     
     /**
@@ -340,37 +355,51 @@ contract VCOPCollateralHook is BaseHook, Ownable {
         require(!psmPaused, "PSM is paused");
         require(collateralAmount > 0, "Invalid amount");
         
-        // Calculate VCOP amount based on current rates
-        uint256 vcopAmount = calculateVCOPForCollateral(collateralAmount);
-        require(vcopAmount <= psmMaxSwapAmount, "Amount exceeds PSM limit");
+        PSMSwapParams memory params;
+        params.inputAmount = collateralAmount;
+        params.tokenAddress = Currency.unwrap(stablecoinCurrency);
         
-        uint256 fee = (vcopAmount * psmFee) / 1000000;
-        uint256 amountOut = vcopAmount - fee;
+        // Calculate amounts using helper
+        (params.outputAmount, params.fee) = _calculatePSMAmounts(collateralAmount, false);
+        require(params.outputAmount <= psmMaxSwapAmount, "Amount exceeds PSM limit");
+        
+        // Execute the swap
+        _executePSMCollateralToVCOP(params);
+        
+        emit PSMSwap(msg.sender, false, collateralAmount, params.outputAmount);
+    }
+    
+    /**
+     * @dev Helper function to execute collateral to VCOP swap
+     */
+    function _executePSMCollateralToVCOP(PSMSwapParams memory params) internal {
+        IERC20 collateralToken = IERC20(params.tokenAddress);
         
         // Transfer collateral from user to collateral manager
-        address collateralTokenAddress = Currency.unwrap(stablecoinCurrency);
-        IERC20 collateralToken = IERC20(collateralTokenAddress);
+        collateralToken.safeTransferFrom(msg.sender, address(collateralManager()), params.inputAmount);
         
-        // Check allowance
-        uint256 allowance = collateralToken.allowance(msg.sender, address(this));
-        require(allowance >= collateralAmount, "Insufficient collateral allowance");
-        
-        // Transfer collateral from user to collateral manager
-        collateralToken.safeTransferFrom(msg.sender, address(collateralManager()), collateralAmount);
-        
-        // Update PSM reserves to reflect new collateral
-        collateralManager().registerPSMFunds(collateralTokenAddress, collateralAmount);
-        
-        // Mint VCOP to user
-        VCOPCollateralized vcop = VCOPCollateralized(Currency.unwrap(vcopCurrency));
-        collateralManager().mintPSMVcop(msg.sender, collateralTokenAddress, amountOut);
+        // Update PSM reserves and mint VCOP
+        collateralManager().registerPSMFunds(params.tokenAddress, params.inputAmount);
+        collateralManager().mintPSMVcop(msg.sender, params.tokenAddress, params.outputAmount);
         
         // Mint fee to treasury if any
-        if (fee > 0) {
-            collateralManager().mintPSMVcop(treasury, collateralTokenAddress, fee);
+        if (params.fee > 0) {
+            collateralManager().mintPSMVcop(treasury, params.tokenAddress, params.fee);
+        }
+    }
+    
+    /**
+     * @dev Helper function to calculate PSM amounts and fees
+     */
+    function _calculatePSMAmounts(uint256 inputAmount, bool isVcopInput) internal returns (uint256 outputAmount, uint256 fee) {
+        if (isVcopInput) {
+            outputAmount = calculateCollateralForVCOP(inputAmount);
+        } else {
+            outputAmount = calculateVCOPForCollateral(inputAmount);
         }
         
-        emit PSMSwap(msg.sender, false, collateralAmount, amountOut);
+        fee = (outputAmount * psmFee) / 1000000;
+        outputAmount = outputAmount - fee;
     }
     
     /**
@@ -381,45 +410,54 @@ contract VCOPCollateralHook is BaseHook, Ownable {
     function stabilizePriceWithPSM() public {
         require(!psmPaused, "PSM is paused");
         
+        StabilizationParams memory params;
+        
         // Get price from oracle
-        uint256 vcopToCopRate;
         try oracle.getVcopToCopRate() returns (uint256 rate) {
-            vcopToCopRate = rate;
+            params.currentRate = rate;
         } catch {
             console.log("Failed to get price from oracle");
             return;
         }
         
-        console.log("Current VCOP/COP rate:", vcopToCopRate);
+        console.log("Current VCOP/COP rate:", params.currentRate);
         console.log("Lower bound:", pegLowerBound);
         console.log("Upper bound:", pegUpperBound);
         
-        if (vcopToCopRate < pegLowerBound) {
+        if (params.currentRate < pegLowerBound) {
             // Price too low - buy VCOP with collateral
-            uint256 deviationPercent = ((pegLowerBound - vcopToCopRate) * 1000000) / pegLowerBound;
-            uint256 stabilizationAmount = (psmMaxSwapAmount * deviationPercent) / 1000000;
+            params.deviationPercent = ((pegLowerBound - params.currentRate) * 1000000) / pegLowerBound;
+            params.stabilizationAmount = (psmMaxSwapAmount * params.deviationPercent) / 1000000;
+            params.isVcopSell = false;
             
-            // Limit to available resources
-            stabilizationAmount = _constrainToAvailableReserves(stabilizationAmount, false);
-            
-            if (stabilizationAmount > 0) {
-                console.log("Executing PSM buy of", stabilizationAmount, "VCOP");
-                _executePSMBuy(stabilizationAmount);
-            }
-        } else if (vcopToCopRate > pegUpperBound) {
+            _executeStabilization(params);
+        } else if (params.currentRate > pegUpperBound) {
             // Price too high - sell VCOP for collateral
-            uint256 deviationPercent = ((vcopToCopRate - pegUpperBound) * 1000000) / pegUpperBound;
-            uint256 stabilizationAmount = (psmMaxSwapAmount * deviationPercent) / 1000000;
+            params.deviationPercent = ((params.currentRate - pegUpperBound) * 1000000) / pegUpperBound;
+            params.stabilizationAmount = (psmMaxSwapAmount * params.deviationPercent) / 1000000;
+            params.isVcopSell = true;
             
-            // Limit to available resources
-            stabilizationAmount = _constrainToAvailableReserves(stabilizationAmount, true);
-            
-            if (stabilizationAmount > 0) {
-                console.log("Executing PSM sell of", stabilizationAmount, "VCOP");
-                _executePSMSell(stabilizationAmount);
-            }
+            _executeStabilization(params);
         } else {
             console.log("Price within bounds, no stabilization needed");
+        }
+    }
+    
+    /**
+     * @dev Helper function to execute stabilization
+     */
+    function _executeStabilization(StabilizationParams memory params) internal {
+        // Limit to available resources
+        params.stabilizationAmount = _constrainToAvailableReserves(params.stabilizationAmount, params.isVcopSell);
+        
+        if (params.stabilizationAmount > 0) {
+            if (params.isVcopSell) {
+                console.log("Executing PSM sell of", params.stabilizationAmount, "VCOP");
+                _executePSMSell(params.stabilizationAmount);
+            } else {
+                console.log("Executing PSM buy of", params.stabilizationAmount, "VCOP");
+                _executePSMBuy(params.stabilizationAmount);
+            }
         }
     }
     
@@ -429,8 +467,8 @@ contract VCOPCollateralHook is BaseHook, Ownable {
      * @param isVcopSell If true, we're selling VCOP for collateral. If false, buying VCOP with collateral.
      */
     function _constrainToAvailableReserves(uint256 amount, bool isVcopSell) internal view returns (uint256) {
-        address collateralTokenAddress = Currency.unwrap(stablecoinCurrency);
-        (uint256 collateralAmount, uint256 vcopAmount, bool active) = collateralManager().getPSMReserves(collateralTokenAddress);
+        address tokenAddress = Currency.unwrap(stablecoinCurrency);
+        (uint256 collateralAmount, uint256 vcopAmount, bool active) = collateralManager().getPSMReserves(tokenAddress);
         
         if (!active) {
             return 0;

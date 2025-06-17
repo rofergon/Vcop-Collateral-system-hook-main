@@ -2,29 +2,29 @@
   "network": "Base Sepolia",
   "chainId": 84532,
   "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-  "deploymentDate": "1750110828",
+  "deploymentDate": "1750133386",
   "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
   "mockTokens": {
-    "ETH": "0x87bb55de00f7D2791dbF3461A110D99bB47cF62F",
-    "WBTC": "0x4Cd911B122e27e5EF684e3553B8187525725a399",
-    "USDC": "0xcbeC2cAa97A660434aA5420d667b3f1e60E2C17B"
+    "ETH": "0x1b2fcAD8A02F574457EcAcB6DfF53A24177F4eA4",
+    "WBTC": "0xBe4f1e8e5F5fC13ee092AACABce0260FC883a363",
+    "USDC": "0xCc3199f5C52A778478e38a918Bc30e0050DF386C"
   },
   "vcopCollateral": {
-    "vcopToken": "0xE7cBF4527f193009Ed7C7201a60cA26e5b295E3c",
-    "oracle": "0xc1dce9c9c7344478dc98EDEA2E18019d51E06D69",
-    "priceCalculator": "0xD911ba558A3Bf548Ee2B2385D7F342932B38acEe",
-    "collateralManager": "0xB61a5A978ee701Cf47dfB8D496d346c52D0Ba97D",
-    "hook": "0x97c8481E5a5b5DE94540792B010e9238D7bc84c0"
+    "vcopToken": "0xE16bE08e8589f3D6e727c3D212a990fef3464E3D",
+    "oracle": "0x3Bac75B32cD049Fa0fd7eeb3Ef40b8d10D47A24b",
+    "priceCalculator": "0x8CC9a202e87Ceb24dD03584827683Cdfb9a2f55b",
+    "collateralManager": "0x926e144812441890B0eB41556088736A4e4BC183",
+    "hook": "0x8D0598A669AC2aAD3113Ff1868c36B3FBB79C4c0"
   },
   "coreLending": {
-    "genericLoanManager": "0xF8724317315B1BA8ac1a0f30Ac407e9fCf20442B",
-    "flexibleLoanManager": "0xFf120b0Eb71131EFA1f8C93331B042cB4C0F8Ec7",
-    "vaultBasedHandler": "0xc25D6A1e7878e32ACaB67080BF5a3973e061caEC",
-    "mintableBurnableHandler": "0x7fdAE8503008f35735aa05557B77886d116AeB9A",
-    "flexibleAssetHandler": "0xe55cD346e5097ab8a715C4EF599725791B841e8f",
-    "riskCalculator": "0x1b231350d43702A7662882CfACb1A189C7feEC45"
+    "genericLoanManager": "0x4309a94e826F709B7d21de1fF04792506F3DC7C1",
+    "flexibleLoanManager": "0x025aa94724Ce1B92dae280E75fD6Bcd4Da4D00D2",
+    "vaultBasedHandler": "0x581768aa2fb0a906a1040308Caa34EBb0b6C76d4",
+    "mintableBurnableHandler": "0xa6A177eB9C697bC58dbF87EFe1c177a413D3c473",
+    "flexibleAssetHandler": "0xA226d96AF4249b5277f09241553ab7776F0Aa074",
+    "riskCalculator": "0xD30241AeD76d47F0f05473864f8B26c27425E0C1"
   },
   "rewards": {
-    "rewardDistributor": "0x934250C921597aF3827777a9faaDEd879Ca82126"
+    "rewardDistributor": "0x772b680f902E271fBc6E5cAbE3bCB75aaa995Eb2"
   }
 }

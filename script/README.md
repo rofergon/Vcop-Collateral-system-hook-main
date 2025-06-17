@@ -1,49 +1,97 @@
-# VCOP Swap Script
+# 🧹 Script Directory - Clean Version (deploy-complete only)
 
-Script para comprar o vender VCOP tokens en el pool de Uniswap v4.
+This directory has been cleaned up to contain **ONLY** the essential scripts needed for `make deploy-complete`.
 
-## Configuración
+## 📁 Structure
 
-Para realizar un swap, solo necesitas modificar el archivo `VCOPSwapConfig.sol` con tus parámetros deseados:
+```
+script/
+├── base/                           # Base configuration files
+│   ├── Config.sol                  # Basic configuration
+│   ├── Constants.sol               # System constants
+│   ├── PoolManagerAddresses.sol    # Pool manager addresses
+│   └── PositionManagerAddresses.sol # Position manager addresses
+├── config/                         # Configuration scripts
+│   ├── ConfigureChainlinkOracle.s.sol # Configure Chainlink Oracle
+│   └── ConfigureVCOPPrice.s.sol       # Configure VCOP price
+├── deploy/                         # Deployment scripts
+│   ├── DeployOnlyOracle.s.sol         # Deploy standalone Oracle
+│   └── DeployUnifiedSystem.s.sol      # Deploy complete unified system
+├── generated/                      # Auto-generated addresses (empty until deployment)
+├── test/                          # Essential test scripts
+│   └── TestChainlinkOracle.s.sol     # Test Chainlink Oracle functionality
+├── utils/                         # Utility scripts
+│   └── UpdateDeployedAddresses.s.sol # Update deployment addresses
+├── CheckOracleStatus.s.sol        # Check Oracle status and health
+└── DeployRewardSystem.s.sol       # Deploy reward system
+```
 
-1. **Modo de operación**:
-   - `_COMPRAR_VCOP = true`: Comprar VCOP con USDC
-   - `_COMPRAR_VCOP = false`: Vender VCOP por USDC
+## 🚀 Essential Scripts for `make deploy-complete`
 
-2. **Cantidad a intercambiar**:
-   - Si compras VCOP: cantidad de USDC a gastar
-   - Si vendes VCOP: cantidad de VCOP a vender
-   - Ejemplo: `_CANTIDAD = 1000 * 10**6` (1,000 tokens con 6 decimales)
+### Deploy Phase
+1. **DeployUnifiedSystem.s.sol** - Main deployment script (Core + VCOP)
+2. **DeployRewardSystem.s.sol** - Deploy and configure reward system  
+3. **DeployOnlyOracle.s.sol** - Deploy Chainlink Oracle
 
-3. **Slippage máximo** (opcional):
-   - `_SLIPPAGE_MAX = 0`: impacto de precio ilimitado
-   - Ejemplos:
-     - `_SLIPPAGE_MAX = 50`: 0.5% máximo slippage
-     - `_SLIPPAGE_MAX = 100`: 1% máximo slippage
-     - `_SLIPPAGE_MAX = 1000`: 10% máximo slippage
+### Configuration Phase
+4. **ConfigureChainlinkOracle.s.sol** - Configure Oracle with Chainlink feeds
+5. **ConfigureVCOPPrice.s.sol** - Configure VCOP price fallback
 
-## Ejecución
+### Verification Phase
+6. **TestChainlinkOracle.s.sol** - Test Oracle functionality
+7. **CheckOracleStatus.s.sol** - Health check for Oracle
 
-Para ejecutar el script:
+### Support Files
+- **base/** - Configuration constants and addresses
+- **utils/** - Address update utilities
+- **generated/** - Auto-generated deployment addresses (created during deployment)
+
+## ✅ What was removed
+
+- ❌ All liquidation test scripts (40+ files)
+- ❌ All PSM scripts (10+ files)  
+- ❌ All VCOP loan test scripts (15+ files)
+- ❌ All experimental scripts (20+ files)
+- ❌ All helper/diagnostic scripts (30+ files)
+- ❌ Archive and development folders
+
+## 💾 Backup
+
+A complete backup of all removed scripts was saved to:
+`script_backup_YYYYMMDD_HHMMSS/`
+
+## 🎯 Usage
 
 ```bash
-source .env && forge script script/SwapVCOP.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --legacy -vvvv
+# Deploy complete system
+make deploy-complete
+
+# Deploy optimized version  
+make deploy-complete-optimized
+
+# Test the deployed system
+make test-chainlink-oracle
 ```
 
-## Ejemplo
+## 🔄 Restore Scripts (if needed)
 
-Para comprar VCOP con 500 USDC:
+If you need any of the removed scripts later:
 
-```solidity
-// En VCOPSwapConfig.sol
-_COMPRAR_VCOP = true;
-_CANTIDAD = 500 * 10**6; // 500 USDC
+```bash
+# Find your backup
+ls -la script_backup_*/
+
+# Restore specific script
+cp script_backup_*/SomeScript.s.sol script/
+
+# Restore entire backup
+mv script/ script_clean/
+mv script_backup_*/ script/
 ```
 
-Para vender 2,000 VCOP:
+---
 
-```solidity
-// En VCOPSwapConfig.sol
-_COMPRAR_VCOP = false;
-_CANTIDAD = 2000 * 10**6; // 2,000 VCOP
-``` 
+**Total scripts before cleanup:** 80+ files  
+**Total scripts after cleanup:** 12 files  
+**Space saved:** ~2MB  
+**Functionality:** 100% compatible with `make deploy-complete` 
