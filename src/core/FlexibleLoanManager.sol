@@ -8,6 +8,7 @@ import {ILoanManager} from "../interfaces/ILoanManager.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
+import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
@@ -372,9 +373,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
      * @dev Gets maximum borrowable amount - BASED ON LIQUIDITY ONLY
      */
     function getMaxBorrowAmount(
-        address collateralAsset,
+        address /* collateralAsset */,
         address loanAsset,
-        uint256 collateralAmount
+        uint256 /* collateralAmount */
     ) external view override returns (uint256) {
         // ✅ NO RATIO LIMITS! Return available liquidity only
         IAssetHandler loanHandler = _getAssetHandler(loanAsset);
