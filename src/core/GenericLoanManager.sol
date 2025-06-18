@@ -8,13 +8,14 @@ import {ILoanManager} from "../interfaces/ILoanManager.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
+import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
  * @title GenericLoanManager
  * @notice Manages loans with flexible collateral and loan asset combinations
  */
-contract GenericLoanManager is ILoanManager, IRewardable, Ownable {
+contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownable {
     using SafeERC20 for IERC20;
     
     // Asset handlers for different types of assets
@@ -43,6 +44,27 @@ contract GenericLoanManager is ILoanManager, IRewardable, Ownable {
     RewardDistributor public rewardDistributor;
     bytes32 public constant REWARD_POOL_ID = keccak256("GENERIC_LOAN_COLLATERAL");
     
+    // ========================================
+    // AUTOMATION SYSTEM CONFIGURATION
+    // ========================================
+    
+    // Automation contract address (set by owner after deployment)
+    address public automationContract;
+    
+    // Automation settings
+    bool public automationEnabled = false;
+    uint256 public automationRiskThreshold = 85; // Default 85% risk threshold
+    
+    // Active positions tracking for automation
+    uint256[] public activePositionIds;
+    mapping(uint256 => uint256) public positionIdToIndex; // positionId => index in activePositionIds
+    
+    // Events for automation
+    event AutomationContractSet(address indexed automationContract);
+    event AutomationStatusChanged(bool enabled);
+    event AutomationRiskThresholdUpdated(uint256 newThreshold);
+    event AutomatedLiquidationExecuted(uint256 indexed positionId, address indexed liquidator, uint256 amount);
+
     constructor(address _oracle, address _feeCollector) Ownable(msg.sender) {
         oracle = IGenericOracle(_oracle);
         feeCollector = _feeCollector;
@@ -107,6 +129,9 @@ contract GenericLoanManager is ILoanManager, IRewardable, Ownable {
         });
         
         userPositions[msg.sender].push(positionId);
+        
+        // Add to active positions tracking for automation
+        _addActivePosition(positionId);
         
         // Execute loan through asset handler
         loanHandler.lend(terms.loanAsset, terms.loanAmount, msg.sender);
@@ -218,6 +243,9 @@ contract GenericLoanManager is ILoanManager, IRewardable, Ownable {
         if (position.loanAmount == 0 && accruedInterest[positionId] == 0) {
             IERC20(position.collateralAsset).safeTransfer(msg.sender, position.collateralAmount);
             position.isActive = false;
+            
+            // Remove from active positions tracking
+            _removeActivePosition(positionId);
         }
         
         emit LoanRepaid(positionId, repayAmount);
@@ -533,5 +561,223 @@ contract GenericLoanManager is ILoanManager, IRewardable, Ownable {
             rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
             emit RewardsUpdated(user, amount, REWARD_POOL_ID);
         }
+    }
+
+    // ========================================
+    // AUTOMATION CONFIGURATION FUNCTIONS
+    // ========================================
+    
+    /**
+     * @dev Sets the authorized automation contract (only owner)
+     * @param _automationContract Address of the automation contract
+     */
+    function setAutomationContract(address _automationContract) external override onlyOwner {
+        automationContract = _automationContract;
+        emit AutomationContractSet(_automationContract);
+    }
+    
+    /**
+     * @dev Enables or disables automation (only owner)
+     * @param enabled Whether automation should be enabled
+     */
+    function setAutomationEnabled(bool enabled) external onlyOwner {
+        automationEnabled = enabled;
+        emit AutomationStatusChanged(enabled);
+    }
+    
+    /**
+     * @dev Sets automation risk threshold (only owner)
+     * @param threshold Risk threshold (0-100)
+     */
+    function setAutomationRiskThreshold(uint256 threshold) external onlyOwner {
+        require(threshold <= 100, "Threshold must be <= 100");
+        automationRiskThreshold = threshold;
+        emit AutomationRiskThresholdUpdated(threshold);
+    }
+    
+    /**
+     * @dev Modifier to restrict access to automation contract
+     */
+    modifier onlyAutomation() {
+        require(msg.sender == automationContract, "Only automation contract");
+        require(automationEnabled, "Automation not enabled");
+        _;
+    }
+    
+    // ========================================
+    // AUTOMATION INTERFACE IMPLEMENTATION
+    // ========================================
+    
+    /**
+     * @dev Gets the total number of active positions for automation scanning
+     */
+    function getTotalActivePositions() external view override returns (uint256) {
+        return activePositionIds.length;
+    }
+    
+    /**
+     * @dev Gets positions in a specific range for batch processing
+     */
+    function getPositionsInRange(uint256 startIndex, uint256 endIndex) 
+        external view override returns (uint256[] memory positionIds) {
+        require(startIndex <= endIndex, "Invalid range");
+        require(endIndex < activePositionIds.length, "End index out of bounds");
+        
+        uint256 length = endIndex - startIndex + 1;
+        positionIds = new uint256[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            positionIds[i] = activePositionIds[startIndex + i];
+        }
+    }
+    
+    /**
+     * @dev Checks if a position is at risk of liquidation
+     */
+    function isPositionAtRisk(uint256 positionId) 
+        external view override returns (bool isAtRisk, uint256 riskLevel) {
+        LoanPosition memory position = positions[positionId];
+        if (!position.isActive) {
+            return (false, 0);
+        }
+        
+        // Calculate current collateralization ratio
+        uint256 currentRatio = this.getCollateralizationRatio(positionId);
+        
+        // Get liquidation threshold
+        IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
+        IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
+        
+        // Calculate risk level (0-100, where 100+ means liquidation needed)
+        if (currentRatio <= config.liquidationRatio) {
+            return (true, 100); // Immediate liquidation needed
+        }
+        
+        // Calculate risk level based on how close to liquidation
+        uint256 safeRatio = config.collateralRatio;
+        if (currentRatio <= safeRatio) {
+            // Risk increases as ratio decreases from safe to liquidation threshold
+            riskLevel = 100 - ((currentRatio - config.liquidationRatio) * 100) / (safeRatio - config.liquidationRatio);
+            isAtRisk = riskLevel >= automationRiskThreshold;
+        } else {
+            riskLevel = 0; // Safe position
+            isAtRisk = false;
+        }
+    }
+    
+    /**
+     * @dev Performs automated liquidation of a position
+     */
+    function automatedLiquidation(uint256 positionId) 
+        external override onlyAutomation returns (bool success, uint256 liquidatedAmount) {
+        LoanPosition storage position = positions[positionId];
+        require(position.isActive, "Position not active");
+        
+        // Update interest before liquidation check
+        updateInterest(positionId);
+        
+        require(canLiquidate(positionId), "Position not liquidatable");
+        
+        uint256 totalDebt = getTotalDebt(positionId);
+        uint256 collateralValue = _getAssetValue(position.collateralAsset, position.collateralAmount);
+        
+        // Calculate liquidation amounts
+        uint256 debtToRepay = totalDebt;
+        uint256 liquidationBonus = (collateralValue * LIQUIDATION_BONUS) / 1000000;
+        uint256 liquidatorReward = collateralValue > debtToRepay + liquidationBonus 
+            ? debtToRepay + liquidationBonus 
+            : collateralValue;
+        
+        // Liquidator (automation) repays debt
+        IAssetHandler loanHandler = _getAssetHandler(position.loanAsset);
+        loanHandler.repay(position.loanAsset, debtToRepay, automationContract);
+        
+        // Transfer collateral to liquidator (automation contract)
+        uint256 collateralToLiquidator = (liquidatorReward * position.collateralAmount) / collateralValue;
+        IERC20(position.collateralAsset).safeTransfer(automationContract, collateralToLiquidator);
+        
+        // Return remaining collateral to borrower (if any)
+        uint256 remainingCollateral = position.collateralAmount - collateralToLiquidator;
+        if (remainingCollateral > 0) {
+            IERC20(position.collateralAsset).safeTransfer(position.borrower, remainingCollateral);
+        }
+        
+        // Update reward system - remove all collateral
+        _updateUserRewards(position.borrower, position.collateralAmount, false);
+        
+        // Close position and remove from active tracking
+        position.isActive = false;
+        accruedInterest[positionId] = 0;
+        _removeActivePosition(positionId);
+        
+        emit AutomatedLiquidationExecuted(positionId, automationContract, debtToRepay);
+        emit PositionLiquidated(positionId, automationContract);
+        
+        return (true, debtToRepay);
+    }
+    
+    /**
+     * @dev Gets position details for automation purposes
+     */
+    function getPositionHealthData(uint256 positionId) 
+        external view override returns (
+            address borrower,
+            uint256 collateralValue,
+            uint256 debtValue,
+            uint256 healthFactor
+        ) {
+        LoanPosition memory position = positions[positionId];
+        require(position.isActive, "Position not active");
+        
+        borrower = position.borrower;
+        collateralValue = _getAssetValue(position.collateralAsset, position.collateralAmount);
+        uint256 totalDebt = getTotalDebt(positionId);
+        debtValue = _getAssetValue(position.loanAsset, totalDebt);
+        
+        // Health factor = collateral value / debt value (scaled by 1e18)
+        healthFactor = debtValue > 0 ? (collateralValue * 1e18) / debtValue : type(uint256).max;
+    }
+    
+    /**
+     * @dev Checks if automation is enabled for this contract
+     */
+    function isAutomationEnabled() external view override returns (bool) {
+        return automationEnabled && automationContract != address(0);
+    }
+    
+    // ========================================
+    // AUTOMATION HELPER FUNCTIONS
+    // ========================================
+    
+    /**
+     * @dev Adds a position to active positions tracking
+     */
+    function _addActivePosition(uint256 positionId) internal {
+        activePositionIds.push(positionId);
+        positionIdToIndex[positionId] = activePositionIds.length - 1;
+    }
+    
+    /**
+     * @dev Removes a position from active positions tracking
+     */
+    function _removeActivePosition(uint256 positionId) internal {
+        uint256 index = positionIdToIndex[positionId];
+        uint256 lastIndex = activePositionIds.length - 1;
+        
+        if (index != lastIndex) {
+            uint256 lastPositionId = activePositionIds[lastIndex];
+            activePositionIds[index] = lastPositionId;
+            positionIdToIndex[lastPositionId] = index;
+        }
+        
+        activePositionIds.pop();
+        delete positionIdToIndex[positionId];
+    }
+    
+    /**
+     * @dev Gets all active position IDs (for debugging)
+     */
+    function getActivePositionIds() external view returns (uint256[] memory) {
+        return activePositionIds;
     }
 } 
