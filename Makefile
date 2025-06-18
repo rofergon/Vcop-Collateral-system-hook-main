@@ -29,7 +29,7 @@ SEPOLIA_POSITION_MANAGER_ADDRESS := 0x4b2c77d209d3405f41a037ec6c77f7f5b8e2ca80
 MAINNET_POOL_MANAGER_ADDRESS := 0x498581ff718922c3f8e6a244956af099b2652b2b
 MAINNET_POSITION_MANAGER_ADDRESS := 0x7c5f5a4bbd8fd63184577525326123b519429bdc
 
-.PHONY: help build clean deploy-complete deploy-complete-optimized test-chainlink check-deployment-status check-addresses configure-system-integration verify-system-authorizations
+.PHONY: help build clean deploy-complete deploy-complete-optimized deploy-automation test-chainlink check-deployment-status check-addresses configure-system-integration verify-system-authorizations
 
 # ========================================
 # 📚 HELP - Available Commands
@@ -37,49 +37,54 @@ MAINNET_POSITION_MANAGER_ADDRESS := 0x7c5f5a4bbd8fd63184577525326123b519429bdc
 
 help:
 	@echo ""
-	@echo "🚀 VCOP COLLATERAL SYSTEM - Essential Commands"
-	@echo "=============================================="
+	@echo "VCOP COLLATERAL SYSTEM - Essential Commands"
+	@echo "============================================"
 	@echo ""
-	@echo "🔥 MAIN DEPLOYMENT COMMANDS"
-	@echo "---------------------------"
-	@echo "make deploy-complete          - 🚀 Complete automated deployment (recommended)"
-	@echo "                                  ✅ Deploys unified system (Core + VCOP + Rewards)"
-	@echo "                                  ✅ Configures Chainlink Oracle (BTC/USD + ETH/USD)"
-	@echo "                                  ✅ Sets up all authorizations automatically"
-	@echo "                                  ✅ Tests and verifies deployment"
-	@echo ""
-	@echo "make deploy-complete-optimized - 🏭 Production deployment with optimizations"
-	@echo "                                  ✅ Full rebuild with gas optimizations"
-	@echo "                                  ✅ All features of deploy-complete"
-	@echo ""
-	@echo "🔨 BUILD & DEVELOPMENT"
-	@echo "----------------------"
-	@echo "make build                    - 📦 Smart compilation (only if needed)"
-	@echo "make build-optimized          - 🏭 Full rebuild with optimizations"
-	@echo "make clean                    - 🧹 Clean build artifacts"
-	@echo "make rebuild                  - 🔄 Clean + full optimized rebuild"
-	@echo ""
-	@echo "🔍 VERIFICATION & STATUS"
+	@echo "MAIN DEPLOYMENT COMMANDS"
 	@echo "------------------------"
-	@echo "make check-deployment-status  - 📊 Check deployment status and addresses"
-	@echo "make check-addresses          - 📋 Show all deployed contract addresses"
-	@echo "make verify-system-authorizations - ✅ Verify all system authorizations"
-	@echo "make test-chainlink          - 🔗 Test Chainlink Oracle integration"
-	@echo "make oracle-health-check     - 🏥 Complete Oracle health check"
+	@echo "make deploy-complete          - Complete automated deployment (recommended)"
+	@echo "                                Deploys unified system (Core + VCOP + Rewards)"
+	@echo "                                Configures Chainlink Oracle (BTC/USD + ETH/USD)"
+	@echo "                                Sets up all authorizations automatically"
+	@echo "                                Tests and verifies deployment"
 	@echo ""
-	@echo "⚙️  CONFIGURATION"
-	@echo "-----------------"
-	@echo "make configure-system-integration - 🔧 Configure system integrations"
-	@echo "make configure-oracle-complete    - 🔗 Complete Oracle configuration"
+	@echo "make deploy-complete-optimized - Production deployment with optimizations"
+	@echo "                                Full rebuild with gas optimizations"
+	@echo "                                All features of deploy-complete"
 	@echo ""
-	@echo "📈 PROJECT STATUS"
-	@echo "-----------------"
-	@echo "✅ Scripts cleaned: 12 essential files (was 80+)"
-	@echo "✅ Makefile cleaned: 15 essential commands (was 100+)"
-	@echo "✅ Focus: deploy-complete workflow only"
-	@echo "💾 Backups: script_backup_* available"
+	@echo "make deploy-automation         - Deploy Chainlink Automation system"
+	@echo "                                Auto-reads deployed-addresses.json"
+	@echo "                                Configures existing loan managers"
+	@echo "                                Ready for Chainlink registration"
 	@echo ""
-	@echo "🎯 QUICK START: make deploy-complete"
+	@echo "BUILD & DEVELOPMENT"
+	@echo "-------------------"
+	@echo "make build                    - Smart compilation (only if needed)"
+	@echo "make build-optimized          - Full rebuild with optimizations"
+	@echo "make clean                    - Clean build artifacts"
+	@echo "make rebuild                  - Clean + full optimized rebuild"
+	@echo ""
+	@echo "VERIFICATION & STATUS"
+	@echo "---------------------"
+	@echo "make check-deployment-status  - Check deployment status and addresses"
+	@echo "make check-addresses          - Show all deployed contract addresses"
+	@echo "make verify-system-authorizations - Verify all system authorizations"
+	@echo "make test-chainlink          - Test Chainlink Oracle integration"
+	@echo "make oracle-health-check     - Complete Oracle health check"
+	@echo ""
+	@echo "CONFIGURATION"
+	@echo "-------------"
+	@echo "make configure-system-integration - Configure system integrations"
+	@echo "make configure-oracle-complete    - Complete Oracle configuration"
+	@echo ""
+	@echo "PROJECT STATUS"
+	@echo "--------------"
+	@echo "Scripts cleaned: 12 essential files (was 80+)"
+	@echo "Makefile cleaned: 15 essential commands (was 100+)"
+	@echo "Focus: deploy-complete workflow only"
+	@echo "Backups: script_backup_* available"
+	@echo ""
+	@echo "QUICK START: make deploy-complete"
 	@echo ""
 
 # ========================================
@@ -114,45 +119,46 @@ rebuild:
 # [MAIN] Complete automated deployment with auto-configuration
 deploy-complete:
 	@echo ""
-	@echo "🚀🚀🚀 STARTING COMPLETE AUTOMATED DEPLOYMENT 🚀🚀🚀"
-	@echo "======================================================="
-	@echo "✅ INCLUDES CORRECTED RATIO CALCULATIONS"
-	@echo "✅ INCLUDES ALL ASSET HANDLERS CONFIGURED"
-	@echo "✅ INCLUDES AUTOMATIC ORACLE CONFIGURATION"
-	@echo "✅ INCLUDES PRICE FEEDS SETUP (ETH/USDC/WBTC)"
+	@echo "STARTING COMPLETE AUTOMATED DEPLOYMENT"
+	@echo "======================================="
+	@echo "INCLUDES CORRECTED RATIO CALCULATIONS"
+	@echo "INCLUDES ALL ASSET HANDLERS CONFIGURED"
+	@echo "INCLUDES AUTOMATIC ORACLE CONFIGURATION"
+	@echo "INCLUDES PRICE FEEDS SETUP (ETH/USDC/WBTC)"
 	@echo ""
-	@echo "⏳ Step 1/6: Smart compilation..."
+	@echo "Step 1/6: Smart compilation..."
 	@forge build
 	@echo ""
-	@echo "🏗️  Step 2/6: Deploying unified system (Core + VCOP + Liquidity)..."
+	@echo "Step 2/6: Deploying unified system (Core + VCOP + Liquidity)..."
 	@forge script script/deploy/DeployUnifiedSystem.s.sol --rpc-url $(RPC_URL) --broadcast
 	@echo ""
-	@echo "🎁 Step 3/6: Deploying reward system with VCOP minting..."
+	@echo "Step 3/6: Deploying reward system with VCOP minting..."
 	@forge script script/DeployRewardSystem.s.sol --rpc-url $(RPC_URL) --broadcast -vv
 	@echo ""
-	@echo "🔗 Step 4/6: Deploying Chainlink Oracle with BTC/ETH feeds..."
+	@echo "Step 4/6: Deploying Chainlink Oracle with BTC/ETH feeds..."
 	@$(MAKE) deploy-complete-chainlink
 	@echo ""
-	@echo "🔧 Step 5/6: Auto-configuring system integrations and authorizations..."
+	@echo "Step 5/6: Auto-configuring system integrations and authorizations..."
 	@$(MAKE) configure-system-integration
 	@echo ""
-	@echo "🔍 Step 6/6: Configuring Oracle communication and prices..."
+	@echo "Step 6/6: Configuring Oracle communication and prices..."
 	@$(MAKE) configure-oracle-complete
 	@echo ""
-	@echo "✅ Final verification..."
+	@echo "Final verification..."
 	@$(MAKE) check-deployment-status
 	@$(MAKE) test-chainlink
 	@echo ""
-	@echo "🎉🎉🎉 DEPLOYMENT COMPLETED SUCCESSFULLY! 🎉🎉🎉"
-	@echo "================================================="
-	@echo "📋 All addresses saved to deployed-addresses.json"
-	@echo "🔐 All authorizations configured automatically"
-	@echo "💰 Chainlink Oracle active (BTC/USD + ETH/USD)"
-	@echo "✅ System ready for use!"
+	@echo "DEPLOYMENT COMPLETED SUCCESSFULLY!"
+	@echo "=================================="
+	@echo "All addresses saved to deployed-addresses.json"
+	@echo "All authorizations configured automatically"
+	@echo "Chainlink Oracle active (BTC/USD + ETH/USD)"
+	@echo "System ready for use!"
 	@echo ""
-	@echo "📋 Next steps:"
+	@echo "Next steps:"
 	@echo "  make check-addresses         - View all deployed addresses"
 	@echo "  make verify-system-authorizations - Verify setup"
+	@echo "  make deploy-automation       - Deploy Chainlink Automation"
 	@echo ""
 
 # [PRODUCTION] Optimized deployment for production
@@ -192,12 +198,55 @@ deploy-complete-optimized:
 
 # Complete Chainlink Oracle deployment with auto-configuration
 deploy-complete-chainlink:
-	@echo "🔗 Deploying Chainlink Oracle system..."
+	@echo "Deploying Chainlink Oracle system..."
 	@forge script script/deploy/DeployOnlyOracle.s.sol --rpc-url $(RPC_URL) --broadcast -vv
-	@echo "⚙️ Configuring Oracle..."
+	@echo "Configuring Oracle..."
 	@forge script script/config/ConfigureChainlinkOracle.s.sol --rpc-url $(RPC_URL) --broadcast -vv
-	@echo "💰 Configuring VCOP price..."
+	@echo "Configuring VCOP price..."
 	@forge script script/config/ConfigureVCOPPrice.s.sol --rpc-url $(RPC_URL) --broadcast -vv
+
+# ========================================
+# CHAINLINK AUTOMATION DEPLOYMENT
+# ========================================
+
+# Deploy and configure Chainlink Automation system - 100% Dynamic
+deploy-automation:
+	@echo ""
+	@echo "🤖 DEPLOYING CHAINLINK AUTOMATION SYSTEM (100% DYNAMIC)"
+	@echo "==========================================================="
+	@echo "Reading ALL addresses dynamically from deployed-addresses.json..."
+	@echo ""
+	@echo "Step 1/2: Deploying automation contracts and saving addresses..."
+	@. ./.env && \
+	export ORACLE_ADDRESS=$$(jq -r '.vcopCollateral.oracle' deployed-addresses.json) && \
+	export GENERIC_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.genericLoanManager' deployed-addresses.json) && \
+	export FLEXIBLE_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses.json) && \
+	export RISK_CALCULATOR_ADDRESS=$$(jq -r '.coreLending.riskCalculator' deployed-addresses.json) && \
+	forge script script/automation/DeployAutomation.s.sol:DeployAutomation --rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000 --legacy --slow
+	@echo ""
+	@echo "Step 2/2: Testing automation system with ALL addresses from JSON..."
+	@. ./.env && \
+	export ORACLE_ADDRESS=$$(jq -r '.vcopCollateral.oracle' deployed-addresses.json) && \
+	export GENERIC_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.genericLoanManager' deployed-addresses.json) && \
+	export FLEXIBLE_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses.json) && \
+	export RISK_CALCULATOR_ADDRESS=$$(jq -r '.coreLending.riskCalculator' deployed-addresses.json) && \
+	export AUTOMATION_REGISTRY_ADDRESS=$$(jq -r '.automation.automationRegistry' deployed-addresses.json) && \
+	export AUTOMATION_KEEPER_ADDRESS=$$(jq -r '.automation.automationKeeper' deployed-addresses.json) && \
+	forge script script/automation/TestAutomationSystemDynamic.s.sol:TestAutomationSystemDynamic --rpc-url $$RPC_URL --private-key $$PRIVATE_KEY
+	@echo ""
+	@echo "✅ AUTOMATION DEPLOYMENT COMPLETED (100% DYNAMIC)"
+	@echo "=================================================="
+	@echo "📋 ALL addresses automatically saved to deployed-addresses.json"
+	@echo "🔗 Use generated checkData to register at https://automation.chain.link/"
+	@echo "🚀 System is now fully automated and dynamic!"
+
+# Helper to generate CheckData for additional loan managers
+generate-checkdata:
+	@echo "Generating CheckData for Chainlink Automation..."
+	@LOAN_MANAGER_ADDRESS=$$(grep -o '"genericLoanManager": *"[^"]*' deployed-addresses.json | grep -o '0x[a-fA-F0-9]*') \
+	START_INDEX=0 \
+	BATCH_SIZE=50 \
+	forge script script/automation/ConfigureAutomationSystem.s.sol:GenerateCheckDataHelper --rpc-url $(RPC_URL)
 	@echo "✅ Chainlink deployment completed!"
 
 # ========================================
