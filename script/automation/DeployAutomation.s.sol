@@ -14,9 +14,11 @@ import {LoanManagerAutomationAdapter} from "../../src/automation/core/LoanManage
  */
 contract DeployAutomation is Script {
     
-    // Configuration - UPDATE THESE ADDRESSES BEFORE DEPLOYMENT
-    address constant ORACLE_ADDRESS = 0x6AC157633e53bb59C5eE2eFB26Ea4cAaA160a381; // Your oracle address
-    address constant LOAN_MANAGER_ADDRESS = 0x0000000000000000000000000000000000000000; // Your loan manager address
+    // Configuration - Will be set via environment variables from deployed-addresses.json
+    address public oracleAddress;
+    address public genericLoanManagerAddress;
+    address public flexibleLoanManagerAddress;
+    address public existingRiskCalculatorAddress;
     
     // Deployment results
     RiskCalculator public riskCalculator;
@@ -25,15 +27,25 @@ contract DeployAutomation is Script {
     
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        
+        // Read addresses from environment variables (set by Makefile from JSON)
+        oracleAddress = vm.envAddress("ORACLE_ADDRESS");
+        genericLoanManagerAddress = vm.envAddress("GENERIC_LOAN_MANAGER_ADDRESS");
+        flexibleLoanManagerAddress = vm.envAddress("FLEXIBLE_LOAN_MANAGER_ADDRESS");
+        existingRiskCalculatorAddress = vm.envAddress("RISK_CALCULATOR_ADDRESS");
+        
         vm.startBroadcast(deployerPrivateKey);
         
         console.log("=== Deploying Chainlink Automation System ===");
         console.log("Deployer:", vm.addr(deployerPrivateKey));
+        console.log("Oracle Address:", oracleAddress);
+        console.log("Generic Loan Manager:", genericLoanManagerAddress);
+        console.log("Flexible Loan Manager:", flexibleLoanManagerAddress);
+        console.log("Existing Risk Calculator:", existingRiskCalculatorAddress);
         
-        // 1. Deploy RiskCalculator (using your existing RiskCalculator)
-        console.log("\n1. Deploying RiskCalculator...");
-        require(LOAN_MANAGER_ADDRESS != address(0), "Set LOAN_MANAGER_ADDRESS before deployment");
-        riskCalculator = new RiskCalculator(ORACLE_ADDRESS, LOAN_MANAGER_ADDRESS);
+        // 1. Use existing RiskCalculator (no need to deploy new one)
+        console.log("\n1. Using existing RiskCalculator...");
+        riskCalculator = RiskCalculator(existingRiskCalculatorAddress);
         console.log("RiskCalculator deployed at:", address(riskCalculator));
         
         // 2. Deploy AutomationRegistry
@@ -53,6 +65,9 @@ contract DeployAutomation is Script {
         
         vm.stopBroadcast();
         
+        // Save automation addresses to deployed-addresses.json
+        saveAutomationAddresses();
+        
         // Print summary
         printDeploymentSummary();
         printNextSteps();
@@ -66,6 +81,66 @@ contract DeployAutomation is Script {
         console.log("================================");
     }
     
+    function saveAutomationAddresses() internal {
+        console.log("\n=== SAVING AUTOMATION ADDRESSES ===");
+        
+        // Read current deployed-addresses.json
+        string memory jsonContent = vm.readFile("deployed-addresses.json");
+        console.log("Current JSON read successfully");
+        
+        // Create automation section
+        string memory automationJson = string(abi.encodePacked(
+            '{"automationRegistry":"', vm.toString(address(automationRegistry)), '",',
+            '"automationKeeper":"', vm.toString(address(automationKeeper)), '",',
+            '"riskCalculatorUsed":"', vm.toString(address(riskCalculator)), '"}'
+        ));
+        
+        console.log("Automation addresses to save:");
+        console.log("AutomationRegistry:", address(automationRegistry));
+        console.log("AutomationKeeper:", address(automationKeeper));
+        console.log("RiskCalculator (existing):", address(riskCalculator));
+        
+        // Use a simple approach: read, modify with string manipulation, write back
+        string memory newJsonContent = updateJsonWithAutomation(jsonContent, automationJson);
+        
+        // Write updated JSON back to file
+        vm.writeFile("deployed-addresses.json", newJsonContent);
+        console.log("deployed-addresses.json updated with automation addresses");
+        console.log("=====================================");
+    }
+    
+    function updateJsonWithAutomation(string memory originalJson, string memory automationJson) internal pure returns (string memory) {
+        // Find the closing brace of the main JSON object
+        bytes memory jsonBytes = bytes(originalJson);
+        uint256 len = jsonBytes.length;
+        
+        // Find the last closing brace
+        uint256 lastBraceIndex = len - 1;
+        while (lastBraceIndex > 0 && jsonBytes[lastBraceIndex] != '}') {
+            lastBraceIndex--;
+        }
+        
+        // Create new JSON by inserting automation section before the last brace
+        string memory beforeLastBrace = substring(originalJson, 0, lastBraceIndex);
+        string memory newJson = string(abi.encodePacked(
+            beforeLastBrace,
+            ',"automation":',
+            automationJson,
+            '}'
+        ));
+        
+        return newJson;
+    }
+    
+    function substring(string memory str, uint256 startIndex, uint256 endIndex) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(endIndex - startIndex);
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = strBytes[i];
+        }
+        return string(result);
+    }
+
     function printNextSteps() internal view {
         console.log("\n=== NEXT STEPS ===");
         console.log("1. OPTION A - Direct Integration (Recommended):");
@@ -86,6 +161,8 @@ contract DeployAutomation is Script {
         console.log("");
         console.log("4. NOTE: Using existing RiskCalculator from src/core/");
         console.log("   - No duplication with your existing risk system");
+        console.log("5. NOTE: Automation addresses saved to deployed-addresses.json");
+        console.log("   - System is now 100% dynamic");
         console.log("==================");
     }
 }
