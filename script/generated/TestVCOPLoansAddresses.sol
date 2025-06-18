@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
 address constant USDC_ADDRESS = 0xa10e886d62fdb182AEC2DB9e75f9557a34704995;
 address constant VCOP_ADDRESS = 0x0b4bd4a3Be03d164FEe65cC73e42B07795d17982;
 address constant ORACLE_ADDRESS = 0xe841B02F7d05CEEFcBae0778a814a86cC501543f;
