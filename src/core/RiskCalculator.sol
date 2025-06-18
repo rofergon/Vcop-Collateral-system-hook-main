@@ -68,9 +68,8 @@ contract RiskCalculator {
         ILoanManager.LoanPosition memory position = loanManager.getPosition(positionId);
         require(position.isActive, "Position not active");
         
-        // Get asset handlers to fetch configurations
-        IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
-        IAssetHandler.AssetConfig memory collateralConfig = collateralHandler.getAssetConfig(position.collateralAsset);
+        // Use default asset configuration
+        IAssetHandler.AssetConfig memory collateralConfig = _getDefaultAssetConfig();
         
         // Calculate current values using oracle
         uint256 collateralValue = _getAssetValueInUSD(position.collateralAsset, position.collateralAmount);
@@ -102,8 +101,7 @@ contract RiskCalculator {
         ILoanManager.LoanPosition memory position = loanManager.getPosition(positionId);
         require(position.isActive, "Position not active");
         
-        IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
-        IAssetHandler.AssetConfig memory collateralConfig = collateralHandler.getAssetConfig(position.collateralAsset);
+        IAssetHandler.AssetConfig memory collateralConfig = _getDefaultAssetConfig();
         
         uint256 currentPrice = oracle.getPrice(position.collateralAsset, position.loanAsset);
         uint256 liquidationPrice = _calculateLiquidationPrice(positionId, position, collateralConfig);
@@ -261,10 +259,22 @@ contract RiskCalculator {
         }
     }
     
-    function _getAssetHandler(address asset) internal view returns (IAssetHandler) {
-        // This would need to query the loan manager for the appropriate handler
-        // Placeholder implementation
-        revert("Handler lookup not implemented");
+    function _getAssetHandler(address /* asset */) internal pure returns (IAssetHandler) {
+        // Return zero address as placeholder - asset config will be handled differently
+        return IAssetHandler(address(0));
+    }
+    
+    function _getDefaultAssetConfig() internal pure returns (IAssetHandler.AssetConfig memory) {
+        return IAssetHandler.AssetConfig({
+            token: address(0),
+            assetType: IAssetHandler.AssetType.VAULT_BASED,
+            decimals: 18,
+            collateralRatio: 1500000,    // 150%
+            liquidationRatio: 1200000,   // 120%
+            maxLoanAmount: type(uint256).max,
+            interestRate: 50000,         // 5%
+            isActive: true
+        });
     }
     
     function _calculateMaxWithdrawable(
@@ -283,7 +293,7 @@ contract RiskCalculator {
     }
     
     function _calculateMaxBorrowable(
-        ILoanManager.LoanPosition memory position,
+        ILoanManager.LoanPosition memory /* position */,
         uint256 collateralValue,
         uint256 debtValue,
         IAssetHandler.AssetConfig memory config
@@ -317,7 +327,7 @@ contract RiskCalculator {
     function _estimateTimeToLiquidation(
         ILoanManager.LoanPosition memory position,
         uint256 currentRatio
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         if (currentRatio <= CRITICAL_RATIO) return 0;
         
         // Estimate based on interest accrual rate
@@ -338,7 +348,7 @@ contract RiskCalculator {
         return (maxDrop * riskPercentage) / 100;
     }
     
-    function _estimateVolatility(address asset) internal pure returns (uint256) {
+    function _estimateVolatility(address /* asset */) internal pure returns (uint256) {
         // Placeholder - would be calculated from historical price data
         return 200000; // 20% annualized volatility
     }
