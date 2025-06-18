@@ -74,8 +74,6 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
         require(collateralRatio >= 1000000, "Ratio must be at least 100%");
         require(liquidationRatio < collateralRatio, "Liquidation ratio must be below collateral ratio");
         
-        IERC20 erc20Token = IERC20(token);
-        
         // Add to supported assets if new
         if (assetConfigs[token].token == address(0)) {
             supportedAssets.push(token);

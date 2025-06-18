@@ -174,7 +174,7 @@ contract CheckOracleStatus is Script {
         console.log("");
     }
     
-    function _provideSolutions() internal view {
+    function _provideSolutions() internal pure {
         console.log("5. SOLUTIONS TO TRY");
         console.log("===================");
         console.log("");

@@ -152,11 +152,11 @@ contract VCOPOracle is Ownable, IGenericOracle {
         }
         
         try btcUsdFeed.latestRoundData() returns (
-            uint80 roundId,
+            uint80 /* roundId */,
             int256 answer,
-            uint256 startedAt,
+            uint256 /* startedAt */,
             uint256 updatedAt,
-            uint80 answeredInRound
+            uint80 /* answeredInRound */
         ) {
             // Check if price is valid and not stale
             if (answer <= 0) {
@@ -187,11 +187,11 @@ contract VCOPOracle is Ownable, IGenericOracle {
         }
         
         try ethUsdFeed.latestRoundData() returns (
-            uint80 roundId,
+            uint80 /* roundId */,
             int256 answer,
-            uint256 startedAt,
+            uint256 /* startedAt */,
             uint256 updatedAt,
-            uint80 answeredInRound
+            uint80 /* answeredInRound */
         ) {
             // Check if price is valid and not stale
             if (answer <= 0) {
@@ -473,7 +473,7 @@ contract VCOPOracle is Ownable, IGenericOracle {
     function getPriceFeedConfig(
         address baseToken,
         address quoteToken,
-        PriceFeedType feedType
+        PriceFeedType /* feedType */
     ) external view override returns (PriceFeedConfig memory config) {
         return priceFeedConfigs[baseToken][quoteToken];
     }
@@ -481,7 +481,7 @@ contract VCOPOracle is Ownable, IGenericOracle {
     /**
      * @dev Validates if price is within acceptable bounds
      */
-    function validatePrice(address baseToken, address quoteToken, uint256 price) external view override returns (bool isValid) {
+    function validatePrice(address /* baseToken */, address /* quoteToken */, uint256 price) external pure override returns (bool isValid) {
         // Basic validation - price should be greater than 0
         return price > 0;
     }

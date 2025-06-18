@@ -5,26 +5,8 @@ import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownab
 import {ILoanAutomation} from "../interfaces/ILoanAutomation.sol";
 import {RiskCalculator} from "../../core/RiskCalculator.sol";
 
-// Chainlink Log Automation Interface (local definition)
-interface ILogAutomation {
-    struct Log {
-        uint256 index;
-        uint256 timestamp;
-        bytes32 txHash;
-        uint256 blockNumber;
-        bytes32 blockHash;
-        address source;
-        bytes32[] topics;
-        bytes data;
-    }
-
-    function checkLog(
-        Log calldata log,
-        bytes calldata checkData
-    ) external returns (bool upkeepNeeded, bytes memory performData);
-
-    function performUpkeep(bytes calldata performData) external;
-}
+// ✅ USANDO IMPORT OFICIAL DE CHAINLINK v2.25.0
+import {ILogAutomation, Log} from "lib/chainlink/contracts/src/v0.8/automation/interfaces/ILogAutomation.sol";
 
 /**
  * @title PriceChangeLogTrigger

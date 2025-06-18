@@ -108,7 +108,7 @@ contract RewardSystemTest is Test {
         console.log("Setup completed successfully");
     }
     
-    function testRewardDistributorDeployment() public {
+    function testRewardDistributorDeployment() public view {
         assertEq(rewardDistributor.owner(), deployer);
         assertTrue(rewardDistributor.authorizedUpdaters(address(loanManager)));
         console.log("[PASS] RewardDistributor deployment verified");
@@ -393,7 +393,7 @@ contract RewardSystemTest is Test {
         console.log("[PASS] Non-owner reward rate update properly rejected");
     }
     
-    function testFlexibleLoanManagerIntegration() public {
+    function testFlexibleLoanManagerIntegration() public view {
         // This would test the actual integration with FlexibleLoanManager
         // For now, we'll test the interface compliance
         

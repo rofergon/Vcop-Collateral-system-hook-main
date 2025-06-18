@@ -203,7 +203,6 @@ contract RewardDistributor is Ownable {
      * @dev Gets pending rewards for a user
      */
     function pendingRewards(bytes32 poolId, address user) external view returns (uint256) {
-        RewardPool memory pool = rewardPools[poolId];
         UserReward memory userReward = userRewards[poolId][user];
         
         uint256 rewardPerToken = _rewardPerToken(poolId);
