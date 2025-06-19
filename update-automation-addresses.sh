@@ -26,7 +26,7 @@ echo "📋 Leyendo direcciones del log: $LOG_FILE"
 
 # Extraer direcciones usando jq del broadcast
 AUTOMATION_REGISTRY=$(jq -r '.transactions[] | select(.contractName == "AutomationRegistry") | .contractAddress' "$LOG_FILE" | head -1)
-AUTOMATION_KEEPER=$(jq -r '.transactions[] | select(.contractName == "LoanAutomationKeeper") | .contractAddress' "$LOG_FILE" | head -1)
+AUTOMATION_KEEPER=$(jq -r '.transactions[] | select(.contractName == "LoanAutomationKeeperOptimized") | .contractAddress' "$LOG_FILE" | head -1)
 LOAN_ADAPTER=$(jq -r '.transactions[] | select(.contractName == "LoanManagerAutomationAdapter") | .contractAddress' "$LOG_FILE" | head -1)
 PRICE_TRIGGER=$(jq -r '.transactions[] | select(.contractName == "PriceChangeLogTrigger") | .contractAddress' "$LOG_FILE" | head -1)
 

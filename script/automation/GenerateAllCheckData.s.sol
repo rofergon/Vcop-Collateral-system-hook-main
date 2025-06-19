@@ -41,7 +41,7 @@ contract GenerateAllCheckData is Script {
         );
         
         console.log("UPKEEP 1 - Flexible Loans (Custom Logic):");
-        console.log("Contract: LoanAutomationKeeper");
+        console.log("Contract: LoanAutomationKeeperOptimized");
         console.log("Gas Limit: 2,000,000");
         console.log("checkData:");
         console.logBytes(primaryCheckData);

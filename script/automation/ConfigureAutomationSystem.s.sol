@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {AutomationRegistry} from "../../src/automation/core/AutomationRegistry.sol";
-import {LoanAutomationKeeper} from "../../src/automation/core/LoanAutomationKeeper.sol";
+import {LoanAutomationKeeperOptimized} from "../../src/automation/core/LoanAutomationKeeperOptimized.sol";
 import {GenericLoanManager} from "../../src/core/GenericLoanManager.sol";
 import {FlexibleLoanManager} from "../../src/core/FlexibleLoanManager.sol";
 

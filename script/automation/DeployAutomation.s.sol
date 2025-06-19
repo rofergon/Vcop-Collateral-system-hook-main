@@ -3,7 +3,7 @@ pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {LoanAutomationKeeper} from "../../src/automation/core/LoanAutomationKeeper.sol";
+import {LoanAutomationKeeperOptimized} from "../../src/automation/core/LoanAutomationKeeperOptimized.sol";
 import {LoanManagerAutomationAdapter} from "../../src/automation/core/LoanManagerAutomationAdapter.sol";
 import {PriceChangeLogTrigger} from "../../src/automation/core/PriceChangeLogTrigger.sol";
 import {AutomationRegistry} from "../../src/automation/core/AutomationRegistry.sol";
@@ -28,7 +28,7 @@ contract DeployAutomation is Script {
     
     // Deployed contracts
     AutomationRegistry public automationRegistry;
-    LoanAutomationKeeper public loanKeeper;
+    LoanAutomationKeeperOptimized public loanKeeper;
     LoanManagerAutomationAdapter public loanAdapter;
     PriceChangeLogTrigger public priceLogTrigger;
     
@@ -112,14 +112,14 @@ contract DeployAutomation is Script {
     }
     
     /**
-     * @dev Deploy LoanAutomationKeeper
+     * @dev Deploy LoanAutomationKeeperOptimized
      */
     function _deployLoanKeeper() internal {
-        console.log(" Deploying LoanAutomationKeeper...");
+        console.log(" Deploying LoanAutomationKeeperOptimized...");
         
-        loanKeeper = new LoanAutomationKeeper(address(automationRegistry));
+        loanKeeper = new LoanAutomationKeeperOptimized(address(automationRegistry));
         
-        console.log(" LoanAutomationKeeper deployed at:", address(loanKeeper));
+        console.log(" LoanAutomationKeeperOptimized deployed at:", address(loanKeeper));
     }
     
     /**
@@ -150,14 +150,10 @@ contract DeployAutomation is Script {
     function _configureAutomationSystem() internal {
         console.log(" Configuring automation system...");
         
-        // Configure LoanAutomationKeeper
-        loanKeeper.setMaxGasPerUpkeep(config.maxGasPerUpkeep);
+        // Configure LoanAutomationKeeperOptimized
         loanKeeper.setMinRiskThreshold(config.minRiskThreshold);
         loanKeeper.setMaxPositionsPerBatch(25); // Optimized batch size
-        
-        if (config.enableVolatilityMode) {
-            loanKeeper.setPriceVolatilityThreshold(50000); // 5% volatility trigger
-        }
+        loanKeeper.setLiquidationCooldown(config.liquidationCooldown);
         
         // Configure LoanManagerAutomationAdapter
         loanAdapter.setLiquidationCooldown(config.liquidationCooldown);
@@ -234,7 +230,7 @@ contract DeployAutomation is Script {
         console.log("\n DEPLOYMENT SUMMARY");
         console.log("=====================");
         console.log("AutomationRegistry:        ", address(automationRegistry));
-        console.log("LoanAutomationKeeper:      ", address(loanKeeper));
+        console.log("LoanAutomationKeeperOptimized:", address(loanKeeper));
         console.log("LoanManagerAdapter:        ", address(loanAdapter));
         console.log("PriceChangeLogTrigger:     ", address(priceLogTrigger));
         console.log("");
