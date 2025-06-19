@@ -9,6 +9,7 @@ import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
 import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
+import {IPriceRegistry} from "../interfaces/IPriceRegistry.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
@@ -24,6 +25,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     
     // Oracle for price feeds
     IGenericOracle public oracle;
+    
+    // Dynamic price registry (replaces hardcoded addresses)
+    IPriceRegistry public priceRegistry;
     
     // Loan positions
     mapping(uint256 => LoanPosition) public positions;
@@ -47,9 +51,12 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     RewardDistributor public rewardDistributor;
     bytes32 public constant REWARD_POOL_ID = keccak256("FLEXIBLE_LOAN_COLLATERAL");
     
-    constructor(address _oracle, address _feeCollector) Ownable(msg.sender) {
+    constructor(address _oracle, address _feeCollector, address _priceRegistry) Ownable(msg.sender) {
         oracle = IGenericOracle(_oracle);
         feeCollector = _feeCollector;
+        if (_priceRegistry != address(0)) {
+            priceRegistry = IPriceRegistry(_priceRegistry);
+        }
     }
     
     /**
@@ -300,7 +307,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     }
     
     /**
-     * @dev CORREGIDO: liquidation check más realista
+     * @dev CORREGIDO: liquidation check más realista con validación mejorada
      */
     function canLiquidate(uint256 positionId) public view override returns (bool) {
         LoanPosition memory position = positions[positionId];
@@ -314,8 +321,10 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
             IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
             
-            // ✅ FIXED: Use exact threshold from asset handler (no arbitrary buffer)
-            // This allows the owner to control liquidation precisely through the asset handler
+            // ✅ ENHANCED: Additional safety check for minimum ratio
+            require(config.liquidationRatio > 0, "Invalid liquidation ratio");
+            
+            // Use exact threshold from asset handler (no arbitrary buffer)
             return currentRatio < config.liquidationRatio;
         } catch {
             // If ratio calculation fails, don't allow liquidation
@@ -430,14 +439,34 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     }
     
     /**
-     * @dev Gets the value of an asset amount in USD (or common base)
+     * @dev Gets the value of an asset amount in USD (DYNAMIC VERSION)
      */
     function _getAssetValue(address asset, uint256 amount) internal view returns (uint256) {
-        try oracle.getPrice(asset, address(0)) returns (uint256 price) {
-            return (amount * price) / 1e18; // Assuming 18 decimals
-        } catch {
-            return amount; // Fallback to 1:1 if oracle fails
+        // 🎯 PRIORITY 1: Use dynamic price registry if available
+        if (address(priceRegistry) != address(0)) {
+            try priceRegistry.calculateAssetValue(asset, amount) returns (uint256 value) {
+                if (value > 0) {
+                    return value;
+                }
+            } catch {
+                // Price registry failed, continue to oracle
+            }
         }
+        
+        // 🎯 PRIORITY 2: Try oracle for real-time prices
+        if (address(oracle) != address(0)) {
+            try oracle.getPrice(asset, address(0)) returns (uint256 price) {
+                if (price > 0) {
+                    return (amount * price) / 1e18; // Assuming 18 decimals
+                }
+            } catch {
+                // Oracle failed, continue to fallback
+            }
+        }
+        
+        // 🎯 PRIORITY 3: Emergency fallback - assume 1:1 ratio
+        // This should only happen in extreme cases
+        return amount;
     }
     
     /**
@@ -469,6 +498,13 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     function setFeeCollector(address _collector) external onlyOwner {
         require(_collector != address(0), "Invalid address");
         feeCollector = _collector;
+    }
+    
+    /**
+     * @dev Sets price registry (for dynamic pricing)
+     */
+    function setPriceRegistry(address _priceRegistry) external onlyOwner {
+        priceRegistry = IPriceRegistry(_priceRegistry);
     }
     
     // Events

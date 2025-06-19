@@ -77,6 +77,7 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     ) external onlyOwner {
         require(token != address(0), "Invalid token address");
         require(collateralRatio >= 1000000, "Ratio must be at least 100%");
+        require(liquidationRatio > 0, "Liquidation ratio must be positive");
         require(liquidationRatio < collateralRatio, "Liquidation ratio must be below collateral ratio");
         
         // Add to supported assets if new
@@ -438,6 +439,28 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
         emit BothRatiosUpdated(token, oldCollateralRatio, newCollateralRatio, oldLiquidationRatio, newLiquidationRatio);
     }
     
+    /**
+     * @dev Standard interface for updating both ratios (compatible with FlexibleAssetHandler)
+     */
+    function updateEnforcedRatios(
+        address token, 
+        uint256 newCollateralRatio, 
+        uint256 newLiquidationRatio
+    ) external onlyOwner {
+        // FIXED: Use internal logic instead of external call to avoid ownership issues
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newCollateralRatio > newLiquidationRatio, "Collateral ratio must be higher than liquidation ratio");
+        
+        uint256 oldCollateralRatio = assetConfigs[token].collateralRatio;
+        uint256 oldLiquidationRatio = assetConfigs[token].liquidationRatio;
+        
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit BothRatiosUpdated(token, oldCollateralRatio, newCollateralRatio, oldLiquidationRatio, newLiquidationRatio);
+    }
+
     /**
      * @dev Emergency function to make all positions with this asset liquidatable
      */

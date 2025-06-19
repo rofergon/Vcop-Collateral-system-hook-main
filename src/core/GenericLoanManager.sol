@@ -7,6 +7,7 @@ import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownab
 import {ILoanManager} from "../interfaces/ILoanManager.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
+import {IPriceRegistry} from "../interfaces/IPriceRegistry.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
 import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
@@ -23,6 +24,9 @@ contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownab
     
     // Oracle for price feeds
     IGenericOracle public oracle;
+    
+    // Dynamic price registry (replaces hardcoded addresses)
+    IPriceRegistry public priceRegistry;
     
     // Loan positions
     mapping(uint256 => LoanPosition) public positions;
@@ -65,9 +69,12 @@ contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownab
     event AutomationRiskThresholdUpdated(uint256 newThreshold);
     event AutomatedLiquidationExecuted(uint256 indexed positionId, address indexed liquidator, uint256 amount);
 
-    constructor(address _oracle, address _feeCollector) Ownable(msg.sender) {
+    constructor(address _oracle, address _feeCollector, address _priceRegistry) Ownable(msg.sender) {
         oracle = IGenericOracle(_oracle);
         feeCollector = _feeCollector;
+        if (_priceRegistry != address(0)) {
+            priceRegistry = IPriceRegistry(_priceRegistry);
+        }
     }
     
     /**
@@ -426,34 +433,30 @@ contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownab
      * @dev Gets the value of an asset amount in terms of a base currency
      */
     function _getAssetValue(address asset, uint256 amount) internal view returns (uint256) {
-        // For mock tokens in testing, we'll use hardcoded prices
-        // In production, this should use the oracle properly
-        
-        // NEW Mock ETH = $2500 (DIRECCION ACTUALIZADA)
-        if (asset == 0xca09D6c5f9f5646A20b5EF71986EED5f8A86add0) {
-            return (amount * 2500) / 1e18; // Convert 1 ETH to $2500 value
-        }
-        
-        // NEW Mock USDC = $1 (DIRECCION ACTUALIZADA)
-        if (asset == 0xAdc9649EF0468d6C73B56Dc96fF6bb527B8251A0) {
-            return amount / 1e6; // Convert USDC (6 decimals) to dollar value
-        }
-        
-        // NEW Mock WBTC = $70000 (DIRECCION ACTUALIZADA)
-        if (asset == 0x6C2AAf9cFb130d516401Ee769074F02fae6ACb91) {
-            return (amount * 70000) / 1e8; // Convert 1 WBTC to $70000 value
-        }
-        
-        // Fallback: try to use oracle (for production)
-        try oracle.getPrice(asset, address(0x6AC157633e53bb59C5eE2eFB26Ea4cAaA160a381)) returns (uint256 price) {
-            if (price > 0) {
-                return (amount * price) / 1e18; // Assuming 18 decimal price
+        // 🎯 PRIORITY 1: Use dynamic price registry if available
+        if (address(priceRegistry) != address(0)) {
+            try priceRegistry.calculateAssetValue(asset, amount) returns (uint256 value) {
+                if (value > 0) {
+                    return value;
+                }
+            } catch {
+                // Price registry failed, continue to oracle
             }
-        } catch {
-            // Oracle failed, fallback to 1:1 ratio
         }
         
-        // Last resort: return raw amount (old behavior)
+        // 🎯 PRIORITY 2: Try oracle for real-time prices
+        if (address(oracle) != address(0)) {
+            try oracle.getPrice(asset, address(0)) returns (uint256 price) {
+                if (price > 0) {
+                    return (amount * price) / 1e18; // Assuming 18 decimals
+                }
+            } catch {
+                // Oracle failed, continue to fallback
+            }
+        }
+        
+        // 🎯 PRIORITY 3: Emergency fallback - assume 1:1 ratio
+        // This should only happen in extreme cases
         return amount;
     }
     
@@ -493,6 +496,13 @@ contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownab
     function setFeeCollector(address _collector) external onlyOwner {
         require(_collector != address(0), "Invalid address");
         feeCollector = _collector;
+    }
+    
+    /**
+     * @dev Sets price registry (for dynamic pricing)
+     */
+    function setPriceRegistry(address _priceRegistry) external onlyOwner {
+        priceRegistry = IPriceRegistry(_priceRegistry);
     }
     
     // ========================================
