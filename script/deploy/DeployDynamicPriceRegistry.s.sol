@@ -50,8 +50,6 @@ contract DeployDynamicPriceRegistry is Script {
     function _updateDeployedAddresses(address priceRegistry) internal {
         try vm.readFile("deployed-addresses.json") returns (string memory existingJson) {
             // ✅ FIXED: Just add priceRegistry to existing JSON instead of overwriting
-            string memory updatedJson = vm.serializeAddress("update", "priceRegistry", priceRegistry);
-            
             // Parse existing JSON and preserve all fields
             string memory network = existingJson.readString(".network");
             uint256 chainId = existingJson.readUint(".chainId");

@@ -113,7 +113,7 @@ contract RewardIntegrationTest is Test {
         });
         
         // This should trigger reward tracking
-        uint256 positionId = loanManager.createLoan(terms);
+        loanManager.createLoan(terms);
         vm.stopPrank();
         
         // Check that rewards are being tracked
@@ -157,9 +157,9 @@ contract RewardIntegrationTest is Test {
         (
             uint256 totalLiquidity,
             uint256 totalBorrowed,
-            uint256 totalInterestAccrued,
+            ,
             uint256 utilizationRate,
-            uint256 currentInterestRate
+            
         ) = vaultHandler.getVaultStats(address(mockETH));
         
         assertEq(totalLiquidity, liquidityAmount);

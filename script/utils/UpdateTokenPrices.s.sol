@@ -7,7 +7,7 @@ import {stdJson} from "forge-std/StdJson.sol";
 contract UpdateTokenPrices is Script {
     using stdJson for string;
     
-    function run() external {
+    function run() external view {
         console.log("=== Token Price Update Script ===");
         console.log("Current deployed tokens:");
         

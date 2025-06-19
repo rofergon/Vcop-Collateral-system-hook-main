@@ -40,7 +40,6 @@ contract ConfigureAutomationSystem is Script {
         // Get contract instances
         AutomationRegistry registry = AutomationRegistry(automationRegistryAddress);
         GenericLoanManager genericManager = GenericLoanManager(genericLoanManagerAddress);
-        FlexibleLoanManager flexibleManager = FlexibleLoanManager(flexibleLoanManagerAddress);
         
         // 1. Configure Generic Loan Manager automation
         console.log("\n1. Configuring Generic Loan Manager...");
@@ -52,12 +51,8 @@ contract ConfigureAutomationSystem is Script {
         // 2. Configure Flexible Loan Manager automation 
         console.log("\n2. Configuring Flexible Loan Manager...");
         // Note: FlexibleLoanManager may not have automation interface yet
-        // This will fail if not implemented - handle gracefully
-        try genericManager.setAutomationContract(automationKeeperAddress) {
-            console.log("Flexible Loan Manager automation configured");
-        } catch {
-            console.log("Flexible Loan Manager automation not available (interface not implemented)");
-        }
+        // Skip configuration since FlexibleLoanManager doesn't have automation interface
+        console.log("Flexible Loan Manager automation skipped (interface not implemented)");
         
         // 3. Register loan managers in automation registry
         console.log("\n3. Registering loan managers in automation registry...");
@@ -129,7 +124,7 @@ contract ConfigureAutomationSystem is Script {
  */
 contract GenerateCheckDataHelper is Script {
     
-    function run() external {
+    function run() external view {
         address loanManagerAddress = vm.envAddress("LOAN_MANAGER_ADDRESS");
         uint256 startIndex = vm.envOr("START_INDEX", uint256(0));
         uint256 batchSize = vm.envOr("BATCH_SIZE", uint256(50));
