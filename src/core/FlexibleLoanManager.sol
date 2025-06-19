@@ -10,6 +10,7 @@ import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
 import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
 import {IPriceRegistry} from "../interfaces/IPriceRegistry.sol";
+import {IEmergencyRegistry} from "../interfaces/IEmergencyRegistry.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
@@ -28,6 +29,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     
     // Dynamic price registry (replaces hardcoded addresses)
     IPriceRegistry public priceRegistry;
+    
+    // ⚡ NEW: Emergency registry for centralized liquidation coordination
+    IEmergencyRegistry public emergencyRegistry;
     
     // Loan positions
     mapping(uint256 => LoanPosition) public positions;
@@ -51,11 +55,19 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     RewardDistributor public rewardDistributor;
     bytes32 public constant REWARD_POOL_ID = keccak256("FLEXIBLE_LOAN_COLLATERAL");
     
-    constructor(address _oracle, address _feeCollector, address _priceRegistry) Ownable(msg.sender) {
+    constructor(
+        address _oracle, 
+        address _feeCollector, 
+        address _priceRegistry,
+        address _emergencyRegistry
+    ) Ownable(msg.sender) {
         oracle = IGenericOracle(_oracle);
         feeCollector = _feeCollector;
         if (_priceRegistry != address(0)) {
             priceRegistry = IPriceRegistry(_priceRegistry);
+        }
+        if (_emergencyRegistry != address(0)) {
+            emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
         }
     }
     
@@ -307,7 +319,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     }
     
     /**
-     * @dev CORREGIDO: liquidation check más realista con validación mejorada
+     * @dev ⚡ ENHANCED: Centralized liquidation check with emergency coordination
      */
     function canLiquidate(uint256 positionId) public view override returns (bool) {
         LoanPosition memory position = positions[positionId];
@@ -315,17 +327,41 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             return false;
         }
         
-        // Try to get asset handler configuration for guidance
+        // ⚡ PRIORITY 1: Check emergency registry first (centralized control)
+        if (address(emergencyRegistry) != address(0)) {
+            (bool isEmergency, uint256 emergencyRatio) = emergencyRegistry.isAssetInEmergency(position.collateralAsset);
+            
+            if (isEmergency) {
+                // 🚨 EMERGENCY MODE: Use emergency ratio for liquidation
+                try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
+                    return currentRatio < emergencyRatio;
+                } catch {
+                    // If ratio calculation fails during emergency, assume liquidatable
+                    return true;
+                }
+            }
+        }
+        
+        // ⚡ PRIORITY 2: Normal liquidation check using asset handler
         try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
             // Get liquidation threshold from asset handler
             IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
             IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
             
-            // ✅ ENHANCED: Additional safety check for minimum ratio
-            require(config.liquidationRatio > 0, "Invalid liquidation ratio");
+            // ⚡ ENHANCED: Use emergency registry for effective ratio calculation
+            uint256 effectiveRatio = config.liquidationRatio;
+            if (address(emergencyRegistry) != address(0)) {
+                effectiveRatio = emergencyRegistry.getEffectiveLiquidationRatio(
+                    position.collateralAsset, 
+                    config.liquidationRatio
+                );
+            }
             
-            // Use exact threshold from asset handler (no arbitrary buffer)
-            return currentRatio < config.liquidationRatio;
+            // ✅ ENHANCED: Additional safety check for minimum ratio
+            require(effectiveRatio > 0, "Invalid liquidation ratio");
+            
+            // Use effective threshold (considers emergency states)
+            return currentRatio < effectiveRatio;
         } catch {
             // If ratio calculation fails, don't allow liquidation
             return false;
@@ -505,6 +541,54 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
      */
     function setPriceRegistry(address _priceRegistry) external onlyOwner {
         priceRegistry = IPriceRegistry(_priceRegistry);
+    }
+    
+    /**
+     * @dev ⚡ NEW: Sets emergency registry (for centralized emergency coordination)
+     */
+    function setEmergencyRegistry(address _emergencyRegistry) external onlyOwner {
+        emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
+    }
+    
+    /**
+     * @dev ⚡ NEW: Emergency function to activate emergency mode for multiple assets
+     * This coordinates with VaultBasedHandler emergency modes!
+     */
+    function activateEmergencyMode(
+        address[] calldata assets,
+        string calldata reason
+    ) external onlyOwner {
+        require(address(emergencyRegistry) != address(0), "Emergency registry not set");
+        
+        // Activate emergency mode in the centralized registry
+        for (uint256 i = 0; i < assets.length; i++) {
+            emergencyRegistry.setAssetEmergencyLevel(
+                assets[i],
+                IEmergencyRegistry.EmergencyLevel.EMERGENCY,
+                2000000, // 200% ratio - makes most positions liquidatable
+                reason
+            );
+        }
+    }
+    
+    /**
+     * @dev ⚡ NEW: Emergency function to resolve emergency mode for multiple assets
+     */
+    function resolveEmergencyMode(
+        address[] calldata assets,
+        string calldata reason
+    ) external onlyOwner {
+        require(address(emergencyRegistry) != address(0), "Emergency registry not set");
+        
+        // Resolve emergency mode in the centralized registry
+        for (uint256 i = 0; i < assets.length; i++) {
+            emergencyRegistry.setAssetEmergencyLevel(
+                assets[i],
+                IEmergencyRegistry.EmergencyLevel.NONE,
+                0,
+                reason
+            );
+        }
     }
     
     // Events

@@ -326,4 +326,211 @@ contract CreateTestLoanPosition is Script {
             console.log("Could not check liquidity - handler not configured yet");
         }
     }
+
+    /**
+     * @dev Creates a custom loan position with specified amounts for automation testing
+     */
+    function createCustomPosition() external {
+        // Read addresses from environment variables
+        loanManager = vm.envAddress("LOAN_MANAGER_ADDRESS");
+        collateralToken = vm.envAddress("COLLATERAL_TOKEN_ADDRESS");
+        loanToken = vm.envAddress("LOAN_TOKEN_ADDRESS");
+        
+        // Read custom amounts from environment variables
+        uint256 customCollateralAmount = vm.envUint("TEST_COLLATERAL_AMOUNT");
+        uint256 customLoanAmount = vm.envUint("TEST_LOAN_AMOUNT");
+        
+        console.log("=== Creating Custom Test Loan Position ===");
+        console.log("Loan Manager:", loanManager);
+        console.log("Collateral Token (ETH):", collateralToken);
+        console.log("Loan Token (USDC):", loanToken);
+        console.log("Custom Collateral Amount:", customCollateralAmount);
+        console.log("Custom Loan Amount:", customLoanAmount);
+        
+        vm.startBroadcast();
+        
+        // Step 1: Auto-mint required tokens
+        console.log("\n=== Step 1: Minting Required Tokens ===");
+        mintCustomTokens(customCollateralAmount, customLoanAmount);
+        
+        // Step 2: Provide liquidity for loan tokens if needed
+        console.log("\n=== Step 2: Ensuring Liquidity Availability ===");
+        ensureCustomLoanTokenLiquidity(customLoanAmount);
+        
+        // Step 3: Create the loan position
+        console.log("\n=== Step 3: Creating Custom Loan Position ===");
+        uint256 positionId = createCustomLoanPosition(customCollateralAmount, customLoanAmount);
+        
+        vm.stopBroadcast();
+        
+        console.log("\n=== Custom Loan Position Created Successfully! ===");
+        console.log("Position ID:", positionId);
+        console.log("Borrower:", msg.sender);
+        
+        // Get position details for verification
+        ILoanManager loanMgr = ILoanManager(loanManager);
+        ILoanManager.LoanPosition memory position = loanMgr.getPosition(positionId);
+        
+        console.log("\n=== Position Details ===");
+        console.log("Borrower:", position.borrower);
+        console.log("Collateral Asset:", position.collateralAsset);
+        console.log("Loan Asset:", position.loanAsset);
+        console.log("Collateral Amount:", position.collateralAmount);
+        console.log("Loan Amount:", position.loanAmount);
+        console.log("Interest Rate:", position.interestRate);
+        console.log("Is Active:", position.isActive);
+        
+        // Check if position can be liquidated (should be false initially)
+        bool canLiquidate = loanMgr.canLiquidate(positionId);
+        console.log("Can liquidate (should be false):", canLiquidate);
+        
+        // Get collateralization ratio
+        uint256 ratio = loanMgr.getCollateralizationRatio(positionId);
+        console.log("Collateralization Ratio:", ratio);
+        
+        console.log("\n=== Custom Position Ready for Automation Testing ===");
+    }
+
+    /**
+     * @dev Mints custom amounts of tokens for testing
+     */
+    function mintCustomTokens(uint256 collateralAmount, uint256 loanAmount) internal {
+        address deployer = msg.sender;
+        
+        // Check current balances
+        IERC20 collateral = IERC20(collateralToken);
+        IERC20 loan = IERC20(loanToken);
+        
+        uint256 currentCollateralBalance = collateral.balanceOf(deployer);
+        uint256 currentLoanBalance = loan.balanceOf(deployer);
+        
+        console.log("Current ETH balance:", currentCollateralBalance);
+        console.log("Current USDC balance:", currentLoanBalance);
+        
+        // Mint collateral tokens (ETH) if needed
+        uint256 requiredCollateral = collateralAmount + EXTRA_COLLATERAL_MINT;
+        if (currentCollateralBalance < requiredCollateral) {
+            uint256 toMint = requiredCollateral - currentCollateralBalance;
+            console.log("Minting", toMint, "ETH tokens...");
+            
+            try IMintable(collateralToken).mint(deployer, toMint) {
+                console.log("Successfully minted", toMint, "ETH tokens");
+            } catch Error(string memory reason) {
+                console.log("Failed to mint ETH tokens:", reason);
+                revert("Failed to mint collateral tokens");
+            }
+        } else {
+            console.log("Sufficient ETH balance available");
+        }
+        
+        // Mint loan tokens (USDC) for liquidity provision
+        uint256 requiredLoan = loanAmount + EXTRA_LOAN_MINT;
+        if (currentLoanBalance < requiredLoan) {
+            uint256 toMint = requiredLoan - currentLoanBalance;
+            console.log("Minting", toMint, "USDC tokens for liquidity...");
+            
+            try IMintable(loanToken).mint(deployer, toMint) {
+                console.log("Successfully minted", toMint, "USDC tokens");
+            } catch Error(string memory reason) {
+                console.log("Failed to mint USDC tokens:", reason);
+                revert("Failed to mint loan tokens");
+            }
+        } else {
+            console.log("Sufficient USDC balance available");
+        }
+        
+        // Verify final balances
+        uint256 finalCollateralBalance = collateral.balanceOf(deployer);
+        uint256 finalLoanBalance = loan.balanceOf(deployer);
+        
+        console.log("Final ETH balance:", finalCollateralBalance);
+        console.log("Final USDC balance:", finalLoanBalance);
+        
+        require(finalCollateralBalance >= collateralAmount, "Insufficient collateral balance after minting");
+        require(finalLoanBalance >= loanAmount, "Insufficient loan token balance after minting");
+    }
+
+    /**
+     * @dev Ensures custom loan token liquidity is available
+     */
+    function ensureCustomLoanTokenLiquidity(uint256 loanAmount) internal {
+        // Get the asset handler for the loan token
+        IAssetHandler loanHandler = _getAssetHandler(loanToken);
+        
+        console.log("Loan asset handler:", address(loanHandler));
+        
+        // Check available liquidity
+        uint256 availableLiquidity = loanHandler.getAvailableLiquidity(loanToken);
+        console.log("Current available liquidity:", availableLiquidity);
+        
+        if (availableLiquidity < loanAmount) {
+            uint256 liquidityNeeded = loanAmount - availableLiquidity + (50000 * 1e6); // Extra 50k USDC buffer
+            console.log("Need to provide", liquidityNeeded, "additional liquidity");
+            
+            // Check asset type to determine how to provide liquidity
+            IAssetHandler.AssetType assetType = loanHandler.getAssetType(loanToken);
+            
+            if (assetType == IAssetHandler.AssetType.VAULT_BASED) {
+                console.log("Providing liquidity to vault-based handler...");
+                
+                // Approve and provide liquidity
+                IERC20(loanToken).approve(address(loanHandler), liquidityNeeded);
+                loanHandler.provideLiquidity(loanToken, liquidityNeeded, msg.sender);
+                
+                console.log("Provided", liquidityNeeded, "liquidity to vault");
+            } else if (assetType == IAssetHandler.AssetType.MINTABLE_BURNABLE) {
+                console.log("Mintable/burnable asset - liquidity handled automatically");
+            } else {
+                console.log("Unknown asset type, checking if liquidity is sufficient...");
+            }
+        } else {
+            console.log("Sufficient liquidity available");
+        }
+        
+        // Verify liquidity after provision
+        uint256 finalLiquidity = loanHandler.getAvailableLiquidity(loanToken);
+        console.log("Final available liquidity:", finalLiquidity);
+        
+        require(finalLiquidity >= loanAmount, "Insufficient liquidity for loan");
+    }
+
+    /**
+     * @dev Creates a custom loan position with specified amounts
+     */
+    function createCustomLoanPosition(uint256 collateralAmount, uint256 loanAmount) internal returns (uint256) {
+        IERC20 collateral = IERC20(collateralToken);
+        
+        // Approve collateral for the loan manager
+        console.log("Approving", collateralAmount, "collateral tokens...");
+        collateral.approve(loanManager, collateralAmount);
+        
+        // Create the loan position
+        console.log("Creating loan position...");
+        uint256 positionId;
+        
+        // Create loan terms struct
+        ILoanManager.LoanTerms memory terms = ILoanManager.LoanTerms({
+            collateralAsset: collateralToken,
+            loanAsset: loanToken,
+            collateralAmount: collateralAmount,
+            loanAmount: loanAmount,
+            maxLoanToValue: MAX_LTV,
+            interestRate: INTEREST_RATE,
+            duration: 0  // Perpetual loan
+        });
+
+        // Use FlexibleLoanManager interface
+        try FlexibleLoanManager(loanManager).createLoan(terms) returns (uint256 id) {
+            positionId = id;
+            console.log("Position created successfully with ID:", positionId);
+        } catch Error(string memory reason) {
+            console.log("Failed to create position:", reason);
+            revert("Failed to create loan position");
+        } catch {
+            console.log("Failed to create position: unknown error");
+            revert("Failed to create loan position");
+        }
+        
+        return positionId;
+    }
 } 

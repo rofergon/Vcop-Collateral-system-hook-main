@@ -53,7 +53,7 @@ contract RewardIntegrationTest is Test {
         
         // Deploy core contracts
         rewardDistributor = new RewardDistributor();
-        loanManager = new FlexibleLoanManager(address(oracle), feeCollector, address(0));
+        loanManager = new FlexibleLoanManager(address(oracle), feeCollector, address(0), address(0));
         vaultHandler = new VaultBasedHandler();
         
         // Configure vault handler

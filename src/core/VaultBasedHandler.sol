@@ -6,6 +6,7 @@ import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC2
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
+import {IEmergencyRegistry} from "../interfaces/IEmergencyRegistry.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
@@ -53,6 +54,9 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     bytes32 public constant VAULT_ETH_POOL_ID = keccak256("VAULT_ETH_LIQUIDITY");
     bytes32 public constant VAULT_WBTC_POOL_ID = keccak256("VAULT_WBTC_LIQUIDITY");
     bytes32 public constant VAULT_USDC_POOL_ID = keccak256("VAULT_USDC_LIQUIDITY");
+    
+    // ⚡ NEW: Emergency registry for centralized coordination
+    IEmergencyRegistry public emergencyRegistry;
     
     // Events
     event InterestAccrued(address indexed token, uint256 amount);
@@ -462,20 +466,49 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     }
 
     /**
-     * @dev Emergency function to make all positions with this asset liquidatable
+     * @dev ⚡ ENHANCED: Emergency function that coordinates with centralized registry
      */
     function emergencyLiquidationMode(address token, bool enableEmergency) external onlyOwner {
         require(assetConfigs[token].token != address(0), "Asset not configured");
         
         if (enableEmergency) {
-            // Set liquidation ratio very high to make positions liquidatable
+            // ⚡ LOCAL: Set liquidation ratio very high to make positions liquidatable
             assetConfigs[token].liquidationRatio = 2000000; // 200% - most positions will be liquidatable
+            
+            // ⚡ CENTRALIZED: Also update emergency registry for system-wide coordination
+            if (address(emergencyRegistry) != address(0)) {
+                emergencyRegistry.setAssetEmergencyLevel(
+                    token,
+                    IEmergencyRegistry.EmergencyLevel.EMERGENCY,
+                    2000000, // Same ratio as local setting
+                    "VaultBasedHandler emergency activation"
+                );
+            }
+            
             emit EmergencyLiquidationEnabled(token);
         } else {
-            // Reset to reasonable ratio
+            // ⚡ LOCAL: Reset to reasonable ratio
             assetConfigs[token].liquidationRatio = 1200000; // 120% - back to normal
+            
+            // ⚡ CENTRALIZED: Also resolve emergency in registry
+            if (address(emergencyRegistry) != address(0)) {
+                emergencyRegistry.setAssetEmergencyLevel(
+                    token,
+                    IEmergencyRegistry.EmergencyLevel.NONE,
+                    0,
+                    "VaultBasedHandler emergency resolved"
+                );
+            }
+            
             emit EmergencyLiquidationDisabled(token);
         }
+    }
+    
+    /**
+     * @dev ⚡ NEW: Sets emergency registry for coordination
+     */
+    function setEmergencyRegistry(address _emergencyRegistry) external onlyOwner {
+        emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
     }
     
     // ========================================

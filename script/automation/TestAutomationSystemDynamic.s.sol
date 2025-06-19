@@ -17,6 +17,8 @@ contract TestAutomationSystemDynamic is Script {
     address public riskCalculatorAddress;
     address public automationRegistryAddress;
     address public automationKeeperAddress;
+    address public loanAdapterAddress;
+    address public priceTriggerAddress;
     
     function run() external {
         // Read all addresses from environment variables (set by Makefile from JSON)
@@ -26,6 +28,8 @@ contract TestAutomationSystemDynamic is Script {
         riskCalculatorAddress = vm.envAddress("RISK_CALCULATOR_ADDRESS");
         automationRegistryAddress = vm.envAddress("AUTOMATION_REGISTRY_ADDRESS");
         automationKeeperAddress = vm.envAddress("AUTOMATION_KEEPER_ADDRESS");
+        loanAdapterAddress = vm.envAddress("LOAN_ADAPTER_ADDRESS");
+        priceTriggerAddress = vm.envAddress("PRICE_TRIGGER_ADDRESS");
         
         console.log("=== Testing Chainlink Automation System ===");
         console.log("Reading addresses from deployed-addresses.json:");
@@ -39,6 +43,8 @@ contract TestAutomationSystemDynamic is Script {
         console.log("Automation System:");
         console.log("  Automation Registry:", automationRegistryAddress);
         console.log("  Automation Keeper:", automationKeeperAddress);
+        console.log("  Loan Adapter:", loanAdapterAddress);
+        console.log("  Price Trigger:", priceTriggerAddress);
         
         // Generate checkData for Chainlink registration
         generateCheckData();

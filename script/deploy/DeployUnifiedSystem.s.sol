@@ -247,7 +247,7 @@ contract DeployUnifiedSystem is Script {
         console.log("  - WBTC: $70,000 per token");
         
         genericLoanManager = address(new GenericLoanManager(vcopOracle, feeCollector, address(0)));
-        flexibleLoanManager = address(new FlexibleLoanManager(vcopOracle, feeCollector, address(0)));
+        flexibleLoanManager = address(new FlexibleLoanManager(vcopOracle, feeCollector, address(0), address(0)));
         
         console.log("GenericLoanManager (CORRECTED):", genericLoanManager);
         console.log("FlexibleLoanManager:", flexibleLoanManager);
@@ -476,7 +476,23 @@ contract DeployUnifiedSystem is Script {
     function _saveDeploymentAddresses() internal {
         console.log("\n=== PHASE 7: SAVING DEPLOYMENT ADDRESSES ===");
         
-        // Create JSON string with all addresses
+        // ⚡ FIXED: Read existing Emergency Registry if already deployed
+        string memory existingEmergencyRegistry = "";
+        try vm.readFile("deployed-addresses.json") returns (string memory existingContent) {
+            try vm.parseJson(existingContent, ".emergencyRegistry") returns (bytes memory data) {
+                address emergencyAddr = abi.decode(data, (address));
+                if (emergencyAddr != address(0)) {
+                    existingEmergencyRegistry = _addressToString(emergencyAddr);
+                    console.log("Preserving existing Emergency Registry:", existingEmergencyRegistry);
+                }
+            } catch {
+                // No existing emergency registry - will use empty string
+            }
+        } catch {
+            // No existing file - will use empty string
+        }
+        
+        // Create JSON string with all addresses (preserving Emergency Registry)
         string memory json = string(abi.encodePacked(
             "{\n",
             '  "network": "Base Sepolia",\n',
@@ -504,7 +520,8 @@ contract DeployUnifiedSystem is Script {
             '    "flexibleAssetHandler": "', _addressToString(flexibleAssetHandler), '",\n',
             '    "riskCalculator": "', _addressToString(riskCalculator), '"\n',
             '  },\n',
-            '  "priceRegistry": "', _addressToString(dynamicPriceRegistry), '"\n',
+            '  "priceRegistry": "', _addressToString(dynamicPriceRegistry), '",\n',
+            '  "emergencyRegistry": "', existingEmergencyRegistry, '"\n',
             '}'
         ));
         

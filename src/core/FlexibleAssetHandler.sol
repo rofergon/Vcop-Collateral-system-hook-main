@@ -420,6 +420,14 @@ contract FlexibleAssetHandler is IAssetHandler, Ownable {
         return vaults[token].depositors;
     }
     
+    /**
+     * @dev Sets emergency registry for centralized coordination (placeholder)
+     */
+    function setEmergencyRegistry(address /* _emergencyRegistry */) external onlyOwner {
+        // Note: FlexibleAssetHandler doesn't implement emergency registry yet
+        // This is a placeholder for future implementation
+    }
+    
     // Updated events (replace the old SuggestionRatiosUpdated event)
     event EnforcedRatiosUpdated(address indexed token, uint256 collateralRatio, uint256 liquidationRatio);
     event LiquidationRatioAdjusted(address indexed token, uint256 oldRatio, uint256 newRatio);

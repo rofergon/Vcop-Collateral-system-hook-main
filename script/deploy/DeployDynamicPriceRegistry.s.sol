@@ -77,6 +77,14 @@ contract DeployDynamicPriceRegistry is Script {
             address flexibleAssetHandler = existingJson.readAddress(".coreLending.flexibleAssetHandler");
             address riskCalculator = existingJson.readAddress(".coreLending.riskCalculator");
             
+            // ⚡ Emergency Registry (OPTIONAL - may not exist yet)
+            address emergencyRegistry = address(0);
+            try vm.parseJsonAddress(existingJson, ".emergencyRegistry") returns (address addr) {
+                emergencyRegistry = addr;
+            } catch {
+                // Emergency Registry not deployed yet - this is OK
+            }
+            
             // Rewards (OPTIONAL - may not exist yet)
             address rewardDistributor = address(0);
             try vm.parseJsonAddress(existingJson, ".rewards.rewardDistributor") returns (address addr) {
@@ -121,6 +129,12 @@ contract DeployDynamicPriceRegistry is Script {
             
             // Price Registry (NEW)
             json = string.concat(json, '"priceRegistry":"', vm.toString(priceRegistry), '"');
+            
+            // ⚡ Emergency Registry (PRESERVE if exists)
+            if (emergencyRegistry != address(0)) {
+                json = string.concat(json, ',');
+                json = string.concat(json, '"emergencyRegistry":"', vm.toString(emergencyRegistry), '"');
+            }
             
             // Add rewards section only if rewardDistributor exists
             if (rewardDistributor != address(0)) {
