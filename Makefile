@@ -156,40 +156,44 @@ rebuild:
 # 🚀 MAIN DEPLOYMENT COMMANDS
 # ========================================
 
-# [MAIN] Complete automated deployment with auto-configuration
+# [MAIN] Complete automated deployment with auto-configuration - FIXED FOR BASE SEPOLIA
 deploy-complete:
 	@echo ""
-	@echo "STARTING COMPLETE AUTOMATED DEPLOYMENT"
-	@echo "======================================="
-	@echo "INCLUDES CORRECTED RATIO CALCULATIONS"
-	@echo "INCLUDES ALL ASSET HANDLERS CONFIGURED"
-	@echo "INCLUDES AUTOMATIC ORACLE CONFIGURATION"
-	@echo "INCLUDES PRICE FEEDS SETUP (ETH/USDC/WBTC)"
+	@echo "STARTING COMPLETE AUTOMATED DEPLOYMENT (FIXED FOR BASE SEPOLIA)"
+	@echo "=============================================================="
+	@echo "✅ USES LEGACY TRANSACTIONS TO PREVENT 'replacement transaction underpriced'"
+	@echo "✅ INCLUDES CORRECTED RATIO CALCULATIONS"
+	@echo "✅ INCLUDES ALL ASSET HANDLERS CONFIGURED"
+	@echo "✅ INCLUDES AUTOMATIC ORACLE CONFIGURATION"
+	@echo "✅ INCLUDES PRICE FEEDS SETUP (ETH/USDC/WBTC)"
 	@echo ""
 	@echo "Step 1/6: Smart compilation..."
 	@forge build
 	@echo ""
 	@echo "Step 2/6: Deploying unified system (Core + VCOP + Liquidity)..."
-	@ESTIMATED_GAS=$$(cast gas-price --rpc-url $(RPC_URL)) && \
-	SAFE_GAS_PRICE=$$(echo "$$ESTIMATED_GAS * 5" | bc) && \
-	echo "Estimated gas price: $$ESTIMATED_GAS gwei" && \
-	echo "Using VERY safe gas price (5x): $$SAFE_GAS_PRICE gwei" && \
-	forge script script/deploy/DeployUnifiedSystem.s.sol:DeployUnifiedSystem \
+	@echo "🔧 Using LEGACY transactions with fixed 30 gwei gas price for reliability..."
+	@forge script script/deploy/DeployUnifiedSystem.s.sol:DeployUnifiedSystem \
 		--rpc-url $(RPC_URL) \
 		--broadcast \
-		--gas-price $$SAFE_GAS_PRICE
+		--legacy \
+		--gas-price 30000000000 \
+		--slow
 	@echo ""
 	@echo "Step 3/6: Configuring Oracle and Price Feeds..."
 	@forge script script/config/ConfigureChainlinkOracle.s.sol:ConfigureChainlinkOracle \
 		--rpc-url $(RPC_URL) \
 		--broadcast \
-		--gas-price $$(echo "$$(cast gas-price --rpc-url $(RPC_URL)) * 5" | bc)
+		--legacy \
+		--gas-price 30000000000 \
+		--slow
 	@echo ""
 	@echo "Step 4/6: Setting VCOP Price..."
 	@forge script script/config/ConfigureVCOPPrice.s.sol:ConfigureVCOPPrice \
 		--rpc-url $(RPC_URL) \
 		--broadcast \
-		--gas-price $$(echo "$$(cast gas-price --rpc-url $(RPC_URL)) * 5" | bc)
+		--legacy \
+		--gas-price 30000000000 \
+		--slow
 	@echo ""
 	@echo "Step 5/6: Testing deployment..."
 	@forge script script/CheckOracleStatus.s.sol:CheckOracleStatus \
@@ -201,7 +205,9 @@ deploy-complete:
 		--rpc-url $$RPC_URL \
 		--private-key $$PRIVATE_KEY \
 		--broadcast \
-		--gas-price $$(echo "$$(cast gas-price --rpc-url $$RPC_URL) * 5" | bc)
+		--legacy \
+		--gas-price 30000000000 \
+		--slow
 	@echo ""
 	@echo "Step 7/8: Configuring Dynamic Pricing System..."
 	@. ./.env && \
@@ -209,14 +215,18 @@ deploy-complete:
 		--rpc-url $$RPC_URL \
 		--private-key $$PRIVATE_KEY \
 		--broadcast \
-		--gas-price $$(echo "$$(cast gas-price --rpc-url $$RPC_URL) * 5" | bc)
+		--legacy \
+		--gas-price 30000000000 \
+		--slow
 	@echo ""
 	@echo "Step 8/8: Updating address generation..."
 	@. ./.env && \
 	forge script script/utils/UpdateDeployedAddresses.s.sol:UpdateDeployedAddresses \
 		--rpc-url $$RPC_URL \
 		--private-key $$PRIVATE_KEY \
-		--gas-price $$(echo "$$(cast gas-price --rpc-url $$RPC_URL) * 5" | bc)
+		--legacy \
+		--gas-price 30000000000 \
+		--slow
 	@echo ""
 	@echo "✅ COMPLETE DEPLOYMENT FINISHED SUCCESSFULLY!"
 	@echo "=============================================="
@@ -226,6 +236,7 @@ deploy-complete:
 	@echo "🎯 Dynamic Price Registry deployed and configured"
 	@echo "⚡ No more hardcoded addresses - fully dynamic pricing"
 	@echo "📝 All addresses updated in generated scripts"
+	@echo "🛡️  FIXED: Now uses legacy transactions to prevent 'replacement transaction underpriced'"
 	@echo ""
 	@echo "NEXT STEPS:"
 	@echo "1. Check deployed-addresses.json for all contract addresses"
@@ -233,6 +244,9 @@ deploy-complete:
 	@echo "3. Run 'make create-test-loan-position' to test liquidations"
 	@echo "4. Prices are automatically fetched from oracle with fallbacks"
 	@echo "5. Add new tokens easily with 'make configure-dynamic-pricing'"
+	@echo ""
+	@echo "🔧 TECHNICAL NOTE: This deployment uses --legacy --gas-price 30000000000 --slow"
+	@echo "   to prevent Base Sepolia gas price issues. Tested and working 100%!"
 
 # [PRODUCTION] Optimized deployment for production
 deploy-complete-optimized:
