@@ -57,6 +57,11 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     // Events
     event InterestAccrued(address indexed token, uint256 amount);
     event UtilizationRateUpdated(address indexed token, uint256 newRate);
+    event LiquidationRatioUpdated(address indexed token, uint256 oldRatio, uint256 newRatio);
+    event CollateralRatioUpdated(address indexed token, uint256 oldRatio, uint256 newRatio);
+    event BothRatiosUpdated(address indexed token, uint256 oldCollateralRatio, uint256 newCollateralRatio, uint256 oldLiquidationRatio, uint256 newLiquidationRatio);
+    event EmergencyLiquidationEnabled(address indexed token);
+    event EmergencyLiquidationDisabled(address indexed token);
     
     constructor() Ownable(msg.sender) {}
     
@@ -383,6 +388,71 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     function setInterestRateParams(uint256 _baseRate, uint256 _multiplier) external onlyOwner {
         baseInterestRate = _baseRate;
         utilizationMultiplier = _multiplier;
+    }
+    
+    /**
+     * @dev Updates liquidation ratio for an asset (for testing/emergency)
+     */
+    function updateLiquidationRatio(address token, uint256 newLiquidationRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newLiquidationRatio < assetConfigs[token].collateralRatio, "Must be below collateral ratio");
+        
+        uint256 oldRatio = assetConfigs[token].liquidationRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit LiquidationRatioUpdated(token, oldRatio, newLiquidationRatio);
+    }
+    
+    /**
+     * @dev Updates collateral ratio for an asset
+     */
+    function updateCollateralRatio(address token, uint256 newCollateralRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newCollateralRatio > assetConfigs[token].liquidationRatio, "Must be above liquidation ratio");
+        
+        uint256 oldRatio = assetConfigs[token].collateralRatio;
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        
+        emit CollateralRatioUpdated(token, oldRatio, newCollateralRatio);
+    }
+    
+    /**
+     * @dev Batch update both ratios safely
+     */
+    function updateBothRatios(
+        address token, 
+        uint256 newCollateralRatio, 
+        uint256 newLiquidationRatio
+    ) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newCollateralRatio > newLiquidationRatio, "Collateral ratio must be higher than liquidation ratio");
+        
+        uint256 oldCollateralRatio = assetConfigs[token].collateralRatio;
+        uint256 oldLiquidationRatio = assetConfigs[token].liquidationRatio;
+        
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit BothRatiosUpdated(token, oldCollateralRatio, newCollateralRatio, oldLiquidationRatio, newLiquidationRatio);
+    }
+    
+    /**
+     * @dev Emergency function to make all positions with this asset liquidatable
+     */
+    function emergencyLiquidationMode(address token, bool enableEmergency) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        
+        if (enableEmergency) {
+            // Set liquidation ratio very high to make positions liquidatable
+            assetConfigs[token].liquidationRatio = 2000000; // 200% - most positions will be liquidatable
+            emit EmergencyLiquidationEnabled(token);
+        } else {
+            // Reset to reasonable ratio
+            assetConfigs[token].liquidationRatio = 1200000; // 120% - back to normal
+            emit EmergencyLiquidationDisabled(token);
+        }
     }
     
     // ========================================

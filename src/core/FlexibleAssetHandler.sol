@@ -281,20 +281,62 @@ contract FlexibleAssetHandler is IAssetHandler, Ownable {
     }
     
     /**
-     * @dev Updates suggestion ratios (NOT ENFORCED)
+     * @dev Updates ENFORCED ratios (RENAMED from suggestion ratios)
      */
-    function updateSuggestionRatios(
+    function updateEnforcedRatios(
         address token, 
         uint256 newCollateralRatio, 
         uint256 newLiquidationRatio
     ) external onlyOwner {
         require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newCollateralRatio > newLiquidationRatio, "Collateral ratio must be higher than liquidation ratio");
         
-        // ✅ NO VALIDATION! Just update suggestions
+        // ✅ NOW THESE ARE ENFORCED! Remove old comment about no validation
         assetConfigs[token].collateralRatio = newCollateralRatio;
         assetConfigs[token].liquidationRatio = newLiquidationRatio;
         
-        emit SuggestionRatiosUpdated(token, newCollateralRatio, newLiquidationRatio);
+        emit EnforcedRatiosUpdated(token, newCollateralRatio, newLiquidationRatio);
+    }
+    
+    /**
+     * @dev Quick liquidation ratio adjustment for testing/emergency situations
+     */
+    function adjustLiquidationRatio(address token, uint256 newLiquidationRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newLiquidationRatio < assetConfigs[token].collateralRatio, "Must be below collateral ratio");
+        
+        uint256 oldRatio = assetConfigs[token].liquidationRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit LiquidationRatioAdjusted(token, oldRatio, newLiquidationRatio);
+    }
+    
+    /**
+     * @dev Quick collateral ratio adjustment  
+     */
+    function adjustCollateralRatio(address token, uint256 newCollateralRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newCollateralRatio > assetConfigs[token].liquidationRatio, "Must be above liquidation ratio");
+        
+        uint256 oldRatio = assetConfigs[token].collateralRatio;
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        
+        emit CollateralRatioAdjusted(token, oldRatio, newCollateralRatio);
+    }
+    
+    /**
+     * @dev Emergency function to make positions liquidatable (for testing)
+     */
+    function emergencySetLiquidationRatio(address token, uint256 emergencyRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(emergencyRatio > 0, "Ratio must be positive");
+        
+        uint256 oldRatio = assetConfigs[token].liquidationRatio;
+        assetConfigs[token].liquidationRatio = emergencyRatio;
+        
+        emit EmergencyLiquidationRatioSet(token, oldRatio, emergencyRatio);
     }
     
     /**
@@ -378,7 +420,10 @@ contract FlexibleAssetHandler is IAssetHandler, Ownable {
         return vaults[token].depositors;
     }
     
-    // Additional events
-    event SuggestionRatiosUpdated(address indexed token, uint256 collateralRatio, uint256 liquidationRatio);
+    // Updated events (replace the old SuggestionRatiosUpdated event)
+    event EnforcedRatiosUpdated(address indexed token, uint256 collateralRatio, uint256 liquidationRatio);
+    event LiquidationRatioAdjusted(address indexed token, uint256 oldRatio, uint256 newRatio);
+    event CollateralRatioAdjusted(address indexed token, uint256 oldRatio, uint256 newRatio);
+    event EmergencyLiquidationRatioSet(address indexed token, uint256 oldRatio, uint256 emergencyRatio);
     event AssetPaused(address indexed token);
 }

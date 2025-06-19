@@ -314,10 +314,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
             IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
             
-            // ✅ CORREGIDO: Usar un factor más conservador pero realista
-            // Aplicar un buffer del 10% sobre el umbral original
-            uint256 adjustedThreshold = (config.liquidationRatio * 110) / 100; // 110% del umbral original
-            return currentRatio < adjustedThreshold;
+            // ✅ FIXED: Use exact threshold from asset handler (no arbitrary buffer)
+            // This allows the owner to control liquidation precisely through the asset handler
+            return currentRatio < config.liquidationRatio;
         } catch {
             // If ratio calculation fails, don't allow liquidation
             return false;
