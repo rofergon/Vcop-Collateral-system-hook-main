@@ -13,6 +13,7 @@ import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
 import {IPriceRegistry} from "../interfaces/IPriceRegistry.sol";
 import {IEmergencyRegistry} from "../interfaces/IEmergencyRegistry.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
+import {VaultBasedHandler} from "./VaultBasedHandler.sol";
 
 /**
  * @title FlexibleLoanManager
@@ -793,6 +794,80 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
             success = false;
             liquidatedAmount = 0;
         }
+    }
+    
+    /**
+     * @dev 🤖 NEW: Vault-funded automated liquidation
+     * Uses VaultBasedHandler liquidity to fund liquidations automatically
+     */
+    function vaultFundedAutomatedLiquidation(uint256 positionId) 
+        external returns (bool success, uint256 liquidatedAmount) {
+        
+        require(automationEnabled, "Automation disabled");
+        require(msg.sender == authorizedAutomationContract, "Unauthorized automation caller");
+        
+        // Check if position can be liquidated
+        require(canLiquidate(positionId), "Position not liquidatable");
+        
+        LoanPosition storage position = positions[positionId];
+        require(position.isActive, "Position not active");
+        
+        // Update interest before liquidation
+        updateInterest(positionId);
+        
+        uint256 totalDebt = getTotalDebt(positionId);
+        uint256 collateralValue = _getAssetValue(position.collateralAsset, position.collateralAmount);
+        
+        // Get the vault handler for the loan asset
+        IAssetHandler loanHandler = _getAssetHandler(position.loanAsset);
+        require(
+            loanHandler.getAssetType(position.loanAsset) == IAssetHandler.AssetType.VAULT_BASED,
+            "Loan asset must be vault-based for automation funding"
+        );
+        
+        // Cast to VaultBasedHandler to access automation functions
+        VaultBasedHandler vaultHandler = VaultBasedHandler(address(loanHandler));
+        
+        // Try to get funding from vault
+        bool fundingSuccess = vaultHandler.automationRepay(
+            position.loanAsset,
+            totalDebt,
+            position.collateralAsset,
+            position.collateralAmount,
+            position.borrower
+        );
+        
+        if (!fundingSuccess) {
+            return (false, 0); // Vault doesn't have enough liquidity
+        }
+        
+        // Calculate liquidation amounts
+        uint256 debtValue = _getAssetValue(position.loanAsset, totalDebt);
+        uint256 liquidationBonusAmount = (collateralValue * liquidationBonus) / 1000000;
+        uint256 liquidatorReward = collateralValue > debtValue + liquidationBonusAmount 
+            ? debtValue + liquidationBonusAmount 
+            : collateralValue;
+        
+        // Transfer collateral to vault handler (it provided the funding)
+        uint256 collateralToVault = (liquidatorReward * position.collateralAmount) / collateralValue;
+        IERC20(position.collateralAsset).safeTransfer(address(vaultHandler), collateralToVault);
+        
+        // Return remaining collateral to borrower (if any)
+        uint256 remainingCollateral = position.collateralAmount - collateralToVault;
+        if (remainingCollateral > 0) {
+            IERC20(position.collateralAsset).safeTransfer(position.borrower, remainingCollateral);
+        }
+        
+        // Close position
+        position.isActive = false;
+        accruedInterest[positionId] = 0;
+        
+        // Note: Vault already received the collateral directly above
+        // No need to call automationRecovery as the transfer was direct
+        
+        emit PositionLiquidated(positionId, msg.sender);
+        
+        return (true, totalDebt);
     }
     
     /**

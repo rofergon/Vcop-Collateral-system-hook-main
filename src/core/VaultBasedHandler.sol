@@ -512,6 +512,145 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     }
     
     // ========================================
+    // 🤖 AUTOMATION LIQUIDATION SUPPORT
+    // ========================================
+    
+    // Authorized automation contracts that can use vault liquidity
+    mapping(address => bool) public authorizedAutomationContracts;
+    
+    // Track automation liquidations
+    mapping(address => uint256) public automationLiquidationsCount;
+    mapping(address => uint256) public automationRecoveredAmount;
+    
+    // Events for automation
+    event AutomationContractAuthorized(address indexed automationContract);
+    event AutomationContractDeauthorized(address indexed automationContract);
+    event AutomationLiquidationExecuted(address indexed token, uint256 debtAmount, uint256 collateralAmount);
+    
+    /**
+     * @dev 🤖 Authorizes an automation contract to use vault liquidity for liquidations
+     */
+    function authorizeAutomationContract(address automationContract) external onlyOwner {
+        require(automationContract != address(0), "Invalid automation contract");
+        authorizedAutomationContracts[automationContract] = true;
+        emit AutomationContractAuthorized(automationContract);
+    }
+    
+    /**
+     * @dev 🤖 Deauthorizes an automation contract
+     */
+    function deauthorizeAutomationContract(address automationContract) external onlyOwner {
+        authorizedAutomationContracts[automationContract] = false;
+        emit AutomationContractDeauthorized(automationContract);
+    }
+    
+    /**
+     * @dev 🤖 AUTOMATION REPAY: Uses vault liquidity to repay debt during liquidation
+     * This function allows authorized automation contracts to use vault funds to execute liquidations
+     */
+    function automationRepay(
+        address token, 
+        uint256 amount, 
+        address collateralToken,
+        uint256 collateralAmount,
+        address liquidatedBorrower
+    ) external returns (bool success) {
+        // Security: Only authorized automation contracts
+        require(authorizedAutomationContracts[msg.sender], "Unauthorized automation contract");
+        
+        AssetConfig memory config = assetConfigs[token];
+        require(config.isActive, "Asset not active");
+        require(config.assetType == AssetType.VAULT_BASED, "Invalid asset type");
+        
+        VaultInfo storage vault = vaultInfo[token];
+        uint256 availableLiquidity = vault.totalLiquidity - vault.totalBorrowed;
+        
+        // Check if vault has enough liquidity
+        if (availableLiquidity < amount) {
+            return false; // Not enough liquidity for automation repay
+        }
+        
+        // Accrue interest before updating
+        _accrueInterest(token);
+        
+        // Use vault liquidity (mark as "borrowed" temporarily)
+        vault.totalBorrowed += amount;
+        vault.lastUpdateTimestamp = block.timestamp;
+        
+        // Transfer tokens to automation contract for liquidation execution
+        IERC20(token).safeTransfer(msg.sender, amount);
+        
+        // 📝 NOTE: The automation contract MUST transfer collateral back to this vault
+        // This will be handled in the automation contract's liquidation flow
+        
+        // Track automation activity
+        automationLiquidationsCount[token]++;
+        
+        // Update utilization rate
+        _updateUtilizationRate(token);
+        
+        emit AutomationLiquidationExecuted(token, amount, collateralAmount);
+        emit TokensLent(token, msg.sender, amount);
+        
+        return true;
+    }
+    
+    /**
+     * @dev 🤖 AUTOMATION RECOVERY: Receives collateral from liquidation and sells it
+     * Called by automation contract after successful liquidation to return collateral
+     */
+    function automationRecovery(
+        address debtToken,
+        uint256 debtAmount,
+        address collateralToken,
+        uint256 collateralAmount
+    ) external {
+        require(authorizedAutomationContracts[msg.sender], "Unauthorized automation contract");
+        
+        // Receive collateral from automation contract
+        IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), collateralAmount);
+        
+        // 💰 TODO: Implement collateral selling logic here
+        // For now, we'll assume collateral is worth at least the debt amount
+        // In production, you'd integrate with a DEX or oracle-based selling mechanism
+        
+        VaultInfo storage vault = vaultInfo[debtToken];
+        
+        // Reduce the "borrowed" amount since we've recovered funds
+        vault.totalBorrowed = vault.totalBorrowed > debtAmount ? vault.totalBorrowed - debtAmount : 0;
+        
+        // Track recovery
+        automationRecoveredAmount[debtToken] += debtAmount;
+        
+        // Update utilization rate
+        _updateUtilizationRate(debtToken);
+        
+        emit TokensRepaid(debtToken, msg.sender, debtAmount);
+    }
+    
+    /**
+     * @dev 🤖 Gets automation liquidity status for a token
+     */
+    function getAutomationLiquidityStatus(address token) external view returns (
+        uint256 availableForAutomation,
+        uint256 totalAutomationLiquidations,
+        uint256 totalRecovered,
+        bool canLiquidate
+    ) {
+        VaultInfo memory vault = vaultInfo[token];
+        uint256 available = vault.totalLiquidity > vault.totalBorrowed 
+            ? vault.totalLiquidity - vault.totalBorrowed 
+            : 0;
+            
+        return (
+            available,
+            automationLiquidationsCount[token],
+            automationRecoveredAmount[token],
+            available > 0 && assetConfigs[token].isActive
+        );
+    }
+    
+    // ========================================
     // IRewardable Implementation
     // ========================================
     

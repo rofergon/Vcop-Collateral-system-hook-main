@@ -1,25 +1,25 @@
 {
   "oracleType": "MockVCOPOracle",
   "tokens": {
-    "mockETH": "0x337637Ce34F4C55e6b0A6c7f7D644d18c02AEe73",
-    "mockWBTC": "0x65935B66782932193FFFb83dcfC8e91fEB16509b",
-    "mockUSDC": "0x944da8750F26E19d3566602bA71b67699fa71Bc8",
-    "vcopToken": "0x833C648eC067DB2849a166d865D63fA82C82d95C"
+    "mockETH": "0xe6F2F20f3Cb7CEF850958d4012FD829F4021A3FF",
+    "mockWBTC": "0xc5F443868377B509e9104023bAAF79a94A5beBDe",
+    "mockUSDC": "0xDFd515f19eF022D152C0D572340E46436D265E2A",
+    "vcopToken": "0x13Ac4177556cb24D26CBab35BC2434C07cc2c74e"
   },
   "vcopCollateral": {
-    "mockVcopOracle": "0x89be56070759E93Fe8b19fD970952A82f5b2A72f",
-    "vcopPriceCalculator": "0xbc63a92d9FCc669bc3438E9Ec8D7f12E781b4526",
-    "vcopCollateralManager": "0xab3f2a2D6728AAf84C6E82a132e5060bee973357",
-    "vcopCollateralHook": "0xFc4c2FeddBd49b86525b339206EA5C66c18e84C0"
+    "mockVcopOracle": "0xFB3f0Da89fA79711771a44A6D5459B197343D052",
+    "vcopPriceCalculator": "0x214860DB756C2a68E94260Bd2a6F188fcA8eaaB9",
+    "vcopCollateralManager": "0xC74E96e8ABF81Ac7Eb3F9d487efffF7B0ed90B6F",
+    "vcopCollateralHook": "0xb11F1FcDf1D1254FEC614A188a92938d19A104C0"
   },
   "coreLending": {
-    "riskCalculator": "0x53CA5CB6b0315167962273399F3C2713E96FD78c",
-    "genericLoanManager": "0xa5F72B6588330B1a375c405cFb9325158992e933",
-    "flexibleLoanManager": "0xE1Fdf51b91B04BBa671117Bf274b027aD48f118D",
-    "mintableBurnableHandler": "0x62213e4b10aCCAaC7EcC8dFB944C3f281daa4CE5",
-    "vaultBasedHandler": "0x78728D231fE0A3CF2C4c308f90C965915fE5362f",
-    "flexibleAssetHandler": "0x176BEeD2CF1cE3199E16a03966E921DCc7d92A41",
-    "dynamicPriceRegistry": "0xC66266684CeCB42648D2E91A0aB7624d0F6bA4e0"
+    "riskCalculator": "0x5a1b4844e190fCA50996f5feD87a0ae8a25a7D59",
+    "genericLoanManager": "0x823406Fe89f48C75aA77068d4449869FAA2a27a8",
+    "flexibleLoanManager": "0xEE79Babb63537634aa1dd0FaFE66A47cC686A840",
+    "mintableBurnableHandler": "0xC73DA65E848944c5a157266A758438c40823F128",
+    "vaultBasedHandler": "0xfAf870C210e2f320F2a913Be1Fc3ce13AdA9f385",
+    "flexibleAssetHandler": "0xeaf96e775b3C460b0C006955557212241D40a1cf",
+    "dynamicPriceRegistry": "0x86409898562260C4c3B7D56C2A4DC184a7D2cc52"
   },
   "config": {
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
@@ -28,8 +28,8 @@
   },
   "automation": {
     "automationRegistry": "0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3",
-    "automationKeeper": "0xaa626f692ecd098d8968403b11941a6c909e4e1d",
-    "loanAdapter": "0xcdfba49e5d2cda22c695c904a1b5150a3ec19a47",
-    "priceTrigger": "0x45b93c3671103cf1a41e45f7026de6aba3586644"
+    "automationKeeper": "0x594eefa0353582bf53cbc9e8b1d8f1dd63240841",
+    "loanAdapter": "0x5fc0dd4ae5006e27385c38df6d2c033c5b3cf1f4",
+    "priceTrigger": "0xe89999a1cde863598f10d5a604bf6ec60aeb947a"
   }
 }

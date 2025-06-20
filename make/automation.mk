@@ -4,8 +4,8 @@
 
 .PHONY: deploy-automation deploy-automation-mock help-automation \
 	setup-chainlink-automation register-chainlink-upkeep configure-forwarder \
-	deploy-automation-complete deploy-automation-complete-mock \
-	check-chainlink-status update-forwarder-env
+	deploy-automation-complete deploy-automation-complete-mock deploy-automation-complete-mock-no-test \
+	check-chainlink-status update-forwarder-env configure-vault-automation
 
 help-automation:
 	@echo ""
@@ -28,6 +28,8 @@ help-automation:
 	@echo "check-chainlink-status          - Check Chainlink upkeep status"
 	@echo "test-automation-flow            - Test complete automation flow"
 	@echo "test-automation-quick           - Quick automation check"
+	@echo "configure-vault-automation      - Configure vault-funded liquidation"
+	@echo "test-vault-liquidation          - Test vault-funded liquidation system"
 	@echo ""
 
 # ========================================
@@ -99,6 +101,19 @@ deploy-automation-complete-mock:
 	@echo ""
 	@echo "🎉 MOCK AUTOMATION SETUP COMPLETE!"
 	@echo "✅ Ready for testing liquidations"
+
+# Deploy automation without testing (for full-stack deployment)
+deploy-automation-complete-mock-no-test:
+	@echo "🧪 DEPLOYING MOCK AUTOMATION (NO TEST)"
+	@echo "======================================"
+	@echo ""
+	@echo "This will deploy automation contracts only (no testing)."
+	@echo ""
+	@echo "📋 Deploying mock automation contracts..."
+	@$(MAKE) deploy-automation-mock
+	@echo ""
+	@echo "✅ MOCK AUTOMATION CONTRACTS DEPLOYED!"
+	@echo "Ready for configuration and testing"
 
 # ========================================
 # 🔧 STEP-BY-STEP COMMANDS
@@ -284,4 +299,28 @@ test-automation-quick:
 	@echo "========================"
 	@. ./.env && forge script script/test/TestAutomationWithMockOracle.s.sol:TestAutomationWithMockOracle \
 		--sig "quickAutomationCheck()" --rpc-url $(RPC_URL)
-	@echo "✅ Quick check completed!" 
+	@echo "✅ Quick check completed!"
+
+# Configure vault automation for liquidation funding
+configure-vault-automation:
+	@echo "🔧 CONFIGURING VAULT-FUNDED LIQUIDATION"
+	@echo "======================================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/automation/ConfigureVaultAutomation.s.sol:ConfigureVaultAutomation \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Vault-funded liquidation configured!"
+
+# Test vault-funded liquidation
+test-vault-liquidation:
+	@echo "🏦 TESTING VAULT-FUNDED LIQUIDATION"
+	@echo "==================================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/test/TestVaultFundedLiquidation.s.sol:TestVaultFundedLiquidation \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Vault liquidation test completed!" 

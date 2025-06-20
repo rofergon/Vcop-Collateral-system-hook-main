@@ -755,6 +755,18 @@ contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownab
         return automationEnabled && automationContract != address(0);
     }
     
+    /**
+     * @dev Vault-funded automated liquidation (fallback implementation)
+     * GenericLoanManager doesn't support vault funding, so this returns false
+     */
+    function vaultFundedAutomatedLiquidation(uint256 positionId) 
+        external override returns (bool success, uint256 liquidatedAmount) {
+        
+        // GenericLoanManager doesn't support vault-funded liquidation
+        // Return false to indicate this feature is not available
+        return (false, 0);
+    }
+    
     // ========================================
     // AUTOMATION HELPER FUNCTIONS
     // ========================================

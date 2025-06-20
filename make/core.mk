@@ -53,16 +53,27 @@ deploy-full-stack-mock:
 	@echo "This will deploy the complete testing system including:"
 	@echo "1. Core VCOP lending system with Mock Oracle"
 	@echo "2. Mock automation for testing liquidations"
-	@echo "3. Automated testing flow"
+	@echo "3. Vault-funded liquidation configuration"
+	@echo "4. Automated testing flow"
 	@echo ""
 	@echo "🚀 Phase 1: Deploying mock core system..."
 	@$(MAKE) deploy-complete-mock
 	@echo ""
 	@echo "🤖 Phase 2: Deploying mock automation..."
-	@$(MAKE) deploy-automation-complete-mock
+	@$(MAKE) deploy-automation-complete-mock-no-test
 	@echo ""
-	@echo "🎉 COMPLETE MOCK STACK DEPLOYMENT FINISHED!"
-	@echo "✅ Your test environment is ready for liquidation testing"
+	@echo "🔧 Phase 3: Configuring vault-funded liquidation..."
+	@$(MAKE) configure-vault-automation
+	@echo ""
+	@echo "🧪 Phase 4: Testing complete system..."
+	@$(MAKE) test-vault-liquidation
+	@echo ""
+	@echo "🎉 COMPLETE MOCK STACK WITH VAULT-FUNDED LIQUIDATION FINISHED!"
+	@echo "✅ Your test environment is ready with:"
+	@echo "   • Chainlink Automation for position monitoring"
+	@echo "   • Vault-funded liquidation system (no allowance issues)"
+	@echo "   • Self-sustaining liquidation mechanism"
+	@echo "   • Tested and verified working system"
 
 # ========================================
 # 🔧 CORE SYSTEM DEPLOYMENTS

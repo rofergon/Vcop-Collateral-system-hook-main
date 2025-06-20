@@ -123,6 +123,14 @@ interface ILoanManager {
      */
     function getUserPositions(address user) external view returns (uint256[] memory positionIds);
     
+    /**
+     * @dev Vault-funded automated liquidation
+     * @param positionId Position ID to liquidate
+     * @return success True if liquidation was successful
+     * @return liquidatedAmount Amount liquidated
+     */
+    function vaultFundedAutomatedLiquidation(uint256 positionId) external returns (bool success, uint256 liquidatedAmount);
+    
     // Events
     event LoanCreated(
         uint256 indexed positionId,
