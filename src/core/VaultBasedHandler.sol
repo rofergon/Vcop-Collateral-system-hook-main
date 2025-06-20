@@ -6,6 +6,7 @@ import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC2
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
+import {IEmergencyRegistry} from "../interfaces/IEmergencyRegistry.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
 
 /**
@@ -54,9 +55,17 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     bytes32 public constant VAULT_WBTC_POOL_ID = keccak256("VAULT_WBTC_LIQUIDITY");
     bytes32 public constant VAULT_USDC_POOL_ID = keccak256("VAULT_USDC_LIQUIDITY");
     
+    // ⚡ NEW: Emergency registry for centralized coordination
+    IEmergencyRegistry public emergencyRegistry;
+    
     // Events
     event InterestAccrued(address indexed token, uint256 amount);
     event UtilizationRateUpdated(address indexed token, uint256 newRate);
+    event LiquidationRatioUpdated(address indexed token, uint256 oldRatio, uint256 newRatio);
+    event CollateralRatioUpdated(address indexed token, uint256 oldRatio, uint256 newRatio);
+    event BothRatiosUpdated(address indexed token, uint256 oldCollateralRatio, uint256 newCollateralRatio, uint256 oldLiquidationRatio, uint256 newLiquidationRatio);
+    event EmergencyLiquidationEnabled(address indexed token);
+    event EmergencyLiquidationDisabled(address indexed token);
     
     constructor() Ownable(msg.sender) {}
     
@@ -72,9 +81,8 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     ) external onlyOwner {
         require(token != address(0), "Invalid token address");
         require(collateralRatio >= 1000000, "Ratio must be at least 100%");
+        require(liquidationRatio > 0, "Liquidation ratio must be positive");
         require(liquidationRatio < collateralRatio, "Liquidation ratio must be below collateral ratio");
-        
-        IERC20 erc20Token = IERC20(token);
         
         // Add to supported assets if new
         if (assetConfigs[token].token == address(0)) {
@@ -385,6 +393,261 @@ contract VaultBasedHandler is IAssetHandler, IRewardable, Ownable {
     function setInterestRateParams(uint256 _baseRate, uint256 _multiplier) external onlyOwner {
         baseInterestRate = _baseRate;
         utilizationMultiplier = _multiplier;
+    }
+    
+    /**
+     * @dev Updates liquidation ratio for an asset (for testing/emergency)
+     */
+    function updateLiquidationRatio(address token, uint256 newLiquidationRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newLiquidationRatio < assetConfigs[token].collateralRatio, "Must be below collateral ratio");
+        
+        uint256 oldRatio = assetConfigs[token].liquidationRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit LiquidationRatioUpdated(token, oldRatio, newLiquidationRatio);
+    }
+    
+    /**
+     * @dev Updates collateral ratio for an asset
+     */
+    function updateCollateralRatio(address token, uint256 newCollateralRatio) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newCollateralRatio > assetConfigs[token].liquidationRatio, "Must be above liquidation ratio");
+        
+        uint256 oldRatio = assetConfigs[token].collateralRatio;
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        
+        emit CollateralRatioUpdated(token, oldRatio, newCollateralRatio);
+    }
+    
+    /**
+     * @dev Batch update both ratios safely
+     */
+    function updateBothRatios(
+        address token, 
+        uint256 newCollateralRatio, 
+        uint256 newLiquidationRatio
+    ) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newCollateralRatio > newLiquidationRatio, "Collateral ratio must be higher than liquidation ratio");
+        
+        uint256 oldCollateralRatio = assetConfigs[token].collateralRatio;
+        uint256 oldLiquidationRatio = assetConfigs[token].liquidationRatio;
+        
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit BothRatiosUpdated(token, oldCollateralRatio, newCollateralRatio, oldLiquidationRatio, newLiquidationRatio);
+    }
+    
+    /**
+     * @dev Standard interface for updating both ratios (compatible with FlexibleAssetHandler)
+     */
+    function updateEnforcedRatios(
+        address token, 
+        uint256 newCollateralRatio, 
+        uint256 newLiquidationRatio
+    ) external onlyOwner {
+        // FIXED: Use internal logic instead of external call to avoid ownership issues
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        require(newLiquidationRatio > 0, "Liquidation ratio must be positive");
+        require(newCollateralRatio > newLiquidationRatio, "Collateral ratio must be higher than liquidation ratio");
+        
+        uint256 oldCollateralRatio = assetConfigs[token].collateralRatio;
+        uint256 oldLiquidationRatio = assetConfigs[token].liquidationRatio;
+        
+        assetConfigs[token].collateralRatio = newCollateralRatio;
+        assetConfigs[token].liquidationRatio = newLiquidationRatio;
+        
+        emit BothRatiosUpdated(token, oldCollateralRatio, newCollateralRatio, oldLiquidationRatio, newLiquidationRatio);
+    }
+
+    /**
+     * @dev ⚡ ENHANCED: Emergency function that coordinates with centralized registry
+     */
+    function emergencyLiquidationMode(address token, bool enableEmergency) external onlyOwner {
+        require(assetConfigs[token].token != address(0), "Asset not configured");
+        
+        if (enableEmergency) {
+            // ⚡ LOCAL: Set liquidation ratio very high to make positions liquidatable
+            assetConfigs[token].liquidationRatio = 2000000; // 200% - most positions will be liquidatable
+            
+            // ⚡ CENTRALIZED: Also update emergency registry for system-wide coordination
+            if (address(emergencyRegistry) != address(0)) {
+                emergencyRegistry.setAssetEmergencyLevel(
+                    token,
+                    IEmergencyRegistry.EmergencyLevel.EMERGENCY,
+                    2000000, // Same ratio as local setting
+                    "VaultBasedHandler emergency activation"
+                );
+            }
+            
+            emit EmergencyLiquidationEnabled(token);
+        } else {
+            // ⚡ LOCAL: Reset to reasonable ratio
+            assetConfigs[token].liquidationRatio = 1200000; // 120% - back to normal
+            
+            // ⚡ CENTRALIZED: Also resolve emergency in registry
+            if (address(emergencyRegistry) != address(0)) {
+                emergencyRegistry.setAssetEmergencyLevel(
+                    token,
+                    IEmergencyRegistry.EmergencyLevel.NONE,
+                    0,
+                    "VaultBasedHandler emergency resolved"
+                );
+            }
+            
+            emit EmergencyLiquidationDisabled(token);
+        }
+    }
+    
+    /**
+     * @dev ⚡ NEW: Sets emergency registry for coordination
+     */
+    function setEmergencyRegistry(address _emergencyRegistry) external onlyOwner {
+        emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
+    }
+    
+    // ========================================
+    // 🤖 AUTOMATION LIQUIDATION SUPPORT
+    // ========================================
+    
+    // Authorized automation contracts that can use vault liquidity
+    mapping(address => bool) public authorizedAutomationContracts;
+    
+    // Track automation liquidations
+    mapping(address => uint256) public automationLiquidationsCount;
+    mapping(address => uint256) public automationRecoveredAmount;
+    
+    // Events for automation
+    event AutomationContractAuthorized(address indexed automationContract);
+    event AutomationContractDeauthorized(address indexed automationContract);
+    event AutomationLiquidationExecuted(address indexed token, uint256 debtAmount, uint256 collateralAmount);
+    
+    /**
+     * @dev 🤖 Authorizes an automation contract to use vault liquidity for liquidations
+     */
+    function authorizeAutomationContract(address automationContract) external onlyOwner {
+        require(automationContract != address(0), "Invalid automation contract");
+        authorizedAutomationContracts[automationContract] = true;
+        emit AutomationContractAuthorized(automationContract);
+    }
+    
+    /**
+     * @dev 🤖 Deauthorizes an automation contract
+     */
+    function deauthorizeAutomationContract(address automationContract) external onlyOwner {
+        authorizedAutomationContracts[automationContract] = false;
+        emit AutomationContractDeauthorized(automationContract);
+    }
+    
+    /**
+     * @dev 🤖 AUTOMATION REPAY: Uses vault liquidity to repay debt during liquidation
+     * This function allows authorized automation contracts to use vault funds to execute liquidations
+     */
+    function automationRepay(
+        address token, 
+        uint256 amount, 
+        address collateralToken,
+        uint256 collateralAmount,
+        address liquidatedBorrower
+    ) external returns (bool success) {
+        // Security: Only authorized automation contracts
+        require(authorizedAutomationContracts[msg.sender], "Unauthorized automation contract");
+        
+        AssetConfig memory config = assetConfigs[token];
+        require(config.isActive, "Asset not active");
+        require(config.assetType == AssetType.VAULT_BASED, "Invalid asset type");
+        
+        VaultInfo storage vault = vaultInfo[token];
+        uint256 availableLiquidity = vault.totalLiquidity - vault.totalBorrowed;
+        
+        // Check if vault has enough liquidity
+        if (availableLiquidity < amount) {
+            return false; // Not enough liquidity for automation repay
+        }
+        
+        // Accrue interest before updating
+        _accrueInterest(token);
+        
+        // Use vault liquidity (mark as "borrowed" temporarily)
+        vault.totalBorrowed += amount;
+        vault.lastUpdateTimestamp = block.timestamp;
+        
+        // Transfer tokens to automation contract for liquidation execution
+        IERC20(token).safeTransfer(msg.sender, amount);
+        
+        // 📝 NOTE: The automation contract MUST transfer collateral back to this vault
+        // This will be handled in the automation contract's liquidation flow
+        
+        // Track automation activity
+        automationLiquidationsCount[token]++;
+        
+        // Update utilization rate
+        _updateUtilizationRate(token);
+        
+        emit AutomationLiquidationExecuted(token, amount, collateralAmount);
+        emit TokensLent(token, msg.sender, amount);
+        
+        return true;
+    }
+    
+    /**
+     * @dev 🤖 AUTOMATION RECOVERY: Receives collateral from liquidation and sells it
+     * Called by automation contract after successful liquidation to return collateral
+     */
+    function automationRecovery(
+        address debtToken,
+        uint256 debtAmount,
+        address collateralToken,
+        uint256 collateralAmount
+    ) external {
+        require(authorizedAutomationContracts[msg.sender], "Unauthorized automation contract");
+        
+        // Receive collateral from automation contract
+        IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), collateralAmount);
+        
+        // 💰 TODO: Implement collateral selling logic here
+        // For now, we'll assume collateral is worth at least the debt amount
+        // In production, you'd integrate with a DEX or oracle-based selling mechanism
+        
+        VaultInfo storage vault = vaultInfo[debtToken];
+        
+        // Reduce the "borrowed" amount since we've recovered funds
+        vault.totalBorrowed = vault.totalBorrowed > debtAmount ? vault.totalBorrowed - debtAmount : 0;
+        
+        // Track recovery
+        automationRecoveredAmount[debtToken] += debtAmount;
+        
+        // Update utilization rate
+        _updateUtilizationRate(debtToken);
+        
+        emit TokensRepaid(debtToken, msg.sender, debtAmount);
+    }
+    
+    /**
+     * @dev 🤖 Gets automation liquidity status for a token
+     */
+    function getAutomationLiquidityStatus(address token) external view returns (
+        uint256 availableForAutomation,
+        uint256 totalAutomationLiquidations,
+        uint256 totalRecovered,
+        bool canLiquidate
+    ) {
+        VaultInfo memory vault = vaultInfo[token];
+        uint256 available = vault.totalLiquidity > vault.totalBorrowed 
+            ? vault.totalLiquidity - vault.totalBorrowed 
+            : 0;
+            
+        return (
+            available,
+            automationLiquidationsCount[token],
+            automationRecoveredAmount[token],
+            available > 0 && assetConfigs[token].isActive
+        );
     }
     
     // ========================================

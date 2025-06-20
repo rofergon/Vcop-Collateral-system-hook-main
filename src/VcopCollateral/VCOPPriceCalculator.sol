@@ -162,7 +162,7 @@ contract VCOPPriceCalculator {
      * @return VCOP/COP price with 6 decimals and current tick
      */
     function getVcopToCopPrice() public view returns (uint256, int24) {
-        (uint256 vcopToUsdPrice, int24 tick) = getVcopToUsdPriceFromPool();
+        (, int24 tick) = getVcopToUsdPriceFromPool();
         
         // IMPORTANTE: Forzar tasa 1:1 entre VCOP y COP
         console.log("IMPORTANTE: Forzando tasa VCOP/COP a 1:1 para mantener paridad correcta con USD");
@@ -213,7 +213,7 @@ contract VCOPPriceCalculator {
      * @dev Calculates if the VCOP price is at 1:1 parity
      * @return true if the VCOP/COP price is at 1:1 with a tolerance margin
      */
-    function isVcopAtParity() external view returns (bool) {
+    function isVcopAtParity() external pure returns (bool) {
         // Siempre retornar true ya que estamos forzando paridad 1:1
         console.log("VCOP/COP forzado a 1:1, siempre en paridad");
         return true;

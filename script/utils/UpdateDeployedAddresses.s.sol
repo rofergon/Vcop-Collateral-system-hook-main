@@ -11,7 +11,7 @@ import "forge-std/console.sol";
  */
 contract UpdateDeployedAddresses is Script {
     
-    function run() external {
+    function run() external view {
         console.log("=== UPDATING DEPLOYED ADDRESSES JSON ===");
         
         // Get deployer info

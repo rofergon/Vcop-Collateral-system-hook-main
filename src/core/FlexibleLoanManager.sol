@@ -2,20 +2,25 @@
 pragma solidity ^0.8.24;
 
 import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {ILoanManager} from "../interfaces/ILoanManager.sol";
 import {IAssetHandler} from "../interfaces/IAssetHandler.sol";
 import {IGenericOracle} from "../interfaces/IGenericOracle.sol";
 import {IRewardable} from "../interfaces/IRewardable.sol";
+import {ILoanAutomation} from "../automation/interfaces/ILoanAutomation.sol";
+import {IPriceRegistry} from "../interfaces/IPriceRegistry.sol";
+import {IEmergencyRegistry} from "../interfaces/IEmergencyRegistry.sol";
 import {RewardDistributor} from "./RewardDistributor.sol";
+import {VaultBasedHandler} from "./VaultBasedHandler.sol";
 
 /**
  * @title FlexibleLoanManager
  * @notice ULTRA-FLEXIBLE loan manager - NO ratio limits, only prevents negative values
  * @dev Allows ANY ratio as long as math doesn't break. All risk management in frontend.
  */
-contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
+contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownable {
     using SafeERC20 for IERC20;
     
     // Asset handlers for different types of assets
@@ -23,6 +28,12 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     
     // Oracle for price feeds
     IGenericOracle public oracle;
+    
+    // Dynamic price registry (replaces hardcoded addresses)
+    IPriceRegistry public priceRegistry;
+    
+    // ⚡ NEW: Emergency registry for centralized liquidation coordination
+    IEmergencyRegistry public emergencyRegistry;
     
     // Loan positions
     mapping(uint256 => LoanPosition) public positions;
@@ -42,13 +53,28 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     // Emergency pause (only for bugs/exploits)
     bool public paused = false;
     
+    // Automation settings
+    bool public automationEnabled = true;
+    address public authorizedAutomationContract;
+    
     // Reward system
     RewardDistributor public rewardDistributor;
     bytes32 public constant REWARD_POOL_ID = keccak256("FLEXIBLE_LOAN_COLLATERAL");
     
-    constructor(address _oracle, address _feeCollector) Ownable(msg.sender) {
+    constructor(
+        address _oracle, 
+        address _feeCollector, 
+        address _priceRegistry,
+        address _emergencyRegistry
+    ) Ownable(msg.sender) {
         oracle = IGenericOracle(_oracle);
         feeCollector = _feeCollector;
+        if (_priceRegistry != address(0)) {
+            priceRegistry = IPriceRegistry(_priceRegistry);
+        }
+        if (_emergencyRegistry != address(0)) {
+            emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
+        }
     }
     
     /**
@@ -299,7 +325,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     }
     
     /**
-     * @dev CORREGIDO: liquidation check más realista
+     * @dev ⚡ ENHANCED: Centralized liquidation check with emergency coordination
      */
     function canLiquidate(uint256 positionId) public view override returns (bool) {
         LoanPosition memory position = positions[positionId];
@@ -307,16 +333,41 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             return false;
         }
         
-        // Try to get asset handler configuration for guidance
+        // ⚡ PRIORITY 1: Check emergency registry first (centralized control)
+        if (address(emergencyRegistry) != address(0)) {
+            (bool isEmergency, uint256 emergencyRatio) = emergencyRegistry.isAssetInEmergency(position.collateralAsset);
+            
+            if (isEmergency) {
+                // 🚨 EMERGENCY MODE: Use emergency ratio for liquidation
+                try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
+                    return currentRatio < emergencyRatio;
+                } catch {
+                    // If ratio calculation fails during emergency, assume liquidatable
+                    return true;
+                }
+            }
+        }
+        
+        // ⚡ PRIORITY 2: Normal liquidation check using asset handler
         try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
             // Get liquidation threshold from asset handler
             IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
             IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
             
-            // ✅ CORREGIDO: Usar un factor más conservador pero realista
-            // Aplicar un buffer del 10% sobre el umbral original
-            uint256 adjustedThreshold = (config.liquidationRatio * 110) / 100; // 110% del umbral original
-            return currentRatio < adjustedThreshold;
+            // ⚡ ENHANCED: Use emergency registry for effective ratio calculation
+            uint256 effectiveRatio = config.liquidationRatio;
+            if (address(emergencyRegistry) != address(0)) {
+                effectiveRatio = emergencyRegistry.getEffectiveLiquidationRatio(
+                    position.collateralAsset, 
+                    config.liquidationRatio
+                );
+            }
+            
+            // ✅ ENHANCED: Additional safety check for minimum ratio
+            require(effectiveRatio > 0, "Invalid liquidation ratio");
+            
+            // Use effective threshold (considers emergency states)
+            return currentRatio < effectiveRatio;
         } catch {
             // If ratio calculation fails, don't allow liquidation
             return false;
@@ -372,9 +423,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
      * @dev Gets maximum borrowable amount - BASED ON LIQUIDITY ONLY
      */
     function getMaxBorrowAmount(
-        address collateralAsset,
+        address /* collateralAsset */,
         address loanAsset,
-        uint256 collateralAmount
+        uint256 /* collateralAmount */
     ) external view override returns (uint256) {
         // ✅ NO RATIO LIMITS! Return available liquidity only
         IAssetHandler loanHandler = _getAssetHandler(loanAsset);
@@ -430,13 +481,46 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     }
     
     /**
-     * @dev Gets the value of an asset amount in USD (or common base)
+     * @dev Gets the value of an asset amount in USD (DYNAMIC VERSION)
      */
     function _getAssetValue(address asset, uint256 amount) internal view returns (uint256) {
-        try oracle.getPrice(asset, address(0)) returns (uint256 price) {
-            return (amount * price) / 1e18; // Assuming 18 decimals
+        // 🎯 PRIORITY 1: Use dynamic price registry if available
+        if (address(priceRegistry) != address(0)) {
+            try priceRegistry.calculateAssetValue(asset, amount) returns (uint256 value) {
+                if (value > 0) {
+                    return value;
+                }
+            } catch {
+                // Price registry failed, continue to oracle
+            }
+        }
+        
+        // 🎯 PRIORITY 2: Try oracle for real-time prices
+        if (address(oracle) != address(0)) {
+            try oracle.getPrice(asset, address(0)) returns (uint256 price) {
+                if (price > 0) {
+                    // 🔧 FIX: Use correct decimals instead of assuming 18
+                    uint256 decimals = _getTokenDecimals(asset);
+                    return (amount * price) / (10 ** decimals);
+                }
+            } catch {
+                // Oracle failed, continue to fallback
+            }
+        }
+        
+        // 🎯 PRIORITY 3: Emergency fallback - assume 1:1 ratio
+        // This should only happen in extreme cases
+        return amount;
+    }
+    
+    /**
+     * @dev Gets token decimals, with fallback to 18
+     */
+    function _getTokenDecimals(address token) internal view returns (uint256) {
+        try IERC20Metadata(token).decimals() returns (uint8 decimals) {
+            return decimals;
         } catch {
-            return amount; // Fallback to 1:1 if oracle fails
+            return 18; // Default fallback
         }
     }
     
@@ -469,6 +553,61 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     function setFeeCollector(address _collector) external onlyOwner {
         require(_collector != address(0), "Invalid address");
         feeCollector = _collector;
+    }
+    
+    /**
+     * @dev Sets price registry (for dynamic pricing)
+     */
+    function setPriceRegistry(address _priceRegistry) external onlyOwner {
+        priceRegistry = IPriceRegistry(_priceRegistry);
+    }
+    
+    /**
+     * @dev ⚡ NEW: Sets emergency registry (for centralized emergency coordination)
+     */
+    function setEmergencyRegistry(address _emergencyRegistry) external onlyOwner {
+        emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
+    }
+    
+    /**
+     * @dev ⚡ NEW: Emergency function to activate emergency mode for multiple assets
+     * This coordinates with VaultBasedHandler emergency modes!
+     */
+    function activateEmergencyMode(
+        address[] calldata assets,
+        string calldata reason
+    ) external onlyOwner {
+        require(address(emergencyRegistry) != address(0), "Emergency registry not set");
+        
+        // Activate emergency mode in the centralized registry
+        for (uint256 i = 0; i < assets.length; i++) {
+            emergencyRegistry.setAssetEmergencyLevel(
+                assets[i],
+                IEmergencyRegistry.EmergencyLevel.EMERGENCY,
+                2000000, // 200% ratio - makes most positions liquidatable
+                reason
+            );
+        }
+    }
+    
+    /**
+     * @dev ⚡ NEW: Emergency function to resolve emergency mode for multiple assets
+     */
+    function resolveEmergencyMode(
+        address[] calldata assets,
+        string calldata reason
+    ) external onlyOwner {
+        require(address(emergencyRegistry) != address(0), "Emergency registry not set");
+        
+        // Resolve emergency mode in the centralized registry
+        for (uint256 i = 0; i < assets.length; i++) {
+            emergencyRegistry.setAssetEmergencyLevel(
+                assets[i],
+                IEmergencyRegistry.EmergencyLevel.NONE,
+                0,
+                reason
+            );
+        }
     }
     
     // Events
@@ -546,5 +685,239 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
             emit RewardsUpdated(user, amount, REWARD_POOL_ID);
         }
+    }
+    
+    // ========== AUTOMATION INTERFACE IMPLEMENTATION ==========
+    
+    /**
+     * @dev Gets the total number of active positions
+     */
+    function getTotalActivePositions() external view override returns (uint256) {
+        uint256 count = 0;
+        for (uint256 i = 1; i < nextPositionId; i++) {
+            if (positions[i].isActive) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    /**
+     * @dev Gets positions in a specific range for batch processing
+     */
+    function getPositionsInRange(uint256 startIndex, uint256 endIndex) 
+        external view override returns (uint256[] memory positionIds) {
+        
+        require(startIndex <= endIndex, "Invalid range");
+        
+        // Count active positions in range first
+        uint256 count = 0;
+        for (uint256 i = startIndex; i <= endIndex && i < nextPositionId; i++) {
+            if (positions[i].isActive) {
+                count++;
+            }
+        }
+        
+        // Create array with exact size
+        positionIds = new uint256[](count);
+        uint256 index = 0;
+        
+        // Fill array with active position IDs
+        for (uint256 i = startIndex; i <= endIndex && i < nextPositionId; i++) {
+            if (positions[i].isActive) {
+                positionIds[index] = i;
+                index++;
+            }
+        }
+    }
+    
+    /**
+     * @dev Checks if a position is at risk of liquidation
+     */
+    function isPositionAtRisk(uint256 positionId) 
+        external view override returns (bool isAtRisk, uint256 riskLevel) {
+        
+        if (!positions[positionId].isActive) {
+            return (false, 0);
+        }
+        
+        try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
+            // Get liquidation threshold
+            LoanPosition memory position = positions[positionId];
+            IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
+            IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
+            
+            uint256 liquidationThreshold = config.liquidationRatio;
+            
+            if (currentRatio <= liquidationThreshold) {
+                // Position is liquidatable
+                riskLevel = 100; // Critical risk
+                isAtRisk = true;
+            } else if (currentRatio <= liquidationThreshold + 200000) { // Within 20% of liquidation
+                // Position is at high risk
+                riskLevel = 85;
+                isAtRisk = true;
+            } else if (currentRatio <= liquidationThreshold + 500000) { // Within 50% of liquidation
+                // Position is at moderate risk
+                riskLevel = 60;
+                isAtRisk = false; // Not yet liquidatable, just monitor
+            } else {
+                // Position is safe
+                riskLevel = 10;
+                isAtRisk = false;
+            }
+        } catch {
+            // If ratio calculation fails, assume at risk for safety
+            return (true, 100);
+        }
+    }
+    
+    /**
+     * @dev Performs automated liquidation of a position
+     */
+    function automatedLiquidation(uint256 positionId) 
+        external override returns (bool success, uint256 liquidatedAmount) {
+        
+        require(automationEnabled, "Automation disabled");
+        require(msg.sender == authorizedAutomationContract, "Unauthorized automation caller");
+        
+        // Check if position can be liquidated
+        require(canLiquidate(positionId), "Position not liquidatable");
+        
+        LoanPosition storage position = positions[positionId];
+        uint256 totalDebt = getTotalDebt(positionId);
+        
+        try this.liquidatePosition(positionId) {
+            success = true;
+            liquidatedAmount = totalDebt;
+        } catch {
+            success = false;
+            liquidatedAmount = 0;
+        }
+    }
+    
+    /**
+     * @dev 🤖 NEW: Vault-funded automated liquidation
+     * Uses VaultBasedHandler liquidity to fund liquidations automatically
+     */
+    function vaultFundedAutomatedLiquidation(uint256 positionId) 
+        external returns (bool success, uint256 liquidatedAmount) {
+        
+        require(automationEnabled, "Automation disabled");
+        require(msg.sender == authorizedAutomationContract, "Unauthorized automation caller");
+        
+        // Check if position can be liquidated
+        require(canLiquidate(positionId), "Position not liquidatable");
+        
+        LoanPosition storage position = positions[positionId];
+        require(position.isActive, "Position not active");
+        
+        // Update interest before liquidation
+        updateInterest(positionId);
+        
+        uint256 totalDebt = getTotalDebt(positionId);
+        uint256 collateralValue = _getAssetValue(position.collateralAsset, position.collateralAmount);
+        
+        // Get the vault handler for the loan asset
+        IAssetHandler loanHandler = _getAssetHandler(position.loanAsset);
+        require(
+            loanHandler.getAssetType(position.loanAsset) == IAssetHandler.AssetType.VAULT_BASED,
+            "Loan asset must be vault-based for automation funding"
+        );
+        
+        // Cast to VaultBasedHandler to access automation functions
+        VaultBasedHandler vaultHandler = VaultBasedHandler(address(loanHandler));
+        
+        // Try to get funding from vault
+        bool fundingSuccess = vaultHandler.automationRepay(
+            position.loanAsset,
+            totalDebt,
+            position.collateralAsset,
+            position.collateralAmount,
+            position.borrower
+        );
+        
+        if (!fundingSuccess) {
+            return (false, 0); // Vault doesn't have enough liquidity
+        }
+        
+        // Calculate liquidation amounts
+        uint256 debtValue = _getAssetValue(position.loanAsset, totalDebt);
+        uint256 liquidationBonusAmount = (collateralValue * liquidationBonus) / 1000000;
+        uint256 liquidatorReward = collateralValue > debtValue + liquidationBonusAmount 
+            ? debtValue + liquidationBonusAmount 
+            : collateralValue;
+        
+        // Transfer collateral to vault handler (it provided the funding)
+        uint256 collateralToVault = (liquidatorReward * position.collateralAmount) / collateralValue;
+        IERC20(position.collateralAsset).safeTransfer(address(vaultHandler), collateralToVault);
+        
+        // Return remaining collateral to borrower (if any)
+        uint256 remainingCollateral = position.collateralAmount - collateralToVault;
+        if (remainingCollateral > 0) {
+            IERC20(position.collateralAsset).safeTransfer(position.borrower, remainingCollateral);
+        }
+        
+        // Close position
+        position.isActive = false;
+        accruedInterest[positionId] = 0;
+        
+        // Note: Vault already received the collateral directly above
+        // No need to call automationRecovery as the transfer was direct
+        
+        emit PositionLiquidated(positionId, msg.sender);
+        
+        return (true, totalDebt);
+    }
+    
+    /**
+     * @dev Gets position health data for automation
+     */
+    function getPositionHealthData(uint256 positionId) 
+        external view override returns (
+            address borrower,
+            uint256 collateralValue,
+            uint256 debtValue,
+            uint256 healthFactor
+        ) {
+        
+        LoanPosition memory position = positions[positionId];
+        if (!position.isActive) {
+            return (address(0), 0, 0, 0);
+        }
+        
+        borrower = position.borrower;
+        collateralValue = _getAssetValue(position.collateralAsset, position.collateralAmount);
+        
+        uint256 totalDebt = getTotalDebt(positionId);
+        debtValue = _getAssetValue(position.loanAsset, totalDebt);
+        
+        // Calculate health factor (higher is better)
+        if (debtValue == 0) {
+            healthFactor = type(uint256).max;
+        } else {
+            healthFactor = (collateralValue * 1000000) / debtValue;
+        }
+    }
+    
+    /**
+     * @dev Checks if automation is enabled
+     */
+    function isAutomationEnabled() external view override returns (bool) {
+        return automationEnabled;
+    }
+    
+    /**
+     * @dev Sets the authorized automation contract
+     */
+    function setAutomationContract(address automationContract) external override onlyOwner {
+        authorizedAutomationContract = automationContract;
+    }
+    
+    /**
+     * @dev Enables or disables automation
+     */
+    function setAutomationEnabled(bool enabled) external onlyOwner {
+        automationEnabled = enabled;
     }
 } 

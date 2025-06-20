@@ -227,17 +227,17 @@ contract VCOPCollateralHook is BaseHook, Ownable {
                             
         // If selling large amount of VCOP, peg could break downward
         // If buying large amount of VCOP, peg could break upward
-        return _isLargeSwap(params);
+        return _isLargeSwap(params) && isVcopSelling; // Only worry about large VCOP sells
     }
     
     /**
      * @dev Before swap hook to check for PSM interactions
      */
     function _beforeSwap(
-        address sender,
+        address /* sender */,
         PoolKey calldata key,
         SwapParams calldata params,
-        bytes calldata hookData
+        bytes calldata /* hookData */
     ) internal override returns (bytes4, BeforeSwapDelta, uint24) {
         // Only process VCOP pools
         if (_isVCOPPool(key)) {
@@ -257,10 +257,10 @@ contract VCOPCollateralHook is BaseHook, Ownable {
      * @dev After swap hook to monitor price and take action if needed
      */
     function _afterSwap(
-        address sender,
+        address /* sender */,
         PoolKey calldata key,
-        SwapParams calldata params,
-        BalanceDelta delta,
+        SwapParams calldata /* params */,
+        BalanceDelta /* delta */,
         bytes calldata
     ) internal override returns (bytes4, int128) {
         if (_isVCOPPool(key)) {
@@ -283,7 +283,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
      * @dev After add liquidity hook to monitor price
      */
     function _afterAddLiquidity(
-        address sender,
+        address /* sender */,
         PoolKey calldata key,
         ModifyLiquidityParams calldata,
         BalanceDelta delta,
@@ -468,7 +468,7 @@ contract VCOPCollateralHook is BaseHook, Ownable {
      */
     function _constrainToAvailableReserves(uint256 amount, bool isVcopSell) internal view returns (uint256) {
         address tokenAddress = Currency.unwrap(stablecoinCurrency);
-        (uint256 collateralAmount, uint256 vcopAmount, bool active) = collateralManager().getPSMReserves(tokenAddress);
+        (uint256 collateralAmount, /* uint256 vcopAmount */, bool active) = collateralManager().getPSMReserves(tokenAddress);
         
         if (!active) {
             return 0;

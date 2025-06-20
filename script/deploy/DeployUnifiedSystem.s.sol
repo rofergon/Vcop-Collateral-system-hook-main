@@ -16,6 +16,7 @@ import {MintableBurnableHandler} from "../../src/core/MintableBurnableHandler.so
 import {VaultBasedHandler} from "../../src/core/VaultBasedHandler.sol";
 import {FlexibleAssetHandler} from "../../src/core/FlexibleAssetHandler.sol";
 import {RiskCalculator} from "../../src/core/RiskCalculator.sol";
+import {DynamicPriceRegistry} from "../../src/core/DynamicPriceRegistry.sol";
 
 // VcopCollateral contracts
 import {VCOPOracle} from "../../src/VcopCollateral/VCOPOracle.sol";
@@ -58,6 +59,7 @@ contract DeployUnifiedSystem is Script {
     address public vaultBasedHandler;
     address public flexibleAssetHandler;
     address public riskCalculator;
+    address public dynamicPriceRegistry;
     
     // VcopCollateral contract addresses
     address public vcopOracle;
@@ -90,18 +92,21 @@ contract DeployUnifiedSystem is Script {
         // Phase 3: Deploy core lending system
         _deployCoreSystem();
         
-        // Phase 4: Configure unified system
+        // Phase 4: Deploy and configure Price Registry
+        _deployAndConfigurePriceRegistry();
+        
+        // Phase 5: Configure unified system
         _configureUnifiedSystem();
         
-        // Phase 5: Final configuration and testing setup
+        // Phase 6: Final configuration and testing setup
         _finalConfiguration();
         
-        // Phase 6: Provide initial liquidity automatically
+        // Phase 7: Provide initial liquidity automatically
         _provideInitialLiquidity();
         
         vm.stopBroadcast();
         
-        // Phase 7: Save addresses and update scripts
+        // Phase 8: Save addresses and update scripts
         _saveDeploymentAddresses();
         _updateOtherScripts();
         
@@ -241,8 +246,8 @@ contract DeployUnifiedSystem is Script {
         console.log("  - USDC: $1 per token"); 
         console.log("  - WBTC: $70,000 per token");
         
-        genericLoanManager = address(new GenericLoanManager(vcopOracle, feeCollector));
-        flexibleLoanManager = address(new FlexibleLoanManager(vcopOracle, feeCollector));
+        genericLoanManager = address(new GenericLoanManager(vcopOracle, feeCollector, address(0)));
+        flexibleLoanManager = address(new FlexibleLoanManager(vcopOracle, feeCollector, address(0), address(0)));
         
         console.log("GenericLoanManager (CORRECTED):", genericLoanManager);
         console.log("FlexibleLoanManager:", flexibleLoanManager);
@@ -251,6 +256,46 @@ contract DeployUnifiedSystem is Script {
         console.log("Deploying Risk Calculator...");
         riskCalculator = address(new RiskCalculator(vcopOracle, genericLoanManager));
         console.log("Risk Calculator deployed at:", riskCalculator);
+    }
+    
+    function _deployAndConfigurePriceRegistry() internal {
+        console.log("\n=== PHASE 4: DEPLOYING DYNAMIC PRICE REGISTRY ===");
+        
+        // Deploy DynamicPriceRegistry with oracle
+        console.log("Deploying Dynamic Price Registry...");
+        dynamicPriceRegistry = address(new DynamicPriceRegistry(vcopOracle));
+        console.log("Dynamic Price Registry deployed at:", dynamicPriceRegistry);
+        
+        // Configure token prices (ETH: $2500, USDC: $1, WBTC: $70000)
+        console.log("Configuring token prices...");
+        DynamicPriceRegistry(dynamicPriceRegistry).configureTokenPrice(
+            mockETH,
+            2500000000, // $2500 in 6-decimal format
+            18          // ETH decimals
+        );
+        console.log("ETH price configured: $2500");
+        
+        DynamicPriceRegistry(dynamicPriceRegistry).configureTokenPrice(
+            mockUSDC,
+            1000000,    // $1 in 6-decimal format
+            6           // USDC decimals
+        );
+        console.log("USDC price configured: $1");
+        
+        DynamicPriceRegistry(dynamicPriceRegistry).configureTokenPrice(
+            mockWBTC,
+            70000000000, // $70000 in 6-decimal format
+            8            // WBTC decimals
+        );
+        console.log("WBTC price configured: $70000");
+        
+        // Update loan managers to use the price registry
+        console.log("Configuring loan managers to use price registry...");
+        GenericLoanManager(genericLoanManager).setPriceRegistry(dynamicPriceRegistry);
+        FlexibleLoanManager(flexibleLoanManager).setPriceRegistry(dynamicPriceRegistry);
+        console.log("Loan managers configured with Dynamic Price Registry");
+        
+        console.log("Dynamic Price Registry setup completed");
     }
     
     function _configureUnifiedSystem() internal {
@@ -431,7 +476,23 @@ contract DeployUnifiedSystem is Script {
     function _saveDeploymentAddresses() internal {
         console.log("\n=== PHASE 7: SAVING DEPLOYMENT ADDRESSES ===");
         
-        // Create JSON string with all addresses
+        // ⚡ FIXED: Read existing Emergency Registry if already deployed
+        string memory existingEmergencyRegistry = "";
+        try vm.readFile("deployed-addresses.json") returns (string memory existingContent) {
+            try vm.parseJson(existingContent, ".emergencyRegistry") returns (bytes memory data) {
+                address emergencyAddr = abi.decode(data, (address));
+                if (emergencyAddr != address(0)) {
+                    existingEmergencyRegistry = _addressToString(emergencyAddr);
+                    console.log("Preserving existing Emergency Registry:", existingEmergencyRegistry);
+                }
+            } catch {
+                // No existing emergency registry - will use empty string
+            }
+        } catch {
+            // No existing file - will use empty string
+        }
+        
+        // Create JSON string with all addresses (preserving Emergency Registry)
         string memory json = string(abi.encodePacked(
             "{\n",
             '  "network": "Base Sepolia",\n',
@@ -458,7 +519,9 @@ contract DeployUnifiedSystem is Script {
             '    "mintableBurnableHandler": "', _addressToString(mintableBurnableHandler), '",\n',
             '    "flexibleAssetHandler": "', _addressToString(flexibleAssetHandler), '",\n',
             '    "riskCalculator": "', _addressToString(riskCalculator), '"\n',
-            '  }\n',
+            '  },\n',
+            '  "priceRegistry": "', _addressToString(dynamicPriceRegistry), '",\n',
+            '  "emergencyRegistry": "', existingEmergencyRegistry, '"\n',
             '}'
         ));
         
@@ -566,7 +629,8 @@ contract DeployUnifiedSystem is Script {
             "VAULT_HANDLER_ADDRESS=", _addressToString(vaultBasedHandler), "\n",
             "MINTABLE_BURNABLE_HANDLER_ADDRESS=", _addressToString(mintableBurnableHandler), "\n",
             "FLEXIBLE_ASSET_HANDLER_ADDRESS=", _addressToString(flexibleAssetHandler), "\n",
-            "RISK_CALCULATOR_ADDRESS=", _addressToString(riskCalculator), "\n\n",
+            "RISK_CALCULATOR_ADDRESS=", _addressToString(riskCalculator), "\n",
+            "DYNAMIC_PRICE_REGISTRY_ADDRESS=", _addressToString(dynamicPriceRegistry), "\n\n",
             "# Chain Configuration\n",
             "CHAIN_ID=84532\n",
             "DEPLOYER_ADDRESS=", _addressToString(msg.sender), "\n"
@@ -625,6 +689,7 @@ contract DeployUnifiedSystem is Script {
         console.log("MintableBurnableHandler:", mintableBurnableHandler);
         console.log("VaultBasedHandler:      ", vaultBasedHandler);
         console.log("FlexibleAssetHandler:   ", flexibleAssetHandler);
+        console.log("Dynamic Price Registry: ", dynamicPriceRegistry);
         console.log("");
         console.log("SYSTEM CONFIGURATION:");
         console.log("Fee Collector:          ", feeCollector);
