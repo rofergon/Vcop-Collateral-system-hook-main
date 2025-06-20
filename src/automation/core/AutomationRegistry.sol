@@ -1,14 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+// WARNING: DEPRECATED CONTRACT - NO LONGER USED
+// ==========================================
+// This contract has been deprecated in favor of using the official Chainlink Automation Registry.
+// Both production and mock deployments now use the official Chainlink infrastructure:
+// Registry Address (Base Sepolia): 0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3
+//
+// This file is kept for reference but should not be deployed in new systems.
+// Use DeployAutomationProduction.s.sol or DeployAutomationMock.s.sol instead.
+// ==========================================
+
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {IAutomationRegistry} from "../interfaces/IAutomationRegistry.sol";
 import {ILoanAutomation} from "../interfaces/ILoanAutomation.sol";
 
 /**
- * @title AutomationRegistry
- * @notice Registry contract for managing loan managers in the automation system
- * @dev Keeps track of all registered loan managers and their settings
+ * @title AutomationRegistry - DEPRECATED
+ * @notice This contract is no longer used - replaced by official Chainlink Registry
+ * @dev DEPRECATED: Use official Chainlink Automation Registry instead
  */
 contract AutomationRegistry is IAutomationRegistry, Ownable {
     

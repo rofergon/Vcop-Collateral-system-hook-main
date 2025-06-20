@@ -45,6 +45,10 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
     mapping(uint256 => uint256) public lastLiquidationAttempt;
     uint256 public liquidationCooldown = 300; // 5 minutos
     
+    //  SEGURIDAD: Chainlink Forwarder
+    address public chainlinkForwarder;
+    bool public forwarderRestricted = false;
+    
     // Events simplificados pero informativos
     event UpkeepPerformed(
         address indexed loanManager,
@@ -59,6 +63,8 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
     );
     event ManagerRegistered(address indexed manager, uint256 priority);
     event EmergencyPaused(bool paused);
+    event ForwarderSet(address indexed forwarder);
+    event ForwarderRestrictionToggled(bool restricted);
     
     constructor(address _automationRegistry) Ownable(msg.sender) {
         require(_automationRegistry != address(0), "Invalid registry address");
@@ -70,6 +76,11 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
      * @param checkData ABI-encoded: (loanManager, startIndex, batchSize)
      * @return upkeepNeeded True si se necesita ejecutar liquidaciones
      * @return performData Datos para performUpkeep
+     * 
+     * 🔧 IMPORTANT FIX: Este función corrige un problema de mapeo de índices donde:
+     * - Los position IDs en FlexibleLoanManager comienzan en 1, no en 0
+     * - El startIndex=0 en checkData se convierte automáticamente a startPositionId=1
+     * - Esto evita que getPositionsInRange(0,0) regrese un array vacío cuando existe posición ID 1
      */
     function checkUpkeep(
         bytes calldata checkData
@@ -90,9 +101,13 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
             uint256 startIndex,
             uint256 batchSize
         ) {
-            // Validar manager está activo
-            if (!automationRegistry.isManagerActive(loanManager)) {
-                return (false, bytes(""));
+            // Validar manager está activo (si el registry lo soporta)
+            try automationRegistry.isManagerActive(loanManager) returns (bool isActive) {
+                if (!isActive) {
+                    return (false, bytes(""));
+                }
+            } catch {
+                // Registry no soporta isManagerActive (registry oficial Chainlink), continuar
             }
             
             if (!registeredManagers[loanManager]) {
@@ -108,19 +123,32 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
             
             //  Obtener posiciones
             uint256 totalPositions = loanAutomation.getTotalActivePositions();
-            if (totalPositions == 0 || startIndex >= totalPositions) {
+            if (totalPositions == 0) {
                 return (false, bytes(""));
             }
             
+            // ✅ FIXED: Corregir lógica de índices para IDs de posición que comienzan en 1
+            // startIndex en checkData debe interpretarse como startPositionId
+            uint256 startPositionId = startIndex == 0 ? 1 : startIndex; // IDs comienzan en 1
+            
             // OPTIMIZACIÓN: Calcular batch size dinámico
             uint256 optimalBatchSize = _calculateOptimalBatchSize(batchSize, totalPositions);
-            uint256 endIndex = startIndex + optimalBatchSize - 1;
-            if (endIndex >= totalPositions) {
-                endIndex = totalPositions - 1;
+            uint256 endPositionId = startPositionId + optimalBatchSize - 1;
+            
+            // ✅ FIXED: No limitar por totalPositions, sino por el rango máximo razonable
+            // El loan manager se encarga de filtrar posiciones inactivas
+            if (endPositionId > startPositionId + 100) { // Máximo 100 posiciones por batch
+                endPositionId = startPositionId + 100;
             }
             
-            //  Obtener posiciones en rango
-            uint256[] memory positions = loanAutomation.getPositionsInRange(startIndex, endIndex);
+            //  Obtener posiciones en rango (ahora con IDs correctos)
+            uint256[] memory positions = loanAutomation.getPositionsInRange(startPositionId, endPositionId);
+            
+            // Si no hay posiciones en este rango, probar con rango más amplio
+            if (positions.length == 0 && startPositionId == 1) {
+                // Fallback: buscar en un rango más amplio desde el ID 1
+                positions = loanAutomation.getPositionsInRange(1, 50);
+            }
             
             //  BUSCAR POSICIONES LIQUIDABLES
             uint256[] memory liquidatablePositions = new uint256[](positions.length);
@@ -179,6 +207,11 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
         
         require(!emergencyPause, "Emergency paused");
         
+        // SEGURIDAD: Solo permitir llamadas del Chainlink Forwarder
+        if (forwarderRestricted) {
+            require(msg.sender == chainlinkForwarder, "Only Chainlink Forwarder allowed");
+        }
+        
         uint256 gasStart = gasleft();
         
         //  Decode performData
@@ -189,8 +222,12 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
             uint256 timestamp
         ) = abi.decode(performData, (address, uint256[], uint256[], uint256));
         
-        // Validaciones de seguridad
-        require(automationRegistry.isManagerActive(loanManager), "Manager not active");
+        // Validaciones de seguridad (si el registry lo soporta)
+        try automationRegistry.isManagerActive(loanManager) returns (bool isActive) {
+            require(isActive, "Manager not active");
+        } catch {
+            // Registry no soporta isManagerActive (registry oficial Chainlink), continuar
+        }
         require(registeredManagers[loanManager], "Manager not registered");
         require(block.timestamp - timestamp <= 300, "Data too old"); // Max 5 min
         
@@ -242,7 +279,18 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
     // ========== OPTIMIZACIONES INTERNAS ==========
     
     /**
+     * @dev Detecta si estamos usando un registry personalizado vs Chainlink oficial
+     */
+    function _isCustomRegistry() internal view returns (bool) {
+        // Direcciones oficiales de Chainlink en Base Sepolia
+        // Si es el registry oficial, NO hacemos validación isManagerActive
+        return address(automationRegistry) != 0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3;
+    }
+    
+    /**
      * @dev Calcula batch size óptimo basado en condiciones
+     * 🔧 FIXED: No limitar por totalPositions ya que esto es el conteo de posiciones activas,
+     * no el rango máximo de IDs que podemos buscar
      */
     function _calculateOptimalBatchSize(
         uint256 requestedSize, 
@@ -251,14 +299,16 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
         
         uint256 optimalSize = requestedSize > 0 ? requestedSize : maxPositionsPerBatch;
         
-        // No exceder posiciones disponibles
-        if (optimalSize > totalPositions) {
-            optimalSize = totalPositions;
-        }
+        // ✅ REMOVED: No limitar por totalPositions ya que los IDs pueden ser dispersos
+        // Los IDs de posición pueden ser mucho más altos que el número de posiciones activas
+        // La función getPositionsInRange se encarga de filtrar posiciones activas
         
-        // Mínimo de 1
+        // Mínimo de 1, máximo razonable para evitar gas excesivo
         if (optimalSize == 0) {
             optimalSize = 1;
+        }
+        if (optimalSize > 100) { // Límite máximo razonable
+            optimalSize = 100;
         }
         
         return optimalSize;
@@ -342,6 +392,23 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
         emit EmergencyPaused(_paused);
     }
     
+    /**
+     * @dev Configura la dirección del Chainlink Forwarder (obtenida después del registro)
+     */
+    function setChainlinkForwarder(address _forwarder) external onlyOwner {
+        require(_forwarder != address(0), "Invalid forwarder address");
+        chainlinkForwarder = _forwarder;
+        emit ForwarderSet(_forwarder);
+    }
+    
+    /**
+     * @dev Activa/desactiva la restricción del Forwarder para seguridad
+     */
+    function setForwarderRestriction(bool _restricted) external onlyOwner {
+        forwarderRestricted = _restricted;
+        emit ForwarderRestrictionToggled(_restricted);
+    }
+    
     // ========== UTILIDADES ==========
     
     /**
@@ -364,6 +431,26 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
         uint256 batchSize
     ) external pure returns (bytes memory) {
         return abi.encode(loanManager, startIndex, batchSize);
+    }
+    
+    /**
+     * @dev ✅ NEW: Genera checkData optimizado para automation
+     * @param loanManager Address del loan manager
+     * @param startPositionId ID de posición inicial (usar 0 para auto-start desde 1)
+     * @param batchSize Tamaño de batch (usar 0 para batch automático)
+     */
+    function generateOptimizedCheckData(
+        address loanManager,
+        uint256 startPositionId,
+        uint256 batchSize
+    ) external pure returns (bytes memory) {
+        // Si no se especifica startPositionId, usar 0 (se convertirá a 1 en checkUpkeep)
+        uint256 effectiveStartId = startPositionId == 0 ? 0 : startPositionId;
+        
+        // Si no se especifica batchSize, usar valor por defecto
+        uint256 effectiveBatchSize = batchSize == 0 ? 25 : batchSize;
+        
+        return abi.encode(loanManager, effectiveStartId, effectiveBatchSize);
     }
     
     /**

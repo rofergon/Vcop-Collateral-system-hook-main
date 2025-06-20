@@ -1,30 +1,30 @@
 #!/bin/bash
 
-# Script para actualizar deployed-addresses.json con las direcciones de automatización
-# Este script actualiza con contratos propios + direcciones oficiales de Chainlink
+# Script para actualizar deployed-addresses-mock.json con las direcciones de automatización
+# Este script lee las direcciones del output del script de despliegue y actualiza el JSON
 
-echo "ACTUALIZANDO deployed-addresses.json CON DIRECCIONES DE AUTOMATIZACIÓN..."
+echo "🔧 ACTUALIZANDO deployed-addresses-mock.json CON DIRECCIONES DE AUTOMATIZACIÓN..."
 echo "================================================================"
 
 # Verificar que existe el archivo JSON
-if [ ! -f "deployed-addresses.json" ]; then
-    echo "❌ ERROR: deployed-addresses.json no encontrado!"
-    echo "Ejecuta 'make deploy-complete' primero"
+if [ ! -f "deployed-addresses-mock.json" ]; then
+    echo "❌ ERROR: deployed-addresses-mock.json no encontrado!"
+    echo "Ejecuta 'make deploy-complete-mock' primero"
     exit 1
 fi
 
 # Buscar las direcciones en el log más reciente
-LOG_FILE=$(find broadcast -name "run-latest.json" | grep DeployAutomationProduction | head -1)
+LOG_FILE=$(find broadcast -name "run-latest.json" | grep DeployAutomationMock | head -1)
 
 if [ ! -f "$LOG_FILE" ]; then
-    echo "ERROR: No se encontró el archivo de log de despliegue de automatización"
-    echo "Ejecuta 'make deploy-automation' primero"
+    echo "❌ ERROR: No se encontró el archivo de log de despliegue de automatización"
+    echo "Ejecuta 'make deploy-automation-mock' primero"
     exit 1
 fi
 
-echo "Leyendo direcciones del log: $LOG_FILE"
+echo "📋 Leyendo direcciones del log: $LOG_FILE"
 
-# Direcciones oficiales de Chainlink (Base Sepolia)
+# Direcciones oficiales de Chainlink (Base Sepolia) - mismo que producción
 AUTOMATION_REGISTRY="0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3"
 
 # Extraer direcciones propias del broadcast
@@ -45,7 +45,7 @@ if [[ -z "$AUTOMATION_REGISTRY" || -z "$AUTOMATION_KEEPER" || -z "$LOAN_ADAPTER"
 fi
 
 # Crear backup del JSON original
-cp deployed-addresses.json deployed-addresses.json.backup
+cp deployed-addresses-mock.json deployed-addresses-mock.json.backup
 
 # Actualizar el JSON agregando la sección de automatización
 jq --arg registry "$AUTOMATION_REGISTRY" \
@@ -59,22 +59,22 @@ jq --arg registry "$AUTOMATION_REGISTRY" \
        "loanAdapter": $adapter,
        "priceTrigger": $trigger
      }
-   }' deployed-addresses.json > deployed-addresses-temp.json
+   }' deployed-addresses-mock.json > deployed-addresses-mock-temp.json
 
 # Verificar que el JSON es válido
-if jq empty deployed-addresses-temp.json; then
-    mv deployed-addresses-temp.json deployed-addresses.json
+if jq empty deployed-addresses-mock-temp.json; then
+    mv deployed-addresses-mock-temp.json deployed-addresses-mock.json
     echo ""
-    echo "deployed-addresses.json ACTUALIZADO EXITOSAMENTE!"
+    echo "✅ deployed-addresses-mock.json ACTUALIZADO EXITOSAMENTE!"
     echo "=================================================="
     echo ""
-    echo "Nueva sección de automatización agregada:"
-    jq .automation deployed-addresses.json
+    echo "📋 Nueva sección de automatización agregada:"
+    jq .automation deployed-addresses-mock.json
     echo ""
-    echo "Backup guardado como: deployed-addresses.json.backup"
-    echo "Sistema listo para usar Chainlink Automation oficial"
+    echo "💾 Backup guardado como: deployed-addresses-mock.json.backup"
+    echo "🚀 Ahora puedes usar la automatización con el sistema mock para pruebas de liquidación"
 else
-    echo "ERROR: JSON resultante no es válido"
-    rm deployed-addresses-temp.json
+    echo "❌ ERROR: JSON resultante no es válido"
+    rm deployed-addresses-mock-temp.json
     exit 1
 fi 

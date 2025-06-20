@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "v4-core/lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {ILoanManager} from "../interfaces/ILoanManager.sol";
@@ -18,7 +19,7 @@ import {RewardDistributor} from "./RewardDistributor.sol";
  * @notice ULTRA-FLEXIBLE loan manager - NO ratio limits, only prevents negative values
  * @dev Allows ANY ratio as long as math doesn't break. All risk management in frontend.
  */
-contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
+contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownable {
     using SafeERC20 for IERC20;
     
     // Asset handlers for different types of assets
@@ -50,6 +51,10 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
     
     // Emergency pause (only for bugs/exploits)
     bool public paused = false;
+    
+    // Automation settings
+    bool public automationEnabled = true;
+    address public authorizedAutomationContract;
     
     // Reward system
     RewardDistributor public rewardDistributor;
@@ -493,7 +498,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
         if (address(oracle) != address(0)) {
             try oracle.getPrice(asset, address(0)) returns (uint256 price) {
                 if (price > 0) {
-                    return (amount * price) / 1e18; // Assuming 18 decimals
+                    // 🔧 FIX: Use correct decimals instead of assuming 18
+                    uint256 decimals = _getTokenDecimals(asset);
+                    return (amount * price) / (10 ** decimals);
                 }
             } catch {
                 // Oracle failed, continue to fallback
@@ -503,6 +510,17 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
         // 🎯 PRIORITY 3: Emergency fallback - assume 1:1 ratio
         // This should only happen in extreme cases
         return amount;
+    }
+    
+    /**
+     * @dev Gets token decimals, with fallback to 18
+     */
+    function _getTokenDecimals(address token) internal view returns (uint256) {
+        try IERC20Metadata(token).decimals() returns (uint8 decimals) {
+            return decimals;
+        } catch {
+            return 18; // Default fallback
+        }
     }
     
     /**
@@ -666,5 +684,165 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, Ownable {
             rewardDistributor.updateStake(REWARD_POOL_ID, user, amount, isIncrease);
             emit RewardsUpdated(user, amount, REWARD_POOL_ID);
         }
+    }
+    
+    // ========== AUTOMATION INTERFACE IMPLEMENTATION ==========
+    
+    /**
+     * @dev Gets the total number of active positions
+     */
+    function getTotalActivePositions() external view override returns (uint256) {
+        uint256 count = 0;
+        for (uint256 i = 1; i < nextPositionId; i++) {
+            if (positions[i].isActive) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    /**
+     * @dev Gets positions in a specific range for batch processing
+     */
+    function getPositionsInRange(uint256 startIndex, uint256 endIndex) 
+        external view override returns (uint256[] memory positionIds) {
+        
+        require(startIndex <= endIndex, "Invalid range");
+        
+        // Count active positions in range first
+        uint256 count = 0;
+        for (uint256 i = startIndex; i <= endIndex && i < nextPositionId; i++) {
+            if (positions[i].isActive) {
+                count++;
+            }
+        }
+        
+        // Create array with exact size
+        positionIds = new uint256[](count);
+        uint256 index = 0;
+        
+        // Fill array with active position IDs
+        for (uint256 i = startIndex; i <= endIndex && i < nextPositionId; i++) {
+            if (positions[i].isActive) {
+                positionIds[index] = i;
+                index++;
+            }
+        }
+    }
+    
+    /**
+     * @dev Checks if a position is at risk of liquidation
+     */
+    function isPositionAtRisk(uint256 positionId) 
+        external view override returns (bool isAtRisk, uint256 riskLevel) {
+        
+        if (!positions[positionId].isActive) {
+            return (false, 0);
+        }
+        
+        try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
+            // Get liquidation threshold
+            LoanPosition memory position = positions[positionId];
+            IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
+            IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
+            
+            uint256 liquidationThreshold = config.liquidationRatio;
+            
+            if (currentRatio <= liquidationThreshold) {
+                // Position is liquidatable
+                riskLevel = 100; // Critical risk
+                isAtRisk = true;
+            } else if (currentRatio <= liquidationThreshold + 200000) { // Within 20% of liquidation
+                // Position is at high risk
+                riskLevel = 85;
+                isAtRisk = true;
+            } else if (currentRatio <= liquidationThreshold + 500000) { // Within 50% of liquidation
+                // Position is at moderate risk
+                riskLevel = 60;
+                isAtRisk = false; // Not yet liquidatable, just monitor
+            } else {
+                // Position is safe
+                riskLevel = 10;
+                isAtRisk = false;
+            }
+        } catch {
+            // If ratio calculation fails, assume at risk for safety
+            return (true, 100);
+        }
+    }
+    
+    /**
+     * @dev Performs automated liquidation of a position
+     */
+    function automatedLiquidation(uint256 positionId) 
+        external override returns (bool success, uint256 liquidatedAmount) {
+        
+        require(automationEnabled, "Automation disabled");
+        require(msg.sender == authorizedAutomationContract, "Unauthorized automation caller");
+        
+        // Check if position can be liquidated
+        require(canLiquidate(positionId), "Position not liquidatable");
+        
+        LoanPosition storage position = positions[positionId];
+        uint256 totalDebt = getTotalDebt(positionId);
+        
+        try this.liquidatePosition(positionId) {
+            success = true;
+            liquidatedAmount = totalDebt;
+        } catch {
+            success = false;
+            liquidatedAmount = 0;
+        }
+    }
+    
+    /**
+     * @dev Gets position health data for automation
+     */
+    function getPositionHealthData(uint256 positionId) 
+        external view override returns (
+            address borrower,
+            uint256 collateralValue,
+            uint256 debtValue,
+            uint256 healthFactor
+        ) {
+        
+        LoanPosition memory position = positions[positionId];
+        if (!position.isActive) {
+            return (address(0), 0, 0, 0);
+        }
+        
+        borrower = position.borrower;
+        collateralValue = _getAssetValue(position.collateralAsset, position.collateralAmount);
+        
+        uint256 totalDebt = getTotalDebt(positionId);
+        debtValue = _getAssetValue(position.loanAsset, totalDebt);
+        
+        // Calculate health factor (higher is better)
+        if (debtValue == 0) {
+            healthFactor = type(uint256).max;
+        } else {
+            healthFactor = (collateralValue * 1000000) / debtValue;
+        }
+    }
+    
+    /**
+     * @dev Checks if automation is enabled
+     */
+    function isAutomationEnabled() external view override returns (bool) {
+        return automationEnabled;
+    }
+    
+    /**
+     * @dev Sets the authorized automation contract
+     */
+    function setAutomationContract(address automationContract) external override onlyOwner {
+        authorizedAutomationContract = automationContract;
+    }
+    
+    /**
+     * @dev Enables or disables automation
+     */
+    function setAutomationEnabled(bool enabled) external onlyOwner {
+        automationEnabled = enabled;
     }
 } 

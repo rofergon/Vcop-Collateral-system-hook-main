@@ -1,0 +1,29 @@
+{
+  "oracleType": "MockVCOPOracle",
+  "tokens": {
+    "mockETH": "0x337637Ce34F4C55e6b0A6c7f7D644d18c02AEe73",
+    "mockWBTC": "0x65935B66782932193FFFb83dcfC8e91fEB16509b",
+    "mockUSDC": "0x944da8750F26E19d3566602bA71b67699fa71Bc8",
+    "vcopToken": "0x833C648eC067DB2849a166d865D63fA82C82d95C"
+  },
+  "vcopCollateral": {
+    "mockVcopOracle": "0x89be56070759E93Fe8b19fD970952A82f5b2A72f",
+    "vcopPriceCalculator": "0xbc63a92d9FCc669bc3438E9Ec8D7f12E781b4526",
+    "vcopCollateralManager": "0xab3f2a2D6728AAf84C6E82a132e5060bee973357",
+    "vcopCollateralHook": "0xFc4c2FeddBd49b86525b339206EA5C66c18e84C0"
+  },
+  "coreLending": {
+    "riskCalculator": "0x53CA5CB6b0315167962273399F3C2713E96FD78c",
+    "genericLoanManager": "0xa5F72B6588330B1a375c405cFb9325158992e933",
+    "flexibleLoanManager": "0xE1Fdf51b91B04BBa671117Bf274b027aD48f118D",
+    "mintableBurnableHandler": "0x62213e4b10aCCAaC7EcC8dFB944C3f281daa4CE5",
+    "vaultBasedHandler": "0x78728D231fE0A3CF2C4c308f90C965915fE5362f",
+    "flexibleAssetHandler": "0x176BEeD2CF1cE3199E16a03966E921DCc7d92A41",
+    "dynamicPriceRegistry": "0xC66266684CeCB42648D2E91A0aB7624d0F6bA4e0"
+  },
+  "config": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "feeCollector": "0xA6B3D200cD34ca14d7579DAc8B054bf50a62c37c",
+    "usdToCopRate": "4200000000"
+  }
+}

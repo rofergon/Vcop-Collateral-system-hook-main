@@ -1,6 +1,6 @@
-# 🚀 VCOP Collateral System - Clean Modular Makefile
-# =====================================================
-# Essential commands only - modules loaded from make/
+# 🚀 VCOP Collateral System - Enhanced Modular Makefile
+# ======================================================
+# Complete stack deployment with Chainlink automation
 
 # Network configuration
 RPC_URL := https://sepolia.base.org
@@ -15,40 +15,53 @@ include make/utils.mk
 .PHONY: help build clean
 
 # ========================================
-# 📚 HELP - Essential Commands Only
+# 📚 HELP - Enhanced Commands
 # ========================================
 
 help:
 	@echo ""
-	@echo "VCOP COLLATERAL SYSTEM - Essential Commands"
-	@echo "============================================"
+	@echo "VCOP COLLATERAL SYSTEM - Enhanced Commands"
+	@echo "==========================================="
 	@echo ""
-	@echo "🚀 MAIN DEPLOYMENT"
-	@echo "make deploy-complete          - Complete deployment (recommended)"
-	@echo "make deploy-complete-mock     - Deploy with MockOracle for testing"
-	@echo "make deploy-automation        - Deploy Chainlink Automation"
-	@echo "make deploy-automation-mock   - Deploy automation for mock system"
+	@echo "🎯 COMPLETE STACK DEPLOYMENT (RECOMMENDED)"
+	@echo "deploy-full-stack             - Complete system + Chainlink automation"
+	@echo "deploy-full-stack-mock        - Complete mock system + automation testing"
 	@echo ""
-	@echo "🧪 TESTING"
-	@echo "make test-automation-flow     - Complete automation test flow"
-	@echo "make create-test-loan         - Create test loan position"
-	@echo "make liquidate-position       - Liquidate test position"
+	@echo "🚀 CORE SYSTEM DEPLOYMENT"
+	@echo "deploy-complete               - Core system with real Oracle"
+	@echo "deploy-complete-mock          - Core system with MockOracle for testing"
 	@echo ""
-	@echo "🔍 STATUS & VERIFICATION"
-	@echo "make check-status             - Check deployment status"
-	@echo "make check-addresses          - Show all contract addresses"
-	@echo "make test-oracle              - Test Oracle functionality"
+	@echo "🤖 CHAINLINK AUTOMATION"
+	@echo "deploy-automation-complete    - Complete Chainlink automation setup"
+	@echo "deploy-automation             - Deploy automation contracts only"
+	@echo "register-chainlink-upkeep     - Register with official Chainlink"
+	@echo "configure-forwarder           - Configure Forwarder security"
+	@echo ""
+	@echo "🧪 TESTING & VERIFICATION"
+	@echo "test-automation-flow          - Complete automation test flow"
+	@echo "create-test-loan              - Create test loan position"
+	@echo "liquidate-position            - Liquidate test position"
+	@echo ""
+	@echo "🔍 STATUS & MONITORING"
+	@echo "check-status                  - Check all deployment status"
+	@echo "check-chainlink-status        - Check Chainlink upkeep status"
+	@echo "check-addresses               - Show all contract addresses"
+	@echo "test-oracle                   - Test Oracle functionality"
 	@echo ""
 	@echo "🛠️ UTILITIES"
-	@echo "make build                    - Smart compilation"
-	@echo "make clean                    - Clean build artifacts"
-	@echo "make check-gas                - Check gas prices"
+	@echo "build                         - Smart compilation"
+	@echo "clean                         - Clean build artifacts"
+	@echo "check-gas                     - Check gas prices"
 	@echo ""
 	@echo "📋 For detailed help: make help-[module]"
-	@echo "   help-core     - Core deployment commands"
-	@echo "   help-automation - Automation commands"
-	@echo "   help-testing  - Testing commands"
-	@echo "   help-utils    - Utility commands"
+	@echo "   help-core         - Core deployment commands"
+	@echo "   help-automation   - Automation commands"
+	@echo "   help-testing      - Testing commands"
+	@echo "   help-utils        - Utility commands"
+	@echo ""
+	@echo "🌟 QUICK START GUIDES:"
+	@echo "   Production:  make deploy-full-stack"
+	@echo "   Testing:     make deploy-full-stack-mock"
 
 # ========================================
 # 🔨 BASIC BUILD COMMANDS
@@ -66,11 +79,11 @@ clean:
 # 🚀 MAIN DEPLOYMENT SHORTCUTS
 # ========================================
 
-# Main deployment with real oracle
-deploy: deploy-complete
+# Main deployment with real oracle + automation
+deploy: deploy-full-stack
 
-# Test deployment with mock oracle
-deploy-test: deploy-complete-mock
+# Test deployment with mock oracle + automation
+deploy-test: deploy-full-stack-mock
 
 # Quick status check
 status: check-status
