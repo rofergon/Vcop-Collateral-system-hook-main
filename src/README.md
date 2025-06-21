@@ -19,41 +19,41 @@ The VCOP System is a **collateralized stablecoin protocol** that implements:
 graph TB
     subgraph "🏦 VcopCollateral - Stablecoin Core"
         VC[VCOPCollateralized<br/>💰 Token VCOP]
-        VCM[VCOPCollateralManager<br/>🏛️ Gestor Principal]
+        VCM[VCOPCollateralManager<br/>🏛️ Main Manager]
         VCH[VCOPCollateralHook<br/>🔗 Hook Uniswap v4]
-        VO[VCOPOracle<br/>📊 Oráculo de Precios]
-        VPC[VCOPPriceCalculator<br/>🧮 Calculador]
+        VO[VCOPOracle<br/>📊 Price Oracle]
+        VPC[VCOPPriceCalculator<br/>🧮 Calculator]
     end
     
     subgraph "⚙️ Automation - Chainlink Integration"
-        AR[AutomationRegistry<br/>📋 Registry Central]
-        LAK[LoanAutomationKeeper<br/>🤖 Keeper Principal]
-        LMAA[LoanManagerAdapter<br/>🔌 Adaptador]
-        PCLT[PriceChangeLogTrigger<br/>⚡ Trigger de Eventos]
+        AR[AutomationRegistry<br/>📋 Central Registry]
+        LAK[LoanAutomationKeeper<br/>🤖 Main Keeper]
+        LMAA[LoanManagerAdapter<br/>🔌 Adapter]
+        PCLT[PriceChangeLogTrigger<br/>⚡ Event Trigger]
     end
     
     subgraph "💎 Core - Lending & Rewards"
-        FLM[FlexibleLoanManager<br/>💰 Préstamos Ultra-Flexibles]
-        GLM[GenericLoanManager<br/>💼 Préstamos Estándar]
-        RD[RewardDistributor<br/>🎁 Distribuidor de Recompensas]
-        FAH[FlexibleAssetHandler<br/>🏪 Manejador de Activos]
-        VBH[VaultBasedHandler<br/>🏦 Handler Basado en Vault]
-        DPR[DynamicPriceRegistry<br/>💱 Registry de Precios]
-        ER[EmergencyRegistry<br/>🚨 Registry de Emergencias]
-        RC[RiskCalculator<br/>📈 Calculador de Riesgo]
+        FLM[FlexibleLoanManager<br/>💰 Ultra-Flexible Loans]
+        GLM[GenericLoanManager<br/>💼 Standard Loans]
+        RD[RewardDistributor<br/>🎁 Reward Distributor]
+        FAH[FlexibleAssetHandler<br/>🏪 Asset Handler]
+        VBH[VaultBasedHandler<br/>🏦 Vault-Based Handler]
+        DPR[DynamicPriceRegistry<br/>💱 Price Registry]
+        ER[EmergencyRegistry<br/>🚨 Emergency Registry]
+        RC[RiskCalculator<br/>📈 Risk Calculator]
     end
     
     subgraph "🔌 Interfaces - Standard Contracts"
-        ILM[ILoanManager<br/>📋 Interfaz Préstamos]
-        IAH[IAssetHandler<br/>🔧 Interfaz Activos]
-        IGO[IGenericOracle<br/>📊 Interfaz Oráculos]
-        IR[IRewardable<br/>🎁 Interfaz Recompensas]
+        ILM[ILoanManager<br/>📋 Loan Interface]
+        IAH[IAssetHandler<br/>🔧 Asset Interface]
+        IGO[IGenericOracle<br/>📊 Oracle Interface]
+        IR[IRewardable<br/>🎁 Reward Interface]
     end
     
     subgraph "🧪 Mocks - Testing Tools"
-        MUSDC[MockUSDC<br/>💵 USDC Simulado]
-        METH[MockETH<br/>⚡ ETH Simulado]
-        MWBTC[MockWBTC<br/>₿ WBTC Simulado]
+        MUSDC[MockUSDC<br/>💵 Simulated USDC]
+        METH[MockETH<br/>⚡ Simulated ETH]
+        MWBTC[MockWBTC<br/>₿ Simulated WBTC]
     end
     
     %% Main relationships
