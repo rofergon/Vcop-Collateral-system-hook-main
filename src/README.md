@@ -250,7 +250,7 @@ graph TB
 
 **`FlexibleLoanManager.sol` - Gestor Ultra-Flexible** ⭐
 ```solidity
-// Características revolucionarias:
+// Características inovadoras:
 - SIN límites de ratio de colateralización
 - Permite cualquier ratio mientras no haya overflow matemático
 - Gestión de riesgo transferida al frontend/usuario
