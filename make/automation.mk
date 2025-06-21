@@ -176,54 +176,37 @@ setup-chainlink-automation:
 
 # Register upkeep with official Chainlink Registry
 register-chainlink-upkeep:
-	@echo "🔗 REGISTERING UPKEEP WITH CHAINLINK"
-	@echo "==================================="
-	@echo "⚠️  REQUIREMENTS:"
-	@echo "   - At least 5 LINK tokens in your wallet"
-	@echo "   - Connected to Base Sepolia network"
+	@echo "📋 CHAINLINK UPKEEP REGISTRATION GUIDE"
+	@echo "======================================"
 	@echo ""
-	@if [ ! -f "deployed-addresses.json" ]; then \
-		echo "❌ deployed-addresses.json not found!"; \
-		exit 1; \
-	fi
-	@AUTOMATION_KEEPER=$$(jq -r '.automation.automationKeeper // ""' deployed-addresses.json) && \
-	FLEXIBLE_LOAN_MANAGER=$$(jq -r '.coreLending.flexibleLoanManager // ""' deployed-addresses.json) && \
-	if [ "$$AUTOMATION_KEEPER" = "" ] || [ "$$AUTOMATION_KEEPER" = "null" ]; then \
-		echo "❌ Automation contracts not deployed! Run 'make deploy-automation' first"; \
-		exit 1; \
-	fi && \
-	export AUTOMATION_KEEPER_ADDRESS="$$AUTOMATION_KEEPER" && \
-	export FLEXIBLE_LOAN_MANAGER_ADDRESS="$$FLEXIBLE_LOAN_MANAGER" && \
-	. ./.env && forge script script/automation/RegisterChainlinkUpkeep.s.sol:RegisterChainlinkUpkeep \
-		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "🌐 Go to: https://automation.chain.link/base-sepolia"
 	@echo ""
-	@echo "✅ UPKEEP REGISTERED WITH CHAINLINK!"
-	@echo "📋 IMPORTANT: Note the Forwarder address from the output above."
-	@echo "    You'll need it for the next step."
+	@echo "📋 Registration Details:"
+	@echo "   Network: Base Sepolia"
+	@echo "   Trigger: Custom Logic"
+	@echo "   Target Contract: $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "CHECK_DEPLOYED_ADDRESSES"')"
+	@echo "   Gas Limit: 2000000"
+	@echo "   Starting Balance: 5 LINK"
+	@echo ""
+	@echo "🔧 CheckData (copy this hex):"
+	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "0x0"') \
+		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
+		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER // "0x0"') \
+		0 25 2>/dev/null || echo "❌ Run deploy-automation-production first"
+	@echo ""
+	@echo "💰 Get LINK tokens: https://faucets.chain.link/"
 
 # Configure Forwarder security
 configure-forwarder:
-	@echo "🛡️  CONFIGURING FORWARDER SECURITY"
-	@echo "=================================="
-	@echo "⚠️  REQUIRED: Set CHAINLINK_FORWARDER_ADDRESS in .env"
-	@echo ""
-	@if [ ! -f ".env" ]; then \
-		echo "❌ .env file not found!"; \
-		exit 1; \
-	fi
-	@. ./.env && \
-	if [ -z "$$CHAINLINK_FORWARDER_ADDRESS" ]; then \
-		echo "❌ CHAINLINK_FORWARDER_ADDRESS not set in .env"; \
-		echo "   Add: CHAINLINK_FORWARDER_ADDRESS=0x..."; \
-		exit 1; \
-	fi
-	@AUTOMATION_KEEPER=$$(jq -r '.automation.automationKeeper // ""' deployed-addresses.json) && \
-	FLEXIBLE_LOAN_MANAGER=$$(jq -r '.coreLending.flexibleLoanManager // ""' deployed-addresses.json) && \
-	export AUTOMATION_KEEPER_ADDRESS="$$AUTOMATION_KEEPER" && \
-	export FLEXIBLE_LOAN_MANAGER_ADDRESS="$$FLEXIBLE_LOAN_MANAGER" && \
-	. ./.env && forge script script/automation/ConfigureForwarderSecurity.s.sol:ConfigureForwarderSecurity \
-		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
-	@echo "✅ FORWARDER SECURITY CONFIGURED!"
+	@echo "⚡ Configuring Chainlink Forwarder..."
+	@echo "Enter the forwarder address from your registered upkeep:"
+	@read -p "Forwarder Address: " FORWARDER; \
+	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"setChainlinkForwarder(address)" \
+		$$FORWARDER \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY)
+	@echo "✅ Forwarder configured!"
 
 # Update .env with Forwarder address
 update-forwarder-env:
@@ -237,23 +220,23 @@ update-forwarder-env:
 
 # Check automation system status
 check-automation-status:
-	@echo "🔍 CHECKING AUTOMATION STATUS"
-	@echo "============================="
-	@if [ -f "deployed-addresses.json" ]; then \
-		echo "📋 Production Automation Addresses:"; \
-		echo "  Registry: $$(jq -r '.automation.automationRegistry // "❌ NOT DEPLOYED"' deployed-addresses.json)"; \
-		echo "  Keeper: $$(jq -r '.automation.automationKeeper // "❌ NOT DEPLOYED"' deployed-addresses.json)"; \
-		echo "  Adapter: $$(jq -r '.automation.loanAdapter // "❌ NOT DEPLOYED"' deployed-addresses.json)"; \
-		echo "  Trigger: $$(jq -r '.automation.priceTrigger // "❌ NOT DEPLOYED"' deployed-addresses.json)"; \
-		echo ""; \
-	fi
-	@if [ -f "deployed-addresses-mock.json" ]; then \
-		echo "📋 Mock Automation Addresses:"; \
-		echo "  Registry: $$(jq -r '.automation.automationRegistry // "❌ NOT DEPLOYED"' deployed-addresses-mock.json)"; \
-		echo "  Keeper: $$(jq -r '.automation.automationKeeper // "❌ NOT DEPLOYED"' deployed-addresses-mock.json)"; \
-		echo "  Adapter: $$(jq -r '.automation.loanAdapter // "❌ NOT DEPLOYED"' deployed-addresses-mock.json)"; \
-		echo "  Trigger: $$(jq -r '.automation.priceTrigger // "❌ NOT DEPLOYED"' deployed-addresses-mock.json)"; \
-	fi
+	@echo "📊 AUTOMATION SYSTEM STATUS"
+	@echo "=========================="
+	@echo ""
+	@echo "🎯 Keeper Contract: $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "NOT_DEPLOYED"')"
+	@echo "📊 Stats:"
+	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"getStats()(uint256,uint256,uint256,uint256,uint256)" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null | \
+		awk 'BEGIN{print "   Total Liquidations: " $$1 "\n   Total Upkeeps: " $$2 "\n   Last Execution: " $$3 "\n   Avg Gas Used: " $$4 "\n   Registered Managers: " $$5}' || \
+		echo "❌ Could not fetch stats - check deployment"
+	@echo ""
+	@echo "🏥 Emergency Status:"
+	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"emergencyPause()(bool)" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null | \
+		sed 's/true/🚨 EMERGENCY PAUSED/; s/false/✅ Active/' || \
+		echo "❌ Could not check emergency status"
 
 # Check Chainlink upkeep status
 check-chainlink-status:
@@ -323,4 +306,206 @@ test-vault-liquidation:
 	fi
 	@. ./.env && forge script script/test/TestVaultFundedLiquidation.s.sol:TestVaultFundedLiquidation \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
-	@echo "✅ Vault liquidation test completed!" 
+	@echo "✅ Vault liquidation test completed!"
+
+# 🚀 CHAINLINK AUTOMATION - OFFICIAL REGISTRY COMMANDS
+# =====================================================
+# Updated to use official Chainlink Automation Registry
+# Base Sepolia: 0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3
+
+# ✅ PRODUCTION DEPLOYMENT (Official Chainlink Registry)
+.PHONY: deploy-automation-production
+deploy-automation-production:
+	@echo "🚀 Deploying automation with OFFICIAL Chainlink Registry..."
+	@echo "📋 Make sure you have set these environment variables:"
+	@echo "   - PRIVATE_KEY"
+	@echo "   - PRICE_REGISTRY_ADDRESS" 
+	@echo "   - LOAN_MANAGER_ADDRESS"
+	@echo ""
+	forge script script/automation/DeployAutomationProduction.s.sol \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+	@echo "✅ Automation contracts deployed with official Chainlink Registry!"
+
+# 📋 UPKEEP REGISTRATION HELPER
+.PHONY: register-chainlink-upkeep
+register-chainlink-upkeep:
+	@echo "📋 CHAINLINK UPKEEP REGISTRATION GUIDE"
+	@echo "======================================"
+	@echo ""
+	@echo "🌐 Go to: https://automation.chain.link/base-sepolia"
+	@echo ""
+	@echo "📋 Registration Details:"
+	@echo "   Network: Base Sepolia"
+	@echo "   Trigger: Custom Logic"
+	@echo "   Target Contract: $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "CHECK_DEPLOYED_ADDRESSES"')"
+	@echo "   Gas Limit: 2000000"
+	@echo "   Starting Balance: 5 LINK"
+	@echo ""
+	@echo "🔧 CheckData (copy this hex):"
+	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "0x0"') \
+		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
+		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER // "0x0"') \
+		0 25 2>/dev/null || echo "❌ Run deploy-automation-production first"
+	@echo ""
+	@echo "💰 Get LINK tokens: https://faucets.chain.link/"
+
+# ⚡ CONFIGURE FORWARDER (Run after upkeep registration)
+.PHONY: configure-forwarder
+configure-forwarder:
+	@echo "⚡ Configuring Chainlink Forwarder..."
+	@echo "Enter the forwarder address from your registered upkeep:"
+	@read -p "Forwarder Address: " FORWARDER; \
+	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"setChainlinkForwarder(address)" \
+		$$FORWARDER \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY)
+	@echo "✅ Forwarder configured!"
+
+# 🔒 ENABLE FORWARDER RESTRICTION (For production security)
+.PHONY: enable-forwarder-restriction
+enable-forwarder-restriction:
+	@echo "🔒 Enabling forwarder restriction for production security..."
+	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"setForwarderRestriction(bool)" \
+		true \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY)
+	@echo "✅ Forwarder restriction enabled!"
+
+# 🎛️ CONFIGURE RISK THRESHOLDS
+.PHONY: configure-risk-thresholds
+configure-risk-thresholds:
+	@echo "🎛️ Configuring risk thresholds..."
+	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"setMinRiskThreshold(uint256)" \
+		85 \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY)
+	@echo "✅ Risk threshold set to 85%"
+
+# 📈 CONFIGURE PRICE CHANGE TRIGGERS
+.PHONY: configure-price-triggers
+configure-price-triggers:
+	@echo "📈 Configuring price change triggers..."
+	cast send $(shell cat deployed-addresses.json | jq -r '.PRICE_TRIGGER // "NOT_DEPLOYED"') \
+		"setPriceChangeThresholds(uint256,uint256,uint256,uint256)" \
+		50000 75000 100000 150000 \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY) 2>/dev/null || \
+		echo "❌ Price trigger not deployed or configured"
+	@echo "✅ Price thresholds configured (5%, 7.5%, 10%, 15%)"
+
+# 🚨 EMERGENCY CONTROLS
+.PHONY: emergency-pause
+emergency-pause:
+	@echo "🚨 EMERGENCY PAUSE - Stopping all automation..."
+	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"setEmergencyPause(bool)" \
+		true \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY)
+	@echo "🚨 Automation PAUSED!"
+
+.PHONY: emergency-resume
+emergency-resume:
+	@echo "✅ Resuming automation..."
+	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"setEmergencyPause(bool)" \
+		false \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--private-key $(PRIVATE_KEY)
+	@echo "✅ Automation RESUMED!"
+
+# 🔍 TESTING & SIMULATION
+.PHONY: simulate-upkeep
+simulate-upkeep:
+	@echo "🔍 Simulating upkeep execution..."
+	@CHECKDATA=$$(cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
+		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER') \
+		0 25 --rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null); \
+	echo "📋 CheckData: $$CHECKDATA"; \
+	cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"checkUpkeep(bytes)(bool,bytes)" \
+		$$CHECKDATA \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null || \
+		echo "❌ Simulation failed - check deployment and configuration"
+
+# 📊 MONITORING DASHBOARD
+.PHONY: automation-dashboard
+automation-dashboard:
+	@echo "📊 CHAINLINK AUTOMATION DASHBOARD"
+	@echo "=================================="
+	@echo ""
+	@echo "🌐 Official Dashboard:"
+	@echo "   https://automation.chain.link/base-sepolia"
+	@echo ""
+	@echo "🔗 Your Contracts:"
+	@echo "   Keeper: https://sepolia.basescan.org/address/$(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "NOT_DEPLOYED"')"
+	@echo "   Price Trigger: https://sepolia.basescan.org/address/$(shell cat deployed-addresses.json | jq -r '.PRICE_TRIGGER // "NOT_DEPLOYED"')"
+	@echo ""
+	@echo "📈 Quick Status Check:"
+	@make check-automation-status
+
+# 🧪 FULL AUTOMATION SETUP (One command for everything)
+.PHONY: setup-automation-complete
+setup-automation-complete:
+	@echo "🧪 COMPLETE AUTOMATION SETUP"
+	@echo "============================="
+	@echo "This will deploy and configure your entire automation system"
+	@echo ""
+	@echo "Prerequisites:"
+	@echo "✅ BASE_SEPOLIA_RPC_URL set"
+	@echo "✅ PRIVATE_KEY set"  
+	@echo "✅ PRICE_REGISTRY_ADDRESS set"
+	@echo "✅ LOAN_MANAGER_ADDRESS set"
+	@echo "✅ 5+ LINK tokens in wallet"
+	@echo ""
+	@read -p "Continue? [y/N]: " confirm && [[ $$confirm == [yY] ]] || exit 1
+	@echo ""
+	@echo "🚀 Step 1: Deploying contracts..."
+	@make deploy-automation-production
+	@echo ""
+	@echo "⚡ Step 2: Configuring system..."
+	@make configure-risk-thresholds
+	@make configure-price-triggers  
+	@echo ""
+	@echo "📋 Step 3: Registration instructions..."
+	@make register-chainlink-upkeep
+	@echo ""
+	@echo "✅ SETUP COMPLETE!"
+	@echo "Next: Register your upkeep at https://automation.chain.link/base-sepolia"
+
+# 📚 HELP
+.PHONY: automation-help
+automation-help:
+	@echo "📚 CHAINLINK AUTOMATION COMMANDS"
+	@echo "================================"
+	@echo ""
+	@echo "🚀 DEPLOYMENT:"
+	@echo "   make deploy-automation-production  Deploy with official Chainlink Registry"
+	@echo "   make setup-automation-complete     Full automated setup"
+	@echo ""
+	@echo "📋 REGISTRATION:"
+	@echo "   make register-chainlink-upkeep     Show registration guide"
+	@echo "   make configure-forwarder          Configure forwarder after registration"
+	@echo "   make enable-forwarder-restriction Enable security"
+	@echo ""
+	@echo "🎛️ CONFIGURATION:"
+	@echo "   make configure-risk-thresholds    Set liquidation risk levels"
+	@echo "   make configure-price-triggers     Configure price change triggers"
+	@echo ""
+	@echo "🚨 EMERGENCY:"
+	@echo "   make emergency-pause              Pause all automation"
+	@echo "   make emergency-resume             Resume automation"
+	@echo ""
+	@echo "📊 MONITORING:"
+	@echo "   make check-automation-status      Check system status"
+	@echo "   make simulate-upkeep             Test upkeep execution"
+	@echo "   make automation-dashboard        Open monitoring links"
+	@echo ""
+	@echo "For more help: https://docs.chain.link/chainlink-automation/" 
