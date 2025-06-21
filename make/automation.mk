@@ -480,35 +480,72 @@ setup-automation-complete:
 	@echo "✅ SETUP COMPLETE!"
 	@echo "Next: Register your upkeep at https://automation.chain.link/base-sepolia"
 
-# 📚 HELP
-.PHONY: automation-help
-automation-help:
-	@echo "📚 CHAINLINK AUTOMATION COMMANDS"
-	@echo "================================"
+# 📚 UPDATED AUTOMATION HELP (WITH LIVE MONITORING)
+.PHONY: automation-help-complete
+automation-help-complete:
+	@echo "📚 COMPLETE CHAINLINK AUTOMATION GUIDE"
+	@echo "======================================="
 	@echo ""
-	@echo "🚀 DEPLOYMENT:"
-	@echo "   make deploy-automation-production  Deploy with official Chainlink Registry"
-	@echo "   make setup-automation-complete     Full automated setup"
+	@echo "🧪 LOCAL TESTING (NO REGISTRATION REQUIRED):"
+	@echo "   make test-automation-local           Simple automation test"
+	@echo "   make test-automation-comprehensive   Full liquidation simulation"
+	@echo "   make manual-checkupkeep-test         Direct checkUpkeep call"
+	@echo "   make test-automation-interactive     Choose test interactively"
 	@echo ""
-	@echo "📋 REGISTRATION:"
-	@echo "   make register-chainlink-upkeep     Show registration guide"
-	@echo "   make configure-forwarder          Configure forwarder after registration"
-	@echo "   make enable-forwarder-restriction Enable security"
+	@echo "🚀 PRODUCTION DEPLOYMENT:"
+	@echo "   make deploy-automation-production    Deploy with official registry"
+	@echo "   make register-chainlink-upkeep       Registration guide"
+	@echo "   make configure-forwarder            Configure security"
+	@echo ""
+	@echo "📡 LIVE MONITORING (AFTER REGISTRATION):"
+	@echo "   export CHAINLINK_UPKEEP_ID=123       Set your upkeep ID"
+	@echo "   make verify-automation-working        Comprehensive verification"
+	@echo "   make monitor-chainlink-upkeep         Full upkeep status"
+	@echo "   make emergency-upkeep-check          Quick health check"
+	@echo "   make watch-upkeep-live               Continuous monitoring"
+	@echo "   ./monitor-live-upkeep.sh             Interactive monitoring"
+	@echo ""
+	@echo "💰 LINK VERIFICATION:"
+	@echo "   make check-link-consumption          Check LINK spending"
+	@echo "   make test-live-checkupkeep           Test your contract"
 	@echo ""
 	@echo "🎛️ CONFIGURATION:"
-	@echo "   make configure-risk-thresholds    Set liquidation risk levels"
-	@echo "   make configure-price-triggers     Configure price change triggers"
+	@echo "   make configure-risk-thresholds       Set liquidation levels"
+	@echo "   make configure-price-triggers        Price change triggers"
+	@echo "   make setup-upkeep-monitoring         Setup monitoring env"
 	@echo ""
-	@echo "🚨 EMERGENCY:"
-	@echo "   make emergency-pause              Pause all automation"
-	@echo "   make emergency-resume             Resume automation"
+	@echo "🚨 EMERGENCY CONTROLS:"
+	@echo "   make emergency-pause                 Pause automation"
+	@echo "   make emergency-resume                Resume automation"
 	@echo ""
-	@echo "📊 MONITORING:"
-	@echo "   make check-automation-status      Check system status"
-	@echo "   make simulate-upkeep             Test upkeep execution"
-	@echo "   make automation-dashboard        Open monitoring links"
+	@echo "🌐 DASHBOARDS & RESOURCES:"
+	@echo "   make open-chainlink-dashboard        Dashboard links"
+	@echo "   make automation-dashboard            Monitoring dashboard"
 	@echo ""
-	@echo "For more help: https://docs.chain.link/chainlink-automation/"
+	@echo "📖 GUIDES:"
+	@echo "   docs/AUTOMATION_TESTING_GUIDE.md    Local testing guide"
+	@echo "   docs/CHAINLINK_LIVE_VERIFICATION_GUIDE.md  Live verification"
+	@echo "   docs/CHAINLINK_AUTOMATION_BEST_PRACTICES.md  Best practices"
+	@echo ""
+	@echo "🆘 QUICK WORKFLOWS:"
+	@echo ""
+	@echo "📋 FOR TESTING (without registration):"
+	@echo "   make test-automation-comprehensive"
+	@echo ""
+	@echo "📋 FOR PRODUCTION (with registration):"
+	@echo "   1. make deploy-automation-production"
+	@echo "   2. Register at: https://automation.chain.link/base-sepolia"
+	@echo "   3. export CHAINLINK_UPKEEP_ID=YOUR_ID"
+	@echo "   4. make verify-automation-working"
+	@echo ""
+	@echo "📋 FOR MONITORING:"
+	@echo "   ./monitor-live-upkeep.sh"
+	@echo ""
+	@echo "Need help? Read: docs/CHAINLINK_LIVE_VERIFICATION_GUIDE.md"
+
+# 📚 ALIAS FOR HELP
+.PHONY: automation-help
+automation-help: automation-help-complete
 
 # 🧪 LOCAL TESTING (NO CHAINLINK REGISTRATION REQUIRED)
 .PHONY: test-automation-local
@@ -631,4 +668,201 @@ automation-test-summary:
 	@echo "✅ They directly call your smart contract functions"
 	@echo "✅ No LINK tokens required for local testing"
 	@echo ""
-	@echo "🌐 For LIVE automation, register at: https://automation.chain.link/" 
+	@echo "🌐 For LIVE automation, register at: https://automation.chain.link/"
+
+# 📡 CHAINLINK UPKEEP MONITORING (LIVE VERIFICATION)
+.PHONY: monitor-chainlink-upkeep
+monitor-chainlink-upkeep:
+	@echo "📡 MONITORING LIVE CHAINLINK UPKEEP"
+	@echo "==================================="
+	@echo "This will check your registered upkeep for:"
+	@echo "  - LINK balance and consumption"
+	@echo "  - Execution history"
+	@echo "  - Performance metrics"
+	@echo ""
+	@if [ -z "$(CHAINLINK_UPKEEP_ID)" ]; then \
+		echo "❌ Set CHAINLINK_UPKEEP_ID environment variable"; \
+		echo "   Example: export CHAINLINK_UPKEEP_ID=123456789"; \
+		exit 1; \
+	fi
+	forge script script/automation/MonitorChainlinkUpkeep.s.sol \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		-v
+
+# 🚨 EMERGENCY UPKEEP HEALTH CHECK
+.PHONY: emergency-upkeep-check
+emergency-upkeep-check:
+	@echo "🚨 EMERGENCY UPKEEP HEALTH CHECK"
+	@echo "================================"
+	@if [ -z "$(CHAINLINK_UPKEEP_ID)" ]; then \
+		echo "❌ Set CHAINLINK_UPKEEP_ID environment variable"; \
+		exit 1; \
+	fi
+	forge script script/automation/MonitorChainlinkUpkeep.s.sol:MonitorChainlinkUpkeep \
+		--sig "emergencyHealthCheck()" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		-v
+
+# 🧪 TEST CHECKUPKEEP WITH LIVE CONTRACT
+.PHONY: test-live-checkupkeep
+test-live-checkupkeep:
+	@echo "🧪 TESTING LIVE CHECKUPKEEP FUNCTION"
+	@echo "===================================="
+	@echo "This calls your deployed contract's checkUpkeep() function"
+	@echo ""
+	forge script script/automation/MonitorChainlinkUpkeep.s.sol:MonitorChainlinkUpkeep \
+		--sig "testCheckUpkeep()" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		-v
+
+# 📊 GET UPKEEP PERFORMANCE METRICS
+.PHONY: get-upkeep-metrics
+get-upkeep-metrics:
+	@echo "📊 GETTING UPKEEP PERFORMANCE METRICS"
+	@echo "====================================="
+	@if [ -z "$(CHAINLINK_UPKEEP_ID)" ]; then \
+		echo "❌ Set CHAINLINK_UPKEEP_ID environment variable"; \
+		exit 1; \
+	fi
+	forge script script/automation/MonitorChainlinkUpkeep.s.sol:MonitorChainlinkUpkeep \
+		--sig "getPerformanceMetrics(uint256)" $(CHAINLINK_UPKEEP_ID) \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		-v
+
+# 🔄 CONTINUOUS UPKEEP MONITORING
+.PHONY: watch-upkeep-live
+watch-upkeep-live:
+	@echo "🔄 STARTING CONTINUOUS UPKEEP MONITORING"
+	@echo "========================================"
+	@echo "Monitoring every 30 seconds... Press Ctrl+C to stop"
+	@echo ""
+	@if [ -z "$(CHAINLINK_UPKEEP_ID)" ]; then \
+		echo "❌ Set CHAINLINK_UPKEEP_ID environment variable"; \
+		exit 1; \
+	fi
+	@while true; do \
+		echo "$(shell date): Checking upkeep status..."; \
+		make monitor-chainlink-upkeep; \
+		echo ""; \
+		echo "Waiting 30 seconds for next check..."; \
+		sleep 30; \
+	done
+
+# 🌐 OPEN CHAINLINK DASHBOARD
+.PHONY: open-chainlink-dashboard
+open-chainlink-dashboard:
+	@echo "🌐 OPENING CHAINLINK AUTOMATION DASHBOARD"
+	@echo "========================================"
+	@if [ -n "$(CHAINLINK_UPKEEP_ID)" ]; then \
+		echo "Opening your specific upkeep:"; \
+		echo "https://automation.chain.link/base-sepolia/$(CHAINLINK_UPKEEP_ID)"; \
+	else \
+		echo "Opening general dashboard:"; \
+		echo "https://automation.chain.link/base-sepolia"; \
+	fi
+	@echo ""
+	@echo "In the dashboard you can see:"
+	@echo "  - Real-time execution history"
+	@echo "  - LINK consumption graphs"
+	@echo "  - Gas usage statistics"
+	@echo "  - Upkeep configuration"
+
+# 💰 CHECK LINK BALANCE AND CONSUMPTION
+.PHONY: check-link-consumption
+check-link-consumption:
+	@echo "💰 CHECKING LINK CONSUMPTION PATTERNS"
+	@echo "====================================="
+	@echo "Getting LINK balance and spending data..."
+	@echo ""
+	@UPKEEP_DATA=$$(cast call $(CHAINLINK_REGISTRY_BASE_SEPOLIA) \
+		"getUpkeep(uint256)" \
+		$(CHAINLINK_UPKEEP_ID) \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null || echo "ERROR"); \
+	if [ "$$UPKEEP_DATA" = "ERROR" ]; then \
+		echo "❌ Failed to get upkeep data. Check CHAINLINK_UPKEEP_ID"; \
+	else \
+		echo "✅ Successfully retrieved upkeep data"; \
+		echo "Raw data: $$UPKEEP_DATA"; \
+	fi
+
+# 📈 VERIFY AUTOMATION IS WORKING
+.PHONY: verify-automation-working
+verify-automation-working:
+	@echo "📈 VERIFYING CHAINLINK AUTOMATION IS WORKING"
+	@echo "============================================"
+	@echo ""
+	@echo "This comprehensive check will verify:"
+	@echo "  1. Your upkeep is registered and active"
+	@echo "  2. LINK is being consumed (proving execution)"
+	@echo "  3. checkUpkeep() returns correct results"
+	@echo "  4. performUpkeep() can be called"
+	@echo ""
+	@echo "Step 1: Emergency health check..."
+	@make emergency-upkeep-check
+	@echo ""
+	@echo "Step 2: Testing checkUpkeep function..."
+	@make test-live-checkupkeep
+	@echo ""
+	@echo "Step 3: Monitoring upkeep status..."
+	@make monitor-chainlink-upkeep
+	@echo ""
+	@echo "✅ VERIFICATION COMPLETE!"
+	@echo ""
+	@echo "If you see LINK consumption, your automation is working!"
+	@echo "If no LINK spent yet, either:"
+	@echo "  - Upkeep is new (normal)"
+	@echo "  - No liquidatable positions exist (normal)"
+	@echo "  - Contract configuration issue (check logs)"
+
+# 🎯 SETUP ENVIRONMENT FOR MONITORING
+.PHONY: setup-upkeep-monitoring
+setup-upkeep-monitoring:
+	@echo "🎯 SETUP UPKEEP MONITORING ENVIRONMENT"
+	@echo "====================================="
+	@echo ""
+	@echo "To monitor your upkeep, you need:"
+	@echo "  1. CHAINLINK_UPKEEP_ID (from registration)"
+	@echo "  2. AUTOMATION_KEEPER_ADDRESS (your deployed contract)"
+	@echo "  3. FLEXIBLE_LOAN_MANAGER_ADDRESS (target contract)"
+	@echo ""
+	@echo "Current environment:"
+	@echo "  CHAINLINK_UPKEEP_ID: $${CHAINLINK_UPKEEP_ID:-NOT_SET}"
+	@echo "  AUTOMATION_KEEPER_ADDRESS: $${AUTOMATION_KEEPER_ADDRESS:-NOT_SET}"
+	@echo "  FLEXIBLE_LOAN_MANAGER_ADDRESS: $${FLEXIBLE_LOAN_MANAGER_ADDRESS:-NOT_SET}"
+	@echo ""
+	@if [ -z "$(CHAINLINK_UPKEEP_ID)" ]; then \
+		echo "🔧 To set CHAINLINK_UPKEEP_ID:"; \
+		echo "   export CHAINLINK_UPKEEP_ID=YOUR_UPKEEP_ID"; \
+		echo "   (Get this from the Chainlink Automation dashboard)"; \
+		echo ""; \
+	fi
+	@echo "Once set, run:"
+	@echo "  make verify-automation-working"
+
+# 📚 MONITORING HELP
+.PHONY: monitoring-help
+monitoring-help:
+	@echo "📚 CHAINLINK UPKEEP MONITORING COMMANDS"
+	@echo "======================================="
+	@echo ""
+	@echo "🔧 SETUP:"
+	@echo "   make setup-upkeep-monitoring       Setup monitoring environment"
+	@echo "   export CHAINLINK_UPKEEP_ID=123     Set your upkeep ID"
+	@echo ""
+	@echo "📊 MONITORING:"
+	@echo "   make monitor-chainlink-upkeep      Full upkeep status check"
+	@echo "   make emergency-upkeep-check        Quick health check"
+	@echo "   make test-live-checkupkeep         Test your contract"
+	@echo "   make watch-upkeep-live             Continuous monitoring"
+	@echo ""
+	@echo "💰 LINK VERIFICATION:"
+	@echo "   make check-link-consumption        Check LINK spending"
+	@echo "   make verify-automation-working     Comprehensive verification"
+	@echo ""
+	@echo "🌐 DASHBOARD:"
+	@echo "   make open-chainlink-dashboard      Get dashboard links"
+	@echo ""
+	@echo "🆘 QUICK START:"
+	@echo "   1. Set: export CHAINLINK_UPKEEP_ID=YOUR_ID"
+	@echo "   2. Run: make verify-automation-working"
+	@echo "   3. Monitor: make watch-upkeep-live" 

@@ -1,25 +1,25 @@
 {
   "oracleType": "MockVCOPOracle",
   "tokens": {
-    "mockETH": "0x21ADe3F6050fa2F2DbA8CA670b44326745EF6A0D",
-    "mockWBTC": "0xFCf9bf22c513A3D38280d9d43355a2231EF9F3EC",
-    "mockUSDC": "0x25a2042FeE10cfD4e904cf3Eeb96a126564578C6",
-    "vcopToken": "0xcfc4A012cE22a12BfD3A128888345e36d9D7f575"
+    "mockETH": "0x5e2e783F84EF0b6D58115DF458F7F04e593011B7",
+    "mockWBTC": "0x1fFd02B0fE681992E7146B9Da1b6FBA6B9827C87",
+    "mockUSDC": "0xfF63beAFB949ffeb8df366e4738001cf54e97eD1",
+    "vcopToken": "0xe14093Ed86898F2Cd169513E31d800dFDeaa9294"
   },
   "vcopCollateral": {
-    "mockVcopOracle": "0xBD69FBAEdb0467f1698Ad920cc771d15e9bB84b1",
-    "vcopPriceCalculator": "0x6775E66dC1cB3df4422A41E674B8cb3106380534",
-    "vcopCollateralManager": "0x58fAE47f7FC5263EE1b5689e19Baf6c7da9E1c45",
-    "vcopCollateralHook": "0x342772Bd751bE77bC3b5a6aa45050FAAd04F84c0"
+    "mockVcopOracle": "0x8C59715a208FDe0445d7046a6B4612796810C846",
+    "vcopPriceCalculator": "0x08b87823675D2b9A17017692FEB7f04CebF8C029",
+    "vcopCollateralManager": "0x05844D3283407228161309c157a2BCd915BAdF1B",
+    "vcopCollateralHook": "0x050dEB164759e8667a36393Ff5F9be880D20C4c0"
   },
   "coreLending": {
-    "riskCalculator": "0x29e1A01d434ae0bD637196b4cFC827eD481a905A",
-    "genericLoanManager": "0x825723ff6f23d941466FEdffCFF32E8c3360daa4",
-    "flexibleLoanManager": "0x9D8b1b6D585f48964d03Eb4d42C0655173B5b569",
-    "mintableBurnableHandler": "0x7b0486C24CEAEaD5b452E778E0CFe46Ee1c59556",
-    "vaultBasedHandler": "0x1951450Da6B91582bf5186505da3620393DC0BB0",
-    "flexibleAssetHandler": "0xFAbF8C08A5b29DE2505d1CA2c9c49A0725ed88CA",
-    "dynamicPriceRegistry": "0x396Cc76DF331303023554FBF60Afcd9294ad119A"
+    "riskCalculator": "0x25525AF011533E0a603bfE228298BD1998416738",
+    "genericLoanManager": "0xF02A65CAf1C427DCBf7081921fc57B8FD7c040C6",
+    "flexibleLoanManager": "0xc8Bf18B4D6B459b17b9298D5Ed6B2feC1f0D9b3D",
+    "mintableBurnableHandler": "0x82Ccc691B4e14C09ef682b03Aa67048AfB0751bb",
+    "vaultBasedHandler": "0xd20D79B590518B68fB695112633ECBa0b719B672",
+    "flexibleAssetHandler": "0x7DE58Ea698db9EAA026Ef4C78005904526440463",
+    "dynamicPriceRegistry": "0x4754202F32bFEA30B6d79b907383c6099b1743e7"
   },
   "config": {
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
