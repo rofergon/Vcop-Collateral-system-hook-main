@@ -508,4 +508,127 @@ automation-help:
 	@echo "   make simulate-upkeep             Test upkeep execution"
 	@echo "   make automation-dashboard        Open monitoring links"
 	@echo ""
-	@echo "For more help: https://docs.chain.link/chainlink-automation/" 
+	@echo "For more help: https://docs.chain.link/chainlink-automation/"
+
+# 🧪 LOCAL TESTING (NO CHAINLINK REGISTRATION REQUIRED)
+.PHONY: test-automation-local
+test-automation-local:
+	@echo "🧪 TESTING AUTOMATION LOCALLY (NO CHAINLINK REGISTRATION REQUIRED)"
+	@echo "===================================================================="
+	@echo "These tests work WITHOUT registering on Chainlink's website"
+	@echo "They directly call checkUpkeep() and performUpkeep() functions"
+	@echo ""
+	forge script script/test/TestAutomationSimple.s.sol \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--broadcast \
+		-vvv
+	@echo "✅ Local automation test completed!"
+
+# 🎯 COMPREHENSIVE AUTOMATION TEST (WITH MOCK ORACLE)
+.PHONY: test-automation-comprehensive
+test-automation-comprehensive:
+	@echo "🎯 COMPREHENSIVE AUTOMATION TEST"
+	@echo "================================="
+	@echo "Full test: Position creation → Price crash → Automatic liquidation"
+	@echo "This demonstrates the complete automation flow locally"
+	@echo ""
+	forge script script/test/TestAutomationWithMockOracle.s.sol \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--broadcast \
+		-vvv
+	@echo "✅ Comprehensive automation test completed!"
+
+# 🔍 QUICK AUTOMATION CHECK
+.PHONY: check-automation-locally
+check-automation-locally:
+	@echo "🔍 QUICK LOCAL AUTOMATION CHECK"
+	@echo "==============================="
+	@echo "Checking if checkUpkeep() detects any liquidatable positions..."
+	@echo ""
+	forge script script/test/TestAutomationWithMockOracle.s.sol:TestAutomationWithMockOracle \
+		--sig "quickAutomationCheck()" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		-v
+	@echo "✅ Quick check completed!"
+
+# 🎲 CREATE TEST POSITIONS WITH DIFFERENT RISK LEVELS
+.PHONY: create-risk-positions
+create-risk-positions:
+	@echo "🎲 CREATING TEST POSITIONS WITH DIFFERENT RISK LEVELS"
+	@echo "====================================================="
+	@echo "Creating multiple positions: Safe, Medium Risk, High Risk"
+	@echo ""
+	forge script script/test/TestAutomationWithMockOracle.s.sol:TestAutomationWithMockOracle \
+		--sig "createRiskPositions()" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		--broadcast \
+		-vv
+	@echo "✅ Risk positions created for testing!"
+
+# 🧪 MANUAL CHECKUPKEEP TEST
+.PHONY: manual-checkupkeep-test
+manual-checkupkeep-test:
+	@echo "🧪 MANUAL CHECKUPKEEP TEST"
+	@echo "=========================="
+	@echo "Directly calling checkUpkeep() function..."
+	@echo ""
+	@CHECKDATA=$$(cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "0x0"') \
+		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
+		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER // "0x0"') \
+		0 25 --rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null); \
+	echo "📋 Generated CheckData: $$CHECKDATA"; \
+	echo "🔍 Calling checkUpkeep..."; \
+	cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+		"checkUpkeep(bytes)(bool,bytes)" \
+		"$$CHECKDATA" \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null || \
+		echo "❌ Make sure automation contracts are deployed first"
+
+# 🎮 INTERACTIVE AUTOMATION TESTING
+.PHONY: test-automation-interactive
+test-automation-interactive:
+	@echo "🎮 INTERACTIVE AUTOMATION TESTING"
+	@echo "=================================="
+	@echo ""
+	@echo "Choose your test:"
+	@echo "1. Simple automation test (basic functionality)"
+	@echo "2. Comprehensive test (full liquidation flow)"
+	@echo "3. Quick upkeep check (checkUpkeep only)"
+	@echo "4. Create risk positions for testing"
+	@echo "5. Manual checkUpkeep test"
+	@echo ""
+	@read -p "Enter choice [1-5]: " choice; \
+	case $$choice in \
+		1) make test-automation-local ;; \
+		2) make test-automation-comprehensive ;; \
+		3) make check-automation-locally ;; \
+		4) make create-risk-positions ;; \
+		5) make manual-checkupkeep-test ;; \
+		*) echo "Invalid choice" ;; \
+	esac
+
+# 📊 AUTOMATION TEST SUMMARY
+.PHONY: automation-test-summary
+automation-test-summary:
+	@echo "📊 AUTOMATION TESTING SUMMARY"
+	@echo "=============================="
+	@echo ""
+	@echo "Available local tests (NO CHAINLINK REGISTRATION REQUIRED):"
+	@echo ""
+	@echo "🧪 Basic Tests:"
+	@echo "   make test-automation-local           Simple automation functionality test"
+	@echo "   make manual-checkupkeep-test         Direct checkUpkeep() call"
+	@echo "   make check-automation-locally        Quick upkeep detection check"
+	@echo ""
+	@echo "🎯 Advanced Tests:"
+	@echo "   make test-automation-comprehensive   Full liquidation flow simulation"
+	@echo "   make create-risk-positions          Create positions for testing"
+	@echo ""
+	@echo "🎮 Interactive:"
+	@echo "   make test-automation-interactive     Choose test interactively"
+	@echo ""
+	@echo "✅ All these tests work WITHOUT Chainlink registration!"
+	@echo "✅ They directly call your smart contract functions"
+	@echo "✅ No LINK tokens required for local testing"
+	@echo ""
+	@echo "🌐 For LIVE automation, register at: https://automation.chain.link/" 
