@@ -1,19 +1,19 @@
-# 📁 VCOP Collateral System - Directorio Source
+# 📁 VCOP Collateral System - Source Directory
 
-Este directorio contiene todo el código fuente del **Sistema de Colateral VCOP**, un protocolo completo de stablecoin colateralizada con automatización avanzada y gestión de préstamos flexible.
+This directory contains all the source code for the **VCOP Collateral System**, a complete collateralized stablecoin protocol with advanced automation and flexible loan management.
 
-## 🎯 Visión General del Sistema
+## 🎯 System Overview
 
-El Sistema VCOP es un **protocolo de stablecoin colateralizada** que implementa:
-- **Stablecoin VCOP** vinculada al peso colombiano (COP)
-- **Sistema de préstamos flexible** con múltiples tipos de colateral
-- **Automatización inteligente** usando Chainlink para liquidaciones
-- **Integración con Uniswap v4** para estabilidad de precios
-- **Sistema de recompensas distribuidas** para incentivos
+The VCOP System is a **collateralized stablecoin protocol** that implements:
+- **VCOP Stablecoin** pegged to the Colombian Peso (COP)
+- **Flexible lending system** with multiple collateral types
+- **Intelligent automation** using Chainlink for liquidations
+- **Uniswap v4 integration** for price stability
+- **Distributed rewards system** for incentives
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ System Architecture
 
 ```mermaid
 graph TB
@@ -56,7 +56,7 @@ graph TB
         MWBTC[MockWBTC<br/>₿ WBTC Simulado]
     end
     
-    %% Relaciones principales
+    %% Main relationships
     VCM --> VC
     VCH --> VCM
     VO --> VCH
@@ -75,14 +75,14 @@ graph TB
     ER --> FLM
     RC --> FLM
     
-    %% Interfaces implementadas
+    %% Implemented interfaces
     FLM -.-> ILM
     GLM -.-> ILM
     FAH -.-> IAH
     VO -.-> IGO
     RD -.-> IR
     
-    %% Mocks para testing
+    %% Mocks for testing
     MUSDC -.-> FAH
     METH -.-> FAH
     MWBTC -.-> FAH
@@ -102,275 +102,275 @@ graph TB
 
 ---
 
-## 📂 Estructura Detallada de Directorios
+## 📂 Detailed Directory Structure
 
-### 🏦 `/VcopCollateral` - Sistema Principal de Stablecoin
+### 🏦 `/VcopCollateral` - Main Stablecoin System
 
-**🎯 Propósito**: Núcleo del stablecoin VCOP con integración completa a Uniswap v4 y mecanismos de estabilidad automática.
+**🎯 Purpose**: Core of the VCOP stablecoin with complete Uniswap v4 integration and automatic stability mechanisms.
 
-#### 🔧 Componentes Técnicos:
+#### 🔧 Technical Components:
 
-**`VCOPCollateralized.sol` - Token Principal**
+**`VCOPCollateralized.sol` - Main Token**
 ```solidity
-// Características técnicas:
-- ERC20 con 6 decimales (paridad con USDC)
-- Mint/Burn controlado exclusivamente por VCOPCollateralManager
-- Máximo supply dinámico basado en colateral disponible
-- Events detallados para tracking de supply
+// Technical characteristics:
+- ERC20 with 6 decimals (USDC parity)
+- Mint/Burn controlled exclusively by VCOPCollateralManager
+- Dynamic max supply based on available collateral
+- Detailed events for supply tracking
 ```
 
-**`VCOPCollateralManager.sol` - Motor Central** ⭐
+**`VCOPCollateralManager.sol` - Central Engine** ⭐
 ```solidity
-// Funcionalidades avanzadas:
-- Gestión de posiciones individuales por usuario
-- Peg Stability Module (PSM) para intercambios directos
-- Liquidaciones automáticas con bonificaciones
-- Multi-colateral: USDC, ETH, WBTC, LP tokens
-- Ratio de colateralización configurable por activo
-- Fee dinámico basado en utilización del protocolo
+// Advanced functionalities:
+- Individual position management per user
+- Peg Stability Module (PSM) for direct swaps
+- Automatic liquidations with bonuses
+- Multi-collateral: USDC, ETH, WBTC, LP tokens
+- Configurable collateralization ratio per asset
+- Dynamic fee based on protocol utilization
 ```
 
-**`VCOPCollateralHook.sol` - Integración Uniswap v4**
+**`VCOPCollateralHook.sol` - Uniswap v4 Integration**
 ```solidity
-// Hooks implementados:
-- beforeSwap(): Verificación de paridad antes de swaps
-- afterSwap(): Activación de mecanismos post-swap
-- beforeModifyLiquidity(): Control de liquidez
-- Intervención automática cuando precio fuera de banda (±1%)
-- Rebalanceo de liquidez en situaciones extremas
+// Implemented hooks:
+- beforeSwap(): Parity verification before swaps
+- afterSwap(): Post-swap mechanism activation
+- beforeModifyLiquidity(): Liquidity control
+- Automatic intervention when price out of band (±1%)
+- Liquidity rebalancing in extreme situations
 ```
 
-**`VCOPOracle.sol` - Oráculo Híbrido**
+**`VCOPOracle.sol` - Hybrid Oracle**
 ```solidity
-// Fuentes de precios:
-1. Pool Uniswap v4 (fuente primaria)
+// Price sources:
+1. Uniswap v4 Pool (primary source)
 2. Chainlink Price Feeds (USD/COP)
-3. Promedio ponderado por liquidez
-4. Mecanismo de fallback en caso de fallo
+3. Liquidity-weighted average
+4. Fallback mechanism in case of failure
 ```
 
-**`VCOPPriceCalculator.sol` - Matemáticas de Precios**
+**`VCOPPriceCalculator.sol` - Price Mathematics**
 ```solidity
-// Algoritmos implementados:
-- Cálculo de precios exactos desde sqrtPriceX96
-- Detección de desviación de paridad
-- Cálculo de cantidad necesaria para rebalanceo
-- Simulación de impacto en precios
+// Implemented algorithms:
+- Exact price calculation from sqrtPriceX96
+- Parity deviation detection
+- Quantity calculation needed for rebalancing
+- Price impact simulation
 ```
 
-#### 🔄 Flujo de Operaciones:
+#### 🔄 Operations Flow:
 
-1. **Mint VCOP**: Usuario deposita USDC → Manager verifica ratio → Mint VCOP
-2. **Monitoreo**: Hook observa precio continuamente en pool Uniswap
-3. **Intervención**: Si precio fuera de banda → Hook activa rebalanceo
-4. **Liquidación**: Si posición sub-colateralizada → Liquidación automática
+1. **Mint VCOP**: User deposits USDC → Manager verifies ratio → Mint VCOP
+2. **Monitoring**: Hook continuously observes price in Uniswap pool
+3. **Intervention**: If price out of band → Hook activates rebalancing
+4. **Liquidation**: If position under-collateralized → Automatic liquidation
 
-#### 🔗 Dependencias:
-- **⬆️ USA**: Uniswap v4 Core, OpenZeppelin ERC20
-- **⬇️ USADO POR**: `/automation` (para triggers), `/core` (para recompensas)
+#### 🔗 Dependencies:
+- **⬆️ USES**: Uniswap v4 Core, OpenZeppelin ERC20
+- **⬇️ USED BY**: `/automation` (for triggers), `/core` (for rewards)
 
 ---
 
-### 🤖 `/automation` - Sistema de Automatización Chainlink
+### 🤖 `/automation` - Chainlink Automation System
 
-**🎯 Propósito**: Automatización completa usando Chainlink Automation v2.25.0 para liquidaciones inteligentes, respuesta a eventos de precio y mantenimiento del protocolo.
+**🎯 Purpose**: Complete automation using Chainlink Automation v2.25.0 for intelligent liquidations, price event response, and protocol maintenance.
 
-#### 🔧 Arquitectura de Automatización:
+#### 🔧 Automation Architecture:
 
-**`AutomationRegistry.sol` - Coordinador Central**
+**`AutomationRegistry.sol` - Central Coordinator**
 ```solidity
-// Responsabilidades:
-- Registry de todos los loan managers activos
-- Tracking de upkeeps por manager
-- Configuración de parámetros de automatización
-- Autorización de keepers y triggers
-- Métricas de performance del sistema
+// Responsibilities:
+- Registry of all active loan managers
+- Upkeep tracking per manager
+- Automation parameter configuration
+- Keeper and trigger authorization
+- System performance metrics
 ```
 
-**`LoanAutomationKeeperOptimized.sol` - Ejecutor Principal** ⭐
+**`LoanAutomationKeeperOptimized.sol` - Main Executor** ⭐
 ```solidity
-// Optimizaciones implementadas:
-- Procesamiento por lotes (hasta 10 liquidaciones por tx)
-- Priorización por nivel de riesgo (health factor)
-- Cooldown inteligente entre liquidaciones (30 segundos)
-- Gas limit dinámico basado en número de posiciones
-- Fallback a procesamiento individual si batch falla
+// Implemented optimizations:
+- Batch processing (up to 10 liquidations per tx)
+- Risk level prioritization (health factor)
+- Intelligent cooldown between liquidations (30 seconds)
+- Dynamic gas limit based on position count
+- Fallback to individual processing if batch fails
 ```
 
-**`LoanManagerAutomationAdapter.sol` - Puente de Integración**
+**`LoanManagerAutomationAdapter.sol` - Integration Bridge**
 ```solidity
-// Funciones de adaptación:
-- Traducción entre interfaces de Chainlink y protocolo
-- Caching eficiente de posiciones activas
-- Evaluación de riesgo sin ejecutar transacciones
-- Reporting de estado a AutomationRegistry
+// Adaptation functions:
+- Translation between Chainlink and protocol interfaces
+- Efficient caching of active positions
+- Risk evaluation without executing transactions
+- Status reporting to AutomationRegistry
 ```
 
-**`PriceChangeLogTrigger.sol` - Respuesta a Eventos**
+**`PriceChangeLogTrigger.sol` - Event Response**
 ```solidity
-// Triggers configurados:
-- Cambio de precio > 2% en menos de 1 bloque
-- Volatilidad alta (3 cambios > 1% en 10 bloques)
-- Modo volatilidad temporal (liquidaciones más agresivas)
-- Recovery automático cuando volatilidad baja
+// Configured triggers:
+- Price change > 2% in less than 1 block
+- High volatility (3 changes > 1% in 10 blocks)
+- Temporary volatility mode (more aggressive liquidations)
+- Automatic recovery when volatility drops
 ```
 
-#### 📊 Tipos de Automatización:
+#### 📊 Automation Types:
 
 1. **Custom Logic Automation**:
-   - Verificación cíclica cada 60 segundos
-   - Evaluación completa de posiciones
-   - Liquidaciones basadas en health factor
+   - Cyclical verification every 60 seconds
+   - Complete position evaluation
+   - Health factor-based liquidations
 
 2. **Log Trigger Automation**:
-   - Respuesta inmediata a eventos de precio
-   - Liquidaciones de emergencia
-   - Activación de modo volatilidad
+   - Immediate response to price events
+   - Emergency liquidations
+   - Volatility mode activation
 
-#### 🔗 Dependencias:
-- **⬆️ USA**: Chainlink Automation, `/core` loan managers
-- **⬇️ USADO POR**: Ninguno (es el sistema de más alto nivel)
+#### 🔗 Dependencies:
+- **⬆️ USES**: Chainlink Automation, `/core` loan managers
+- **⬇️ USED BY**: None (it's the highest level system)
 
-#### ⚡ Ejemplo de Flujo:
+#### ⚡ Flow Example:
 ```
-1. Precio ETH baja 3% → Log Trigger detecta evento
-2. PriceChangeLogTrigger evalúa posiciones ETH
-3. Identifica posiciones en riesgo (health < 1.2)
-4. LoanAutomationKeeper ejecuta liquidaciones por lotes
-5. Confirma ejecución en AutomationRegistry
+1. ETH price drops 3% → Log Trigger detects event
+2. PriceChangeLogTrigger evaluates ETH positions
+3. Identifies at-risk positions (health < 1.2)
+4. LoanAutomationKeeper executes batch liquidations
+5. Confirms execution in AutomationRegistry
 ```
 
 ---
 
-### 💎 `/core` - Sistema Central de Préstamos y Recompensas
+### 💎 `/core` - Central Lending and Rewards System
 
-**🎯 Propósito**: Motor principal del protocolo con gestión flexible de préstamos, múltiples tipos de activos, sistema de recompensas distribuidas y cálculo de riesgo avanzado.
+**🎯 Purpose**: Main protocol engine with flexible loan management, multiple asset types, distributed rewards system, and advanced risk calculation.
 
-#### 🏦 Gestores de Préstamos:
+#### 🏦 Loan Managers:
 
-**`FlexibleLoanManager.sol` - Gestor Ultra-Flexible** ⭐
+**`FlexibleLoanManager.sol` - Ultra-Flexible Manager** ⭐
 ```solidity
-// Características inovadoras:
-- SIN límites de ratio de colateralización
-- Permite cualquier ratio mientras no haya overflow matemático
-- Gestión de riesgo transferida al frontend/usuario
-- Soporte nativo para cualquier token ERC20
-- Integración profunda con sistema de recompensas
-- Liquidaciones con bonificaciones variables (5-15%)
+// Innovative characteristics:
+- NO collateralization ratio limits
+- Allows any ratio as long as there's no mathematical overflow
+- Risk management transferred to frontend/user
+- Native support for any ERC20 token
+- Deep integration with rewards system
+- Liquidations with variable bonuses (5-15%)
 ```
 
-**`GenericLoanManager.sol` - Gestor Tradicional**
+**`GenericLoanManager.sol` - Traditional Manager**
 ```solidity
-// Implementación conservadora:
-- Ratios de colateralización fijos por activo
-- Límites de préstamo configurables
-- Validaciones estrictas pre-transacción
-- Compatibilidad con protocolos DeFi existentes
+// Conservative implementation:
+- Fixed collateralization ratios per asset
+- Configurable loan limits
+- Strict pre-transaction validations
+- Compatibility with existing DeFi protocols
 ```
 
-#### 💰 Sistema de Recompensas:
+#### 💰 Rewards System:
 
-**`RewardDistributor.sol` - Motor de Incentivos**
+**`RewardDistributor.sol` - Incentive Engine**
 ```solidity
-// Funcionalidades avanzadas:
-- Múltiples pools de recompensas por activo
-- Minteo directo de VCOP como recompensa
-- Cálculo de APY dinámico
-- Boosts por tiempo de holding
-- Penalizaciones por retiro temprano
-- Integration con governance tokens
+// Advanced functionalities:
+- Multiple reward pools per asset
+- Direct VCOP minting as reward
+- Dynamic APY calculation
+- Boosts for holding time
+- Early withdrawal penalties
+- Integration with governance tokens
 ```
 
-#### 🏪 Manejadores de Activos:
+#### 🏪 Asset Handlers:
 
-**`FlexibleAssetHandler.sol` - Manejador Principal**
+**`FlexibleAssetHandler.sol` - Main Handler**
 ```solidity
-// Tipos de activos soportados:
-- ERC20 estándar (USDC, ETH, WBTC)
-- LP tokens de Uniswap v3/v4
+// Supported asset types:
+- Standard ERC20 (USDC, ETH, WBTC)
+- Uniswap v3/v4 LP tokens
 - Wrapped tokens (WETH, WBTC)
 - Yield-bearing tokens (aTokens, cTokens)
-- NFTs como colateral (próximamente)
+- NFTs as collateral (coming soon)
 ```
 
-**`VaultBasedHandler.sol` - Arquitectura de Vault**
+**`VaultBasedHandler.sol` - Vault Architecture**
 ```solidity
-// Optimizaciones de vault:
-- Pooling de liquidez para mejor utilización
-- Estrategias de yield automáticas
-- Rebalanceo de activos dinámico
-- Compartición de gas costs entre usuarios
+// Vault optimizations:
+- Liquidity pooling for better utilization
+- Automatic yield strategies
+- Dynamic asset rebalancing
+- Gas cost sharing among users
 ```
 
-#### 📊 Infraestructura de Precios y Riesgo:
+#### 📊 Price and Risk Infrastructure:
 
-**`DynamicPriceRegistry.sol` - Registry de Precios**
+**`DynamicPriceRegistry.sol` - Price Registry**
 ```solidity
-// Gestión de oráculos:
-- Registro centralizado de price feeds
-- Múltiples fuentes por activo
-- Circuit breakers para precios anómalos
-- Heartbeat monitoring de oráculos
-- Precio de fallback en emergencias
+// Oracle management:
+- Centralized price feed registry
+- Multiple sources per asset
+- Circuit breakers for anomalous prices
+- Oracle heartbeat monitoring
+- Emergency fallback pricing
 ```
 
-**`RiskCalculator.sol` - Evaluación de Riesgo Avanzada**
+**`RiskCalculator.sol` - Advanced Risk Assessment**
 ```solidity
-// Métricas calculadas:
-- Health Factor individual por posición
-- Value at Risk (VaR) del protocolo
-- Stress testing automático
-- Correlación entre activos
-- Liquidation threshold dinámico
+// Calculated metrics:
+- Individual Health Factor per position
+- Protocol Value at Risk (VaR)
+- Automatic stress testing
+- Asset correlation
+- Dynamic liquidation threshold
 ```
 
-**`EmergencyRegistry.sol` - Gestión de Crisis**
+**`EmergencyRegistry.sol` - Crisis Management**
 ```solidity
-// Mecanismos de emergencia:
-- Pausa selectiva por tipo de activo
-- Liquidaciones masivas coordinadas
-- Recovery mode con parámetros ajustados
+// Emergency mechanisms:
+- Selective pause by asset type
+- Coordinated mass liquidations
+- Recovery mode with adjusted parameters
 - Governance emergency powers
 ```
 
-#### 🔄 Flujo de Integración Core:
+#### 🔄 Core Integration Flow:
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuario
+    participant U as User
     participant FLM as FlexibleLoanManager
     participant FAH as FlexibleAssetHandler
     participant RD as RewardDistributor
     participant RC as RiskCalculator
     participant DPR as DynamicPriceRegistry
     
-    U->>FLM: Solicita préstamo
-    FLM->>RC: Evalúa riesgo
-    RC->>DPR: Obtiene precios
-    DPR-->>RC: Precios actuales
+    U->>FLM: Requests loan
+    FLM->>RC: Evaluates risk
+    RC->>DPR: Gets prices
+    DPR-->>RC: Current prices
     RC-->>FLM: Health factor
-    FLM->>FAH: Gestiona colateral
-    FAH-->>FLM: Confirma depósito
-    FLM->>RD: Asigna recompensas
-    RD-->>U: Tokens de recompensa
-    FLM-->>U: Préstamo aprobado
+    FLM->>FAH: Manages collateral
+    FAH-->>FLM: Confirms deposit
+    FLM->>RD: Assigns rewards
+    RD-->>U: Reward tokens
+    FLM-->>U: Loan approved
 ```
 
-#### 🔗 Dependencias:
-- **⬆️ USA**: `/interfaces`, OpenZeppelin, Chainlink oracles
-- **⬇️ USADO POR**: `/automation`, `/VcopCollateral`
+#### 🔗 Dependencies:
+- **⬆️ USES**: `/interfaces`, OpenZeppelin, Chainlink oracles
+- **⬇️ USED BY**: `/automation`, `/VcopCollateral`
 
 ---
 
-### 🔌 `/interfaces` - Contratos de Interfaz Estándar
+### 🔌 `/interfaces` - Standard Interface Contracts
 
-**🎯 Propósito**: Definiciones estándar que permiten modularidad, intercambiabilidad de componentes y facilitan testing con mocks.
+**🎯 Purpose**: Standard definitions that enable modularity, component interchangeability, and facilitate testing with mocks.
 
-#### 📋 Interfaces de Gestión:
+#### 📋 Management Interfaces:
 
-**`ILoanManager.sol` - Estándar de Préstamos**
+**`ILoanManager.sol` - Lending Standard**
 ```solidity
-// Funciones core definidas:
+// Core functions defined:
 interface ILoanManager {
     function createLoan(address asset, uint256 collateral, uint256 borrowed) external;
     function liquidatePosition(address user, address asset) external;
@@ -379,9 +379,9 @@ interface ILoanManager {
 }
 ```
 
-**`IAssetHandler.sol` - Estándar de Activos**
+**`IAssetHandler.sol` - Asset Standard**
 ```solidity
-// Operaciones por tipo de activo:
+// Operations per asset type:
 interface IAssetHandler {
     function deposit(address asset, uint256 amount) external;
     function withdraw(address asset, uint256 amount) external;
@@ -390,11 +390,11 @@ interface IAssetHandler {
 }
 ```
 
-#### 📊 Interfaces de Precios y Oráculos:
+#### 📊 Price and Oracle Interfaces:
 
-**`IGenericOracle.sol` - Estándar de Oráculos**
+**`IGenericOracle.sol` - Oracle Standard**
 ```solidity
-// Múltiples fuentes de precios:
+// Multiple price sources:
 interface IGenericOracle {
     function getPrice(address asset) external view returns (uint256 price, uint256 timestamp);
     function getTWAP(address asset, uint32 period) external view returns (uint256);
@@ -402,9 +402,9 @@ interface IGenericOracle {
 }
 ```
 
-**`IPriceRegistry.sol` - Registry de Precios**
+**`IPriceRegistry.sol` - Price Registry**
 ```solidity
-// Gestión centralizada:
+// Centralized management:
 interface IPriceRegistry {
     function setOracle(address asset, address oracle) external;
     function getPrice(address asset) external view returns (uint256);
@@ -412,11 +412,11 @@ interface IPriceRegistry {
 }
 ```
 
-#### 🎁 Interfaces de Recompensas:
+#### 🎁 Reward Interfaces:
 
-**`IRewardable.sol` - Estándar de Recompensas**
+**`IRewardable.sol` - Reward Standard**
 ```solidity
-// Distribución de incentivos:
+// Incentive distribution:
 interface IRewardable {
     function distributeRewards(address user, uint256 amount) external;
     function claimRewards(address user) external;
@@ -425,11 +425,11 @@ interface IRewardable {
 }
 ```
 
-#### 🚨 Interfaces de Emergencia:
+#### 🚨 Emergency Interfaces:
 
-**`IEmergencyRegistry.sol` - Gestión de Crisis**
+**`IEmergencyRegistry.sol` - Crisis Management**
 ```solidity
-// Mecanismos de emergencia:
+// Emergency mechanisms:
 interface IEmergencyRegistry {
     function pauseProtocol() external;
     function pauseAsset(address asset) external;
@@ -438,24 +438,24 @@ interface IEmergencyRegistry {
 }
 ```
 
-#### 🔗 Beneficios de las Interfaces:
+#### 🔗 Interface Benefits:
 
-1. **Modularidad**: Permite intercambiar implementaciones sin romper el sistema
-2. **Testing**: Facilita creación de mocks para pruebas unitarias
-3. **Upgradeability**: Permite actualizaciones sin afectar contratos dependientes
-4. **Interoperabilidad**: Estándares comunes para integración con otros protocolos
-5. **Documentación**: Especificación clara de funcionalidades esperadas
+1. **Modularity**: Allows swapping implementations without breaking the system
+2. **Testing**: Facilitates mock creation for unit testing
+3. **Upgradeability**: Enables updates without affecting dependent contracts
+4. **Interoperability**: Common standards for integration with other protocols
+5. **Documentation**: Clear specification of expected functionalities
 
-#### 🔄 Patrón de Uso:
+#### 🔄 Usage Pattern:
 ```solidity
-// Los contratos core implementan interfaces
+// Core contracts implement interfaces
 contract FlexibleLoanManager is ILoanManager, IRewardable {
-    // Implementación específica
+    // Specific implementation
 }
 
-// Otros contratos usan las interfaces
+// Other contracts use the interfaces
 contract AutomationKeeper {
-    ILoanManager public loanManager; // Puede ser cualquier implementación
+    ILoanManager public loanManager; // Can be any implementation
     
     function liquidate(address user) external {
         loanManager.liquidatePosition(user, asset);
@@ -463,108 +463,108 @@ contract AutomationKeeper {
 }
 ```
 
-#### 🔗 Dependencias:
-- **⬆️ USA**: Ninguna (son definiciones puras)
-- **⬇️ USADO POR**: Todos los demás directorios
+#### 🔗 Dependencies:
+- **⬆️ USES**: None (they are pure definitions)
+- **⬇️ USED BY**: All other directories
 
 ---
 
-### 🧪 `/mocks` - Herramientas de Testing y Desarrollo
+### 🧪 `/mocks` - Testing and Development Tools
 
-**🎯 Propósito**: Contratos simulados que replican el comportamiento de tokens reales para testing, desarrollo local y simulación de escenarios sin costos de testnet.
+**🎯 Purpose**: Simulated contracts that replicate real token behavior for testing, local development, and scenario simulation without testnet costs.
 
-#### 💰 Tokens Simulados:
+#### 💰 Simulated Tokens:
 
-**`MockERC20.sol` - Token Base**
+**`MockERC20.sol` - Base Token**
 ```solidity
-// Funcionalidades de testing:
+// Testing functionalities:
 contract MockERC20 is ERC20 {
     function mint(address to, uint256 amount) external {
-        _mint(to, amount); // Mint ilimitado para testing
+        _mint(to, amount); // Unlimited mint for testing
     }
     
     function burn(uint256 amount) external {
-        _burn(msg.sender, amount); // Burn para simulaciones
+        _burn(msg.sender, amount); // Burn for simulations
     }
     
     function setBalance(address user, uint256 balance) external {
-        // Función especial para testing: establecer balance directamente
+        // Special function for testing: set balance directly
     }
 }
 ```
 
-**`MockUSDC.sol` - USDC Simulado** ⭐
+**`MockUSDC.sol` - Simulated USDC** ⭐
 ```solidity
-// Características específicas:
-- 6 decimales (igual que USDC real)
-- Símbolo "USDC" y nombre "USD Coin"
-- Funciones adicionales para simular freezing/blacklisting
-- Rate limiting para simular restricciones reales
-- Compatible con todas las integraciones USDC del protocolo
+// Specific characteristics:
+- 6 decimals (same as real USDC)
+- Symbol "USDC" and name "USD Coin"
+- Additional functions to simulate freezing/blacklisting
+- Rate limiting to simulate real restrictions
+- Compatible with all protocol USDC integrations
 ```
 
-**`MockETH.sol` - ETH Simulado**
+**`MockETH.sol` - Simulated ETH**
 ```solidity
-// Simulación de Wrapped ETH:
-- 18 decimales estándar
-- Funciones wrap/unwrap simuladas
-- Precio base configurable para testing
-- Gas estimation para operaciones
+// Wrapped ETH simulation:
+- 18 standard decimals
+- Simulated wrap/unwrap functions
+- Configurable base price for testing
+- Gas estimation for operations
 ```
 
-**`MockWBTC.sol` - WBTC Simulado**
+**`MockWBTC.sol` - Simulated WBTC**
 ```solidity
-// Bitcoin Wrapped simulado:
-- 8 decimales (igual que Bitcoin)
-- Precio altamente volátil configurable
-- Funciones de custody simuladas
-- Testing de activos de alto valor
+// Simulated Wrapped Bitcoin:
+- 8 decimals (same as Bitcoin)
+- Configurable highly volatile price
+- Simulated custody functions
+- High-value asset testing
 ```
 
-#### 🎯 Casos de Uso Específicos:
+#### 🎯 Specific Use Cases:
 
-1. **Testing Unitario**:
+1. **Unit Testing**:
 ```solidity
 function testLoanCreation() external {
     MockUSDC usdc = new MockUSDC();
     usdc.mint(address(this), 1000e6); // Mint 1000 USDC
     
     loanManager.createLoan(address(usdc), 1000e6, 800e18);
-    // Test sin necesidad de tokens reales
+    // Test without needing real tokens
 }
 ```
 
-2. **Desarrollo Local**:
+2. **Local Development**:
 ```bash
-# Despliegue local con mocks
+# Local deployment with mocks
 forge script script/deploy/DeployMockEnvironment.s.sol --fork-url http://localhost:8545
 ```
 
-3. **Simulación de Escenarios Extremos**:
+3. **Extreme Scenario Simulation**:
 ```solidity
 function testMarketCrash() external {
-    mockWBTC.setPrice(10000e8); // Bitcoin a $10,000
-    // Simular crash y verificar liquidaciones
+    mockWBTC.setPrice(10000e8); // Bitcoin at $10,000
+    // Simulate crash and verify liquidations
     
-    mockUSDC.setBalance(user, 0); // Simular pérdida total
-    // Verificar comportamiento del protocolo
+    mockUSDC.setBalance(user, 0); // Simulate total loss
+    // Verify protocol behavior
 }
 ```
 
-4. **Testing de Integración**:
+4. **Integration Testing**:
 ```solidity
 function testFullProtocolFlow() external {
-    // Setup completo con mocks
+    // Complete setup with mocks
     setupMockEnvironment();
     
-    // Flujo completo: depósito → préstamo → liquidación
+    // Full flow: deposit → loan → liquidation
     testCompleteFlow();
 }
 ```
 
-#### 🔧 Funcionalidades Avanzadas de Testing:
+#### 🔧 Advanced Testing Functionalities:
 
-**Simulación de Condiciones Reales**:
+**Real Condition Simulation**:
 ```solidity
 contract AdvancedMockUSDC is MockUSDC {
     mapping(address => bool) public blacklisted;
@@ -578,17 +578,17 @@ contract AdvancedMockUSDC is MockUSDC {
 }
 ```
 
-#### 🔗 Dependencias:
-- **⬆️ USA**: OpenZeppelin ERC20, ERC20Permit
-- **⬇️ USADO POR**: Tests en todos los directorios
+#### 🔗 Dependencies:
+- **⬆️ USES**: OpenZeppelin ERC20, ERC20Permit
+- **⬇️ USED BY**: Tests in all directories
 
 ---
 
-## 🔄 Interacciones entre Directorios
+## 🔄 Directory Interactions
 
-### 📊 Matriz de Dependencias:
+### 📊 Dependency Matrix:
 
-| Directorio | VcopCollateral | Automation | Core | Interfaces | Mocks |
+| Directory | VcopCollateral | Automation | Core | Interfaces | Mocks |
 |------------|----------------|------------|------|------------|-------|
 | **VcopCollateral** | - | ❌ | 🔵 Uses RD | 🔵 Implements | 🟡 Testing |
 | **Automation** | 🔵 Monitors | - | 🔵 Liquidates | 🔵 Implements | 🟡 Testing |
@@ -596,177 +596,177 @@ contract AdvancedMockUSDC is MockUSDC {
 | **Interfaces** | ❌ | ❌ | ❌ | - | ❌ |
 | **Mocks** | ❌ | ❌ | ❌ | ❌ | - |
 
-**Leyenda**: 🔵 Dependencia directa, 🟡 Solo para testing, ❌ Sin dependencia
+**Legend**: 🔵 Direct dependency, 🟡 Testing only, ❌ No dependency
 
-### 🔄 Flujos de Datos Principales:
+### 🔄 Main Data Flows:
 
-#### 1. **Flujo de Liquidación Automática**:
+#### 1. **Automatic Liquidation Flow**:
 ```
 PriceChangeLogTrigger (automation) 
-    → detecta cambio de precio 
+    → detects price change 
     → LoanAutomationKeeper (automation) 
-    → evalúa posiciones en FlexibleLoanManager (core)
-    → ejecuta liquidación si health factor < 1.2
-    → distribuye recompensas via RewardDistributor (core)
+    → evaluates positions in FlexibleLoanManager (core)
+    → executes liquidation if health factor < 1.2
+    → distributes rewards via RewardDistributor (core)
 ```
 
-#### 2. **Flujo de Estabilidad VCOP**:
+#### 2. **VCOP Stability Flow**:
 ```
 VCOPCollateralHook (VcopCollateral) 
-    → monitorea precio en pool Uniswap
-    → si fuera de banda, activa rebalanceo
+    → monitors price in Uniswap pool
+    → if out of band, activates rebalancing
     → VCOPCollateralManager (VcopCollateral)
-    → ejecuta swaps via PSM
-    → notifica a RewardDistributor (core) para incentivos
+    → executes swaps via PSM
+    → notifies RewardDistributor (core) for incentives
 ```
 
-#### 3. **Flujo de Préstamo Flexible**:
+#### 3. **Flexible Loan Flow**:
 ```
-Usuario → FlexibleLoanManager (core)
-    → evalúa via RiskCalculator (core)
-    → consulta precios en DynamicPriceRegistry (core)
-    → gestiona colateral via FlexibleAssetHandler (core)
-    → asigna recompensas via RewardDistributor (core)
-    → registra para automatización via AutomationRegistry (automation)
+User → FlexibleLoanManager (core)
+    → evaluates via RiskCalculator (core)
+    → queries prices in DynamicPriceRegistry (core)
+    → manages collateral via FlexibleAssetHandler (core)
+    → assigns rewards via RewardDistributor (core)
+    → registers for automation via AutomationRegistry (automation)
 ```
 
 ---
 
-## 📋 Configuración de Parámetros por Ambiente
+## 📋 Parameter Configuration by Environment
 
-### 🌐 **Mainnet (Producción)**:
+### 🌐 **Mainnet (Production)**:
 ```solidity
-// Ratios conservadores
-COLLATERAL_RATIO = 150%; // 150% mínimo
-LIQUIDATION_THRESHOLD = 120%; // Liquidación a 120%
-PSM_FEE = 0.1%; // Fee del 0.1% para intercambios PSM
-AUTOMATION_HEARTBEAT = 60; // Verificación cada 60 segundos
+// Conservative ratios
+COLLATERAL_RATIO = 150%; // 150% minimum
+LIQUIDATION_THRESHOLD = 120%; // Liquidation at 120%
+PSM_FEE = 0.1%; // 0.1% fee for PSM swaps
+AUTOMATION_HEARTBEAT = 60; // Verification every 60 seconds
 
-// Límites de seguridad
-MAX_LOAN_SIZE = 1_000_000e6; // $1M máximo por préstamo
-DAILY_LIQUIDATION_LIMIT = 10_000_000e6; // $10M liquidaciones/día
-PRICE_DEVIATION_THRESHOLD = 2%; // Intervención a ±2%
+// Safety limits
+MAX_LOAN_SIZE = 1_000_000e6; // $1M maximum per loan
+DAILY_LIQUIDATION_LIMIT = 10_000_000e6; // $10M liquidations/day
+PRICE_DEVIATION_THRESHOLD = 2%; // Intervention at ±2%
 ```
 
 ### 🧪 **Testnet (Sepolia)**:
 ```solidity
-// Ratios relajados para testing
+// Relaxed ratios for testing
 COLLATERAL_RATIO = 120%;
 LIQUIDATION_THRESHOLD = 110%;
 PSM_FEE = 0.05%;
-AUTOMATION_HEARTBEAT = 30; // Más frecuente para testing
+AUTOMATION_HEARTBEAT = 30; // More frequent for testing
 
-// Límites amplios
-MAX_LOAN_SIZE = 100_000e6; // $100K máximo
-DAILY_LIQUIDATION_LIMIT = 1_000_000e6; // $1M liquidaciones/día
-PRICE_DEVIATION_THRESHOLD = 5%; // Threshold más amplio
+// Wide limits
+MAX_LOAN_SIZE = 100_000e6; // $100K maximum
+DAILY_LIQUIDATION_LIMIT = 1_000_000e6; // $1M liquidations/day
+PRICE_DEVIATION_THRESHOLD = 5%; // Wider threshold
 ```
 
 ### 🏠 **Local Development**:
 ```solidity
-// Sin restricciones para desarrollo
-COLLATERAL_RATIO = 101%; // Mínimo técnico
+// No restrictions for development
+COLLATERAL_RATIO = 101%; // Technical minimum
 LIQUIDATION_THRESHOLD = 100%;
-PSM_FEE = 0%; // Sin fees para testing
-AUTOMATION_HEARTBEAT = 10; // Testing rápido
+PSM_FEE = 0%; // No fees for testing
+AUTOMATION_HEARTBEAT = 10; // Fast testing
 
-// Sin límites
+// No limits
 MAX_LOAN_SIZE = type(uint256).max;
 DAILY_LIQUIDATION_LIMIT = type(uint256).max;
-PRICE_DEVIATION_THRESHOLD = 50%; // Muy permisivo
+PRICE_DEVIATION_THRESHOLD = 50%; // Very permissive
 ```
 
 ---
 
-## 🛡️ Consideraciones de Seguridad Avanzadas
+## 🛡️ Advanced Security Considerations
 
-### 🔒 **Vectores de Riesgo por Directorio**:
+### 🔒 **Risk Vectors by Directory**:
 
 #### **VcopCollateral**:
-- ⚠️ **Riesgo de Depeg**: Monitoreo continuo del precio VCOP/COP
-- ⚠️ **MEV en Uniswap**: Protección contra sandwich attacks en el hook
-- ✅ **Mitigación**: Circuit breakers y límites de desviación
+- ⚠️ **Depeg Risk**: Continuous monitoring of VCOP/COP price
+- ⚠️ **MEV on Uniswap**: Protection against sandwich attacks in hook
+- ✅ **Mitigation**: Circuit breakers and deviation limits
 
 #### **Automation**:
-- ⚠️ **Keeper Centralization**: Dependencia de nodos Chainlink
-- ⚠️ **Gas Price Attacks**: Manipulación de gas para DoS
-- ✅ **Mitigación**: Múltiples keepers y gas limits dinámicos
+- ⚠️ **Keeper Centralization**: Dependency on Chainlink nodes
+- ⚠️ **Gas Price Attacks**: Gas manipulation for DoS
+- ✅ **Mitigation**: Multiple keepers and dynamic gas limits
 
 #### **Core**:
-- ⚠️ **Flexible Loan Risk**: Sin límites de ratio en FlexibleLoanManager
-- ⚠️ **Oracle Manipulation**: Dependencia de precios externos
-- ✅ **Mitigación**: Múltiples oráculos y health factor calculations
+- ⚠️ **Flexible Loan Risk**: No ratio limits in FlexibleLoanManager
+- ⚠️ **Oracle Manipulation**: Dependency on external prices
+- ✅ **Mitigation**: Multiple oracles and health factor calculations
 
-### 🔐 **Controles de Acceso**:
+### 🔐 **Access Controls**:
 
 ```solidity
-// Jerarquía de roles
-OWNER → Control total del protocolo
-ADMIN → Configuración de parámetros
-KEEPER → Ejecutar liquidaciones automáticas
-ORACLE_UPDATER → Actualizar precios
-EMERGENCY_MANAGER → Pausar en emergencias
+// Role hierarchy
+OWNER → Total protocol control
+ADMIN → Parameter configuration
+KEEPER → Execute automatic liquidations
+ORACLE_UPDATER → Update prices
+EMERGENCY_MANAGER → Pause in emergencies
 ```
 
-### 🚨 **Procedimientos de Emergencia**:
+### 🚨 **Emergency Procedures**:
 
-1. **Pausa de Protocolo**: `EmergencyRegistry.pauseProtocol()`
-2. **Pausa por Activo**: `EmergencyRegistry.pauseAsset(address)`
-3. **Liquidación Masiva**: `EmergencyRegistry.emergencyLiquidateAll()`
-4. **Recovery Mode**: Parámetros ajustados para situaciones extremas
+1. **Protocol Pause**: `EmergencyRegistry.pauseProtocol()`
+2. **Asset Pause**: `EmergencyRegistry.pauseAsset(address)`
+3. **Mass Liquidation**: `EmergencyRegistry.emergencyLiquidateAll()`
+4. **Recovery Mode**: Adjusted parameters for extreme situations
 
 ---
 
-## 📊 Métricas y Monitoreo del Sistema
+## 📊 System Metrics and Monitoring
 
-### 🎯 **Métricas Clave por Directorio**:
+### 🎯 **Key Metrics by Directory**:
 
-#### **VcopCollateral - Métricas de Stablecoin**:
+#### **VcopCollateral - Stablecoin Metrics**:
 ```solidity
-// Métricas esenciales a monitorear:
-- Precio VCOP/COP: Desviación de paridad (objetivo: ±0.5%)
-- Total Value Locked (TVL): Colateral total depositado
-- Utilization Rate: % de VCOP mintado vs capacidad máxima
-- PSM Volume: Volumen de intercambios directos
-- Peg Stability: Tiempo fuera de banda de paridad
+// Essential metrics to monitor:
+- VCOP/COP Price: Parity deviation (target: ±0.5%)
+- Total Value Locked (TVL): Total deposited collateral
+- Utilization Rate: % of VCOP minted vs maximum capacity
+- PSM Volume: Direct swap volume
+- Peg Stability: Time out of parity band
 ```
 
-#### **Automation - Métricas de Performance**:
+#### **Automation - Performance Metrics**:
 ```solidity
-// KPIs de automatización:
-- Liquidation Success Rate: % liquidaciones exitosas
-- Average Response Time: Tiempo promedio desde trigger hasta ejecución
-- Gas Efficiency: Gas usado por liquidación vs benchmark
-- Keeper Uptime: % tiempo activo de keepers
-- Failed Upkeeps: Número de upkeeps fallidos por periodo
+// Automation KPIs:
+- Liquidation Success Rate: % successful liquidations
+- Average Response Time: Average time from trigger to execution
+- Gas Efficiency: Gas used per liquidation vs benchmark
+- Keeper Uptime: % active time of keepers
+- Failed Upkeeps: Number of failed upkeeps per period
 ```
 
-#### **Core - Métricas de Lending**:
+#### **Core - Lending Metrics**:
 ```solidity
-// Métricas del sistema de préstamos:
-- Health Factor Distribution: Distribución de health factors
-- Liquidation Volume: Volumen total liquidado por periodo
-- Reward Distribution Rate: Tokens distribuidos como recompensa
-- Asset Utilization: % utilización por tipo de activo
-- Bad Debt: Deuda no recuperable del sistema
+// Lending system metrics:
+- Health Factor Distribution: Distribution of health factors
+- Liquidation Volume: Total volume liquidated per period
+- Reward Distribution Rate: Tokens distributed as rewards
+- Asset Utilization: % utilization per asset type
+- Bad Debt: Unrecoverable system debt
 ```
 
-### 📈 **Dashboard de Monitoreo Recomendado**:
+### 📈 **Recommended Monitoring Dashboard**:
 
 ```javascript
-// Ejemplo de métricas para dashboard
+// Dashboard metrics example
 const CRITICAL_METRICS = {
-    // Alertas críticas (requieren intervención inmediata)
+    // Critical alerts (require immediate intervention)
     vcop_price_deviation: { threshold: 2, current: 0.8 }, // %
     system_health_factor: { threshold: 1.2, current: 1.8 },
     automation_uptime: { threshold: 95, current: 99.2 }, // %
     
-    // Métricas de warning (monitoreo cercano)
+    // Warning metrics (close monitoring)
     tvl_change_24h: { threshold: -10, current: -2.3 }, // %
     liquidation_queue_size: { threshold: 100, current: 23 },
     gas_price_impact: { threshold: 50, current: 15 }, // gwei
     
-    // Métricas informativas
+    // Informational metrics
     daily_volume: { value: 2_500_000 }, // USD
     active_positions: { value: 1_247 },
     apr_average: { value: 12.5 } // %
@@ -775,15 +775,15 @@ const CRITICAL_METRICS = {
 
 ---
 
-## 🔧 Troubleshooting Común
+## 🔧 Common Troubleshooting
 
-### ❌ **Problemas Frecuentes y Soluciones**:
+### ❌ **Frequent Issues and Solutions**:
 
-#### **1. Errores de Despliegue**:
+#### **1. Deployment Errors**:
 
 **Error**: `EvmError: OutOfGas`
 ```solidity
-// Solución: Aumentar gas limit para contratos grandes
+// Solution: Increase gas limit for large contracts
 forge script script/deploy/DeployFullStack.s.sol \
     --gas-limit 30000000 \
     --gas-price 20000000000
@@ -791,70 +791,70 @@ forge script script/deploy/DeployFullStack.s.sol \
 
 **Error**: `ChainlinkAutomation: InvalidUpkeep`
 ```solidity
-// Solución: Verificar configuración de upkeep
-// 1. Verificar balance de LINK suficiente
-// 2. Confirmar permisos de keeper
-// 3. Validar checkUpkeep() retorna true
+// Solution: Verify upkeep configuration
+// 1. Check sufficient LINK balance
+// 2. Confirm keeper permissions
+// 3. Validate checkUpkeep() returns true
 ```
 
-#### **2. Problemas de Liquidación**:
+#### **2. Liquidation Issues**:
 
-**Issue**: Liquidaciones no se ejecutan automáticamente
+**Issue**: Liquidations don't execute automatically
 ```solidity
-// Diagnóstico paso a paso:
-1. Verificar keeper está registrado: registry.getKeeperInfo(keeper)
-2. Comprobar gas limit: registry.getMinGasOverhead()
-3. Validar condiciones: loanManager.checkLiquidation(user, asset)
-4. Revisar balance LINK: registry.getBalance()
+// Step-by-step diagnosis:
+1. Verify keeper is registered: registry.getKeeperInfo(keeper)
+2. Check gas limit: registry.getMinGasOverhead()
+3. Validate conditions: loanManager.checkLiquidation(user, asset)
+4. Review LINK balance: registry.getBalance()
 ```
 
-**Issue**: Liquidaciones fallan con "Insufficient Collateral"
+**Issue**: Liquidations fail with "Insufficient Collateral"
 ```solidity
-// Causas comunes:
-- Health factor calculado incorrectamente
-- Precios de oráculos obsoletos
-- Colateral ya liquidado en transacción anterior
-- Slippage excesivo en liquidación
+// Common causes:
+- Health factor calculated incorrectly
+- Stale oracle prices
+- Collateral already liquidated in previous transaction
+- Excessive slippage in liquidation
 ```
 
-#### **3. Problemas de Precios**:
+#### **3. Price Issues**:
 
-**Issue**: Precio VCOP fuera de paridad
+**Issue**: VCOP price out of parity
 ```solidity
-// Estrategia de intervención:
-1. Verificar liquidez del pool Uniswap
-2. Activar PSM si disponible: psmManager.swap()
-3. Revisar configuración de hook: hook.getPriceDeviation()
-4. Considerar intervención manual si automática falla
+// Intervention strategy:
+1. Check Uniswap pool liquidity
+2. Activate PSM if available: psmManager.swap()
+3. Review hook configuration: hook.getPriceDeviation()
+4. Consider manual intervention if automatic fails
 ```
 
-#### **4. Problemas de Gas**:
+#### **4. Gas Issues**:
 
-**Issue**: Transacciones fallan por gas insuficiente
+**Issue**: Transactions fail due to insufficient gas
 ```solidity
-// Optimizaciones sugeridas:
-- Usar batch operations cuando sea posible
-- Configurar gas price dinámico
-- Implementar gas estimation antes de tx
-- Usar multicall para operaciones relacionadas
+// Suggested optimizations:
+- Use batch operations when possible
+- Configure dynamic gas pricing
+- Implement gas estimation before tx
+- Use multicall for related operations
 ```
 
-### 🩺 **Scripts de Diagnóstico**:
+### 🩺 **Diagnostic Scripts**:
 
 ```bash
-# Script de health check completo
+# Complete health check script
 forge script script/utils/SystemHealthCheck.s.sol --fork-url $RPC_URL
 
-# Verificar estado de automatización
+# Verify automation status
 forge script script/automation/CheckAutomationStatus.s.sol --fork-url $RPC_URL
 
-# Validar configuración de oráculos
+# Validate oracle configuration
 forge script script/CheckOracleStatus.s.sol --fork-url $RPC_URL
 
-# Verificar liquidez y precios
+# Check liquidity and prices
 forge script script/utils/CheckSystemLiquidity.s.sol --fork-url $RPC_URL
 ```
 
 ---
 
-*Para documentación técnica específica de cada contrato, consulte los comentarios NatSpec en el código fuente y los README individuales en cada subdirectorio.* 
+*For specific technical documentation of each contract, please refer to the NatSpec comments in the source code and individual READMEs in each subdirectory.* 
