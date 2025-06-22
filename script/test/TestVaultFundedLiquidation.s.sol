@@ -42,18 +42,25 @@ contract TestVaultFundedLiquidation is Script {
     function loadAddresses() internal {
         console.log("\nStep 1: Loading deployed addresses...");
         
-        // Load from deployed-addresses-mock.json (latest deployment)
-        flexibleLoanManager = 0x3AA0D317F4b7d0b36344A7B6C72d09e1d61d6601;
-        vaultBasedHandler = 0xbC36d8283EEBcEe76Fc7f83c4FCee5084fceaf40;
-        mockOracle = 0xac66C9b45505dEf81da6f843392f85E73D478D52;
-        automationKeeper = 0xfB20bf1c7566883E2baA98B3160B4db8633d339D;
+        // Read addresses from deployed-addresses-mock.json
+        string memory json = vm.readFile("deployed-addresses-mock.json");
         
-        mockETH = 0x62F0C74b6dA032292F7A53488A1d18bFb2cCf011;
-        mockUSDC = 0xbb7ec90e3d6A1beeE57eF752a6C463A5e5AEa0FB;
+        flexibleLoanManager = vm.parseJsonAddress(json, ".coreLending.flexibleLoanManager");
+        vaultBasedHandler = vm.parseJsonAddress(json, ".coreLending.vaultBasedHandler");
+        mockOracle = vm.parseJsonAddress(json, ".vcopCollateral.mockVcopOracle");
+        automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
+        
+        mockETH = vm.parseJsonAddress(json, ".tokens.mockETH");
+        mockUSDC = vm.parseJsonAddress(json, ".tokens.mockUSDC");
         
         console.log("FlexibleLoanManager:", flexibleLoanManager);
         console.log("VaultBasedHandler:", vaultBasedHandler);
         console.log("AutomationKeeper:", automationKeeper);
+        
+        // Validate addresses
+        require(flexibleLoanManager != address(0), "FlexibleLoanManager address is zero");
+        require(vaultBasedHandler != address(0), "VaultBasedHandler address is zero");
+        require(automationKeeper != address(0), "AutomationKeeper address is zero");
     }
     
     function verifyConfiguration() internal {

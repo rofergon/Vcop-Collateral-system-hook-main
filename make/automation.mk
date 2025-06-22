@@ -308,6 +308,31 @@ test-vault-liquidation:
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
 	@echo "✅ Vault liquidation test completed!"
 
+# Test complete liquidation flow with new vault
+test-liquidation-flow:
+	@echo "🧪 TESTING COMPLETE LIQUIDATION FLOW"
+	@echo "===================================="
+	@echo ""
+	@echo "This will:"
+	@echo "1. Create a new liquidatable position"
+	@echo "2. Monitor automation system"
+	@echo "3. Verify liquidation execution"
+	@echo ""
+	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo ""
+	@echo "📋 Step 1: Creating test position..."
+	@. ./.env && forge script script/automation/TestLiquidationWithNewVault.s.sol:TestLiquidationWithNewVault \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000 --slow
+	@echo ""
+	@echo "⏳ Step 2: Waiting for automation (2 minutes)..."
+	@sleep 120
+	@echo ""
+	@echo "📊 Step 3: Verifying liquidation results..."
+	@. ./.env && forge script script/automation/VerifyLiquidationsWorking.s.sol:VerifyLiquidationsWorking \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo ""
+	@echo "✅ LIQUIDATION FLOW TEST COMPLETED!"
+
 # 🚀 CHAINLINK AUTOMATION - OFFICIAL REGISTRY COMMANDS
 # =====================================================
 # Updated to use official Chainlink Automation Registry

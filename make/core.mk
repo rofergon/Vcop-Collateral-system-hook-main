@@ -15,9 +15,15 @@ help-core:
 	@echo ""
 	@echo "🔧 CORE SYSTEM ONLY:"
 	@echo "deploy-complete              - Complete deployment with real Oracle"
-	@echo "deploy-complete-mock         - Complete deployment with MockOracle"
+	@echo "deploy-complete-mock         - Complete deployment with MockOracle + Automation"
 	@echo "deploy-complete-optimized    - Production deployment with optimizations"
 	@echo "deploy-emergency-registry    - Deploy emergency registry system"
+	@echo ""
+	@echo "🧪 TESTING COMMANDS:"
+	@echo "create-test-positions        - Create test loan positions"
+	@echo "crash-prices                 - Crash prices to trigger liquidations"
+	@echo "generate-upkeep-config       - Generate Chainlink upkeep configuration"
+	@echo "check-system-status          - Check complete system status"
 	@echo ""
 
 # ========================================
@@ -126,10 +132,16 @@ deploy-complete:
 	@echo "   • Asset handlers ready for production"
 	@echo "✅ Ready for Chainlink automation setup!"
 
-# Deployment with MockOracle for testing
+# Complete deployment with MockOracle + Full Automation Setup
 deploy-complete-mock:
-	@echo "🧪 STARTING MOCK CORE DEPLOYMENT"
-	@echo "================================="
+	@echo "🧪 STARTING COMPLETE MOCK STACK DEPLOYMENT"
+	@echo "==========================================="
+	@echo "This will deploy the complete VCOP system with:"
+	@echo "• Core lending system with Mock Oracle"
+	@echo "• Automation-enabled VaultBasedHandler"
+	@echo "• Chainlink Automation configuration"
+	@echo "• All testing tools and liquidity"
+	@echo ""
 	@echo "📦 Building contracts..."
 	@forge build
 	@echo ""
@@ -137,7 +149,7 @@ deploy-complete-mock:
 	@forge script script/deploy/DeployUnifiedSystemMock.s.sol:DeployUnifiedSystemMock \
 		--rpc-url $(RPC_URL) --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
-	@echo "🔧 Step 2: Configuring Mock Oracle with correct prices..."
+	@echo "🔧 Step 2: Configuring Mock Oracle with realistic prices..."
 	@. ./.env && forge script script/config/ConfigureMockOracle.s.sol:ConfigureMockOracle \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
@@ -145,21 +157,56 @@ deploy-complete-mock:
 	@. ./.env && forge script script/config/ConfigureMockVCOPPrice.s.sol:ConfigureMockVCOPPrice \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
-	@echo "🔗 Step 4: Configuring Asset Handlers with liquidity..."
+	@echo "🔗 Step 4: Configuring Asset Handlers with initial liquidity..."
 	@. ./.env && forge script script/test/ConfigureAssetHandlers.s.sol:ConfigureAssetHandlers \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
-	@echo "✅ Step 5: Verifying oracle prices..."
+	@echo "🤖 Step 5: Deploying VaultBasedHandler with Automation functions..."
+	@. ./.env && forge script script/automation/RedeployVaultWithAutomation.s.sol:RedeployVaultWithAutomation \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "💰 Step 6: Transferring funds to automation vault..."
+	@. ./.env && forge script script/automation/TransferFundsToNewVault.s.sol:TransferFundsToNewVault \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "🔐 Step 7: Authorizing AutomationKeeper in vault..."
+	@. ./.env && forge script script/automation/AuthorizeKeeperInVault.s.sol:AuthorizeKeeperInVault \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "✅ Step 8: Verifying system configuration..."
 	@. ./.env && forge script script/CheckMockOracleStatus.s.sol:CheckMockOracleStatus \
 		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
 	@echo ""
-	@echo "🎉 MOCK CORE DEPLOYMENT COMPLETED!"
-	@echo "📊 System configured with:"
-	@echo "   • ETH: $$2,500 (for safe initial ratios)"
-	@echo "   • USDC: $$1.00"
-	@echo "   • BTC: $$104,000"
-	@echo "   • Asset Handlers with sufficient liquidity"
-	@echo "✅ Ready for liquidation testing!"
+	@echo "🎯 Step 9: Generating Chainlink Automation configuration..."
+	@echo ""
+	@echo "=================================================="
+	@echo "🎯 CHAINLINK UPKEEP REGISTRATION INFORMATION"
+	@echo "=================================================="
+	@. ./.env && forge script script/automation/GenerateUpkeepConfig.s.sol:GenerateUpkeepConfig \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo ""
+	@echo "=================================================="
+	@echo "🎉 COMPLETE MOCK STACK DEPLOYMENT FINISHED!"
+	@echo "=================================================="
+	@echo ""
+	@echo "📊 SYSTEM STATUS:"
+	@echo "✅ Core lending system deployed"
+	@echo "✅ Mock Oracle configured with realistic prices:"
+	@echo "   • ETH: $$2,500 USD"
+	@echo "   • BTC: $$104,000 USD"
+	@echo "   • USDC: $$1.00 USD"
+	@echo "   • VCOP: $$1.00 USD"
+	@echo "✅ VaultBasedHandler with automation functions"
+	@echo "✅ 100,000 USDC liquidity for liquidations"
+	@echo "✅ AutomationKeeper authorized in vault"
+	@echo ""
+	@echo "🚀 NEXT STEPS:"
+	@echo "1. Register the upkeep using the information above"
+	@echo "2. Test with: make create-test-positions"
+	@echo "3. Trigger liquidations: make crash-prices"
+	@echo "4. Monitor: https://automation.chain.link/base-sepolia"
+	@echo ""
+	@echo "🎯 YOUR COMPLETE SYSTEM IS READY! 🎯"
 
 # Production deployment with optimizations
 deploy-complete-optimized:
@@ -175,4 +222,42 @@ deploy-emergency-registry:
 	@echo "==============================="
 	@. ./.env && forge script script/deploy/DeployEmergencyRegistry.s.sol:DeployEmergencyRegistry \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 30000000000 --slow
-	@echo "✅ Emergency Registry deployed!" 
+	@echo "✅ Emergency Registry deployed!"
+
+# ========================================
+# 🧪 TESTING COMMANDS
+# ========================================
+
+# Create test positions for liquidation testing
+create-test-positions:
+	@echo "🧪 CREATING TEST POSITIONS FOR LIQUIDATION"
+	@echo "=========================================="
+	@. ./.env && forge script script/test/Step1_CreateTestPositions.s.sol:Step1_CreateTestPositions \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000
+	@echo "✅ Test positions created!"
+
+# Crash prices to trigger liquidations
+crash-prices:
+	@echo "💥 CRASHING PRICES TO TRIGGER LIQUIDATIONS"
+	@echo "==========================================="
+	@. ./.env && forge script script/test/Step2_CrashPrices.s.sol:Step2_CrashPrices \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000
+	@echo "✅ Prices crashed! Positions should be liquidatable now."
+
+# Generate upkeep configuration
+generate-upkeep-config:
+	@echo "🎯 GENERATING CHAINLINK UPKEEP CONFIGURATION"
+	@echo "============================================="
+	@. ./.env && forge script script/automation/GenerateUpkeepConfig.s.sol:GenerateUpkeepConfig \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo "✅ Upkeep configuration generated!"
+
+# Check system status
+check-system-status:
+	@echo "🔍 CHECKING SYSTEM STATUS"
+	@echo "========================="
+	@. ./.env && forge script script/CheckMockOracleStatus.s.sol:CheckMockOracleStatus \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@. ./.env && forge script script/automation/SimpleVaultCheck.s.sol:SimpleVaultCheck \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo "✅ System status checked!" 

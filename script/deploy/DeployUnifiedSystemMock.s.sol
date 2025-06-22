@@ -337,19 +337,39 @@ contract DeployUnifiedSystemMock is Script {
         vm.writeFile("deployed-addresses-mock.json", json);
         console.log("Addresses saved to deployed-addresses-mock.json");
         
-        // Generate constants file for testing
+        // Generate constants file for testing with ALL addresses
         string memory constantsFile = string(abi.encodePacked(
+            '// SPDX-License-Identifier: MIT\n',
+            'pragma solidity ^0.8.26;\n',
+            '\n',
+            '// Mock tokens\n',
             'address constant MOCK_ETH_ADDRESS = ', vm.toString(mockETH), ';\n',
             'address constant MOCK_WBTC_ADDRESS = ', vm.toString(mockWBTC), ';\n',
             'address constant MOCK_USDC_ADDRESS = ', vm.toString(mockUSDC), ';\n',
             'address constant VCOP_ADDRESS = ', vm.toString(vcopToken), ';\n',
+            '\n',
+            '// VCOP Collateral System\n',
             'address constant MOCK_ORACLE_ADDRESS = ', vm.toString(mockVcopOracle), ';\n',
+            'address constant VCOP_PRICE_CALCULATOR_ADDRESS = ', vm.toString(vcopPriceCalculator), ';\n',
             'address constant COLLATERAL_MANAGER_ADDRESS = ', vm.toString(vcopCollateralManager), ';\n',
-            'address constant HOOK_ADDRESS = ', vm.toString(vcopCollateralHook), ';\n'
+            'address constant HOOK_ADDRESS = ', vm.toString(vcopCollateralHook), ';\n',
+            '\n',
+            '// Core Lending System\n',
+            'address constant RISK_CALCULATOR_ADDRESS = ', vm.toString(riskCalculator), ';\n',
+            'address constant GENERIC_LOAN_MANAGER_ADDRESS = ', vm.toString(genericLoanManager), ';\n',
+            'address constant FLEXIBLE_LOAN_MANAGER_ADDRESS = ', vm.toString(flexibleLoanManager), ';\n',
+            'address constant MINTABLE_BURNABLE_HANDLER_ADDRESS = ', vm.toString(mintableBurnableHandler), ';\n',
+            'address constant VAULT_BASED_HANDLER_ADDRESS = ', vm.toString(vaultBasedHandler), ';\n',
+            'address constant FLEXIBLE_ASSET_HANDLER_ADDRESS = ', vm.toString(flexibleAssetHandler), ';\n',
+            'address constant DYNAMIC_PRICE_REGISTRY_ADDRESS = ', vm.toString(dynamicPriceRegistry), ';\n',
+            '\n',
+            '// System Configuration\n',
+            'address constant POOL_MANAGER_ADDRESS = ', vm.toString(POOL_MANAGER_ADDRESS), ';\n',
+            'address constant FEE_COLLECTOR_ADDRESS = ', vm.toString(feeCollector), ';\n'
         ));
         
         vm.writeFile("script/generated/MockTestAddresses.sol", constantsFile);
-        console.log("Generated script/generated/MockTestAddresses.sol");
+        console.log("Generated script/generated/MockTestAddresses.sol with ALL addresses");
     }
     
     function _printDeploymentSummary() internal view {

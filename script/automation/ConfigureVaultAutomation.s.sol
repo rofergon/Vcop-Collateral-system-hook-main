@@ -28,14 +28,21 @@ contract ConfigureVaultAutomation is Script {
     function loadAddresses() internal {
         console.log("\nStep 1: Loading deployed addresses...");
         
-        // Using the latest deployed addresses from deployment
-        flexibleLoanManager = 0x3AA0D317F4b7d0b36344A7B6C72d09e1d61d6601;
-        vaultBasedHandler = 0xbC36d8283EEBcEe76Fc7f83c4FCee5084fceaf40;
-        automationKeeper = 0xfB20bf1c7566883E2baA98B3160B4db8633d339D;
+        // Read addresses from deployed-addresses-mock.json
+        string memory json = vm.readFile("deployed-addresses-mock.json");
+        
+        flexibleLoanManager = vm.parseJsonAddress(json, ".coreLending.flexibleLoanManager");
+        vaultBasedHandler = vm.parseJsonAddress(json, ".coreLending.vaultBasedHandler");
+        automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
         
         console.log("FlexibleLoanManager:", flexibleLoanManager);
         console.log("VaultBasedHandler:", vaultBasedHandler);
         console.log("AutomationKeeper:", automationKeeper);
+        
+        // Validate addresses
+        require(flexibleLoanManager != address(0), "FlexibleLoanManager address is zero");
+        require(vaultBasedHandler != address(0), "VaultBasedHandler address is zero");
+        require(automationKeeper != address(0), "AutomationKeeper address is zero");
     }
     
     function configureVaultAutomation() internal {
