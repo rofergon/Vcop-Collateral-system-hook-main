@@ -86,9 +86,30 @@ contract DeployAutomationMock is Script {
      * @dev Load configuration from environment variables
      */
     function _loadConfiguration() internal {
-        // Required addresses from deployed-addresses-mock.json
-        config.flexibleLoanManager = vm.envAddress("FLEXIBLE_LOAN_MANAGER_ADDRESS");
-        config.dynamicPriceRegistry = vm.envAddress("PRICE_REGISTRY_ADDRESS");
+        // Load required addresses from deployed-addresses-mock.json directly
+        string memory json = vm.readFile("deployed-addresses-mock.json");
+        
+        // CRITICAL FIX: Always use FlexibleLoanManager, never GenericLoanManager
+        config.flexibleLoanManager = vm.parseJsonAddress(json, ".coreLending.flexibleLoanManager");
+        
+        // Fallback from environment for backward compatibility 
+        if (config.flexibleLoanManager == address(0)) {
+            config.flexibleLoanManager = vm.envAddress("FLEXIBLE_LOAN_MANAGER_ADDRESS");
+        }
+        
+        require(config.flexibleLoanManager != address(0), "FlexibleLoanManager address not found");
+        
+        // Load DynamicPriceRegistry (optional)
+        try vm.parseJsonAddress(json, ".coreLending.dynamicPriceRegistry") returns (address priceRegistry) {
+            config.dynamicPriceRegistry = priceRegistry;
+        } catch {
+            // Try from environment if not in JSON
+            try vm.envAddress("PRICE_REGISTRY_ADDRESS") returns (address envPriceRegistry) {
+                config.dynamicPriceRegistry = envPriceRegistry;
+            } catch {
+                config.dynamicPriceRegistry = address(0); // Optional
+            }
+        }
         
         // Optional configuration with defaults
         config.maxGasPerUpkeep = vm.envOr("MAX_GAS_PER_UPKEEP", uint256(2500000));
@@ -101,6 +122,19 @@ contract DeployAutomationMock is Script {
         console.log("   Min Risk Threshold:", config.minRiskThreshold);
         console.log("   Liquidation Cooldown:", config.liquidationCooldown);
         console.log("   Volatility Mode:", config.enableVolatilityMode);
+        
+        // VALIDATION: Ensure we're using the correct manager
+        console.log("");
+        console.log("CRITICAL VALIDATION:");
+        console.log("   FlexibleLoanManager (WILL BE USED):", config.flexibleLoanManager);
+        
+        // Load and display GenericLoanManager for comparison
+        try vm.parseJsonAddress(json, ".coreLending.genericLoanManager") returns (address genericManager) {
+            console.log("   GenericLoanManager (NOT USED):", genericManager);
+            require(config.flexibleLoanManager != genericManager, "ERROR: Using GenericLoanManager instead of FlexibleLoanManager!");
+        } catch {
+            console.log("   GenericLoanManager: Not found in deployment");
+        }
     }
     
     /**

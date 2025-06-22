@@ -3,11 +3,11 @@ pragma solidity ^0.8.26;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../generated/MockTestAddresses.sol";
 
 /**
  * @title GenerateUpkeepConfig
  * @notice Genera configuración exacta para registrar upkeep en Chainlink
+ * @dev FIXED: Maneja el caso donde automatización aún no está desplegada
  */
 contract GenerateUpkeepConfig is Script {
     
@@ -17,27 +17,71 @@ contract GenerateUpkeepConfig is Script {
         console.log("========================================");
         console.log("");
         
-        // Use addresses from recent deployment
-        address flexibleLoanManager = FLEXIBLE_LOAN_MANAGER_ADDRESS;
-        // Updated AutomationKeeper address from latest deployment
-        address automationKeeper = 0x85C77737887DcB94331cFAf24fc3fCD5eECE9292;
+        // CRITICAL FIX: Load addresses directly from deployed-addresses-mock.json
+        string memory json = vm.readFile("deployed-addresses-mock.json");
+        
+        // ALWAYS use FlexibleLoanManager from JSON
+        address flexibleLoanManager = vm.parseJsonAddress(json, ".coreLending.flexibleLoanManager");
+        
+        // Try to get AutomationKeeper, but handle case where it doesn't exist yet
+        address automationKeeper;
+        bool automationDeployed = false;
+        
+        try vm.parseJsonAddress(json, ".automation.automationKeeper") returns (address keeper) {
+            automationKeeper = keeper;
+            automationDeployed = true;
+        } catch {
+            // Automation not deployed yet - this is OK during initial deployment
+            automationKeeper = address(0);
+            automationDeployed = false;
+        }
+        
+        // Validation to prevent future mistakes
+        require(flexibleLoanManager != address(0), "FlexibleLoanManager not found in deployed-addresses-mock.json");
+        
+        // Display validation info
+        console.log("VALIDATION:");
+        console.log("Reading from: deployed-addresses-mock.json");
+        console.log("FlexibleLoanManager found:", flexibleLoanManager);
+        
+        if (automationDeployed) {
+            console.log("AutomationKeeper found:", automationKeeper);
+        } else {
+            console.log("AutomationKeeper: NOT YET DEPLOYED");
+            console.log("NOTE: This is normal during initial core deployment");
+        }
+        
+        // Check for GenericLoanManager to warn if they're different
+        try vm.parseJsonAddress(json, ".coreLending.genericLoanManager") returns (address genericManager) {
+            if (genericManager != flexibleLoanManager) {
+                console.log("NOTE: GenericLoanManager exists but NOT used:", genericManager);
+                console.log("CORRECT: Using FlexibleLoanManager for automation");
+            }
+        } catch {
+            console.log("GenericLoanManager not found - this is OK");
+        }
+        console.log("");
         
         console.log("UPKEEP REGISTRATION INFORMATION:");
         console.log("-----------------------------------");
         console.log("");
         
-        console.log("CONTRACT TO REGISTER:");
-        console.log("AutomationKeeper Address:", automationKeeper);
+        if (automationDeployed) {
+            console.log("CONTRACT TO REGISTER:");
+            console.log("AutomationKeeper Address:", automationKeeper);
+        } else {
+            console.log("CONTRACT TO REGISTER:");
+            console.log("AutomationKeeper Address: [WILL BE AVAILABLE AFTER AUTOMATION DEPLOYMENT]");
+        }
         console.log("");
         
         console.log("CHECK DATA (HEX):");
         
-        // Generate checkData for FlexibleLoanManager
+        // Generate checkData for FlexibleLoanManager (NEVER GenericLoanManager)
         bytes memory checkData = abi.encode(
-            flexibleLoanManager,  // loanManager address
-            uint256(0),          // startIndex  
-            uint256(0),          // maxPositions (0 = check all)
-            uint256(25)          // minRiskLevel (25% risk threshold)
+            flexibleLoanManager,  // ALWAYS FlexibleLoanManager from JSON
+            uint256(0),          // startIndex (0 = auto-start from position ID 1)
+            uint256(25)          // batchSize (25 positions per check)
         );
         console.log("CheckData Hex: %s", _bytesToHex(checkData));
         console.log("");
@@ -51,40 +95,63 @@ contract GenerateUpkeepConfig is Script {
         
         console.log("SYSTEM ADDRESSES (FROM LATEST DEPLOYMENT):");
         console.log("----------------------------------------------");
-        console.log("FlexibleLoanManager:", flexibleLoanManager);
-        console.log("VaultBasedHandler:", VAULT_BASED_HANDLER_ADDRESS);
-        console.log("Mock Oracle:", MOCK_ORACLE_ADDRESS);
-        console.log("Mock ETH:", MOCK_ETH_ADDRESS);
-        console.log("Mock USDC:", MOCK_USDC_ADDRESS);
+        console.log("FlexibleLoanManager (USED):", flexibleLoanManager);
+        
+        // Load other addresses for reference
+        address vaultBasedHandler = vm.parseJsonAddress(json, ".coreLending.vaultBasedHandler");
+        address mockOracle = vm.parseJsonAddress(json, ".vcopCollateral.mockVcopOracle");
+        address mockETH = vm.parseJsonAddress(json, ".tokens.mockETH");
+        address mockUSDC = vm.parseJsonAddress(json, ".tokens.mockUSDC");
+        
+        console.log("VaultBasedHandler:", vaultBasedHandler);
+        console.log("Mock Oracle:", mockOracle);
+        console.log("Mock ETH:", mockETH);
+        console.log("Mock USDC:", mockUSDC);
         console.log("");
         
-        console.log("REGISTRATION STEPS:");
-        console.log("----------------------");
-        console.log("1. Go to: https://automation.chain.link");
-        console.log("2. Connect to Base Sepolia network");
-        console.log("3. Click 'Register New Upkeep'");
-        console.log("4. Choose 'Custom Logic'");
-        console.log("5. Enter AutomationKeeper address:");
-        console.log("  ", automationKeeper);
-        console.log("6. Paste the CheckData hex above");
-        console.log("7. Set gas limit to 500,000");
-        console.log("8. Fund with at least 0.5 LINK");
+        if (automationDeployed) {
+            console.log("REGISTRATION STEPS:");
+            console.log("----------------------");
+            console.log("1. Go to: https://automation.chain.link");
+            console.log("2. Connect to Base Sepolia network");
+            console.log("3. Click 'Register New Upkeep'");
+            console.log("4. Choose 'Custom Logic'");
+            console.log("5. Enter AutomationKeeper address:");
+            console.log("  ", automationKeeper);
+            console.log("6. Paste the CheckData hex above");
+            console.log("7. Set gas limit to 500,000");
+            console.log("8. Fund with at least 0.5 LINK");
+        } else {
+            console.log("NEXT STEPS:");
+            console.log("----------------------");
+            console.log("1. Complete automation deployment first");
+            console.log("2. Run this script again to get full registration info");
+            console.log("3. Or check the automation deployment output for complete details");
+        }
         console.log("");
         
         console.log("TESTING WORKFLOW:");
         console.log("--------------------");
         console.log("1. Create test positions:");
-        console.log("   forge script script/automation/Step1_CreateTestPositions.s.sol --broadcast");
+        console.log("   forge script script/test/Step1_CreateTestPositions.s.sol --broadcast");
         console.log("");
         console.log("2. Crash prices to trigger liquidations:");
-        console.log("   forge script script/automation/Step2_CrashPrices.s.sol --broadcast");
+        console.log("   forge script script/test/Step2_CrashPrices.s.sol --broadcast");
         console.log("");
         console.log("3. Monitor automation execution on:");
         console.log("   https://automation.chain.link/base-sepolia");
         console.log("");
         
-        console.log("AUTOMATION CONFIGURATION COMPLETE!");
-        console.log("Your system is ready for Chainlink Automation");
+        if (automationDeployed) {
+            console.log("AUTOMATION CONFIGURATION COMPLETE!");
+            console.log("Your system is ready for Chainlink Automation");
+        } else {
+            console.log("CORE SYSTEM CONFIGURATION COMPLETE!");
+            console.log("Automation will be configured in the next deployment phase");
+        }
+        console.log("");
+        console.log("IMPORTANT: This upkeep will monitor positions in FlexibleLoanManager ONLY");
+        console.log("This is correct because test positions are created in FlexibleLoanManager");
     }
     
     function _bytesToHex(bytes memory data) internal pure returns (string memory) {

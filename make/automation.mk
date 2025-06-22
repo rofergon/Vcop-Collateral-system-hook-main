@@ -151,12 +151,31 @@ deploy-automation-mock:
 		echo "   Run: make deploy-complete-mock"; \
 		exit 1; \
 	fi
+	@echo "🔍 VALIDATING ADDRESSES FROM JSON..."
+	@FLEXIBLE_LOAN_MANAGER=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json) && \
+	GENERIC_LOAN_MANAGER=$$(jq -r '.coreLending.genericLoanManager' deployed-addresses-mock.json) && \
+	echo "FlexibleLoanManager (WILL BE USED): $$FLEXIBLE_LOAN_MANAGER" && \
+	echo "GenericLoanManager (NOT USED): $$GENERIC_LOAN_MANAGER" && \
+	if [ "$$FLEXIBLE_LOAN_MANAGER" = "null" ] || [ "$$FLEXIBLE_LOAN_MANAGER" = "" ]; then \
+		echo "❌ FlexibleLoanManager not found in JSON!"; \
+		exit 1; \
+	fi && \
+	if [ "$$FLEXIBLE_LOAN_MANAGER" = "$$GENERIC_LOAN_MANAGER" ]; then \
+		echo "⚠️  WARNING: FlexibleLoanManager and GenericLoanManager are the same!"; \
+		echo "   This may indicate a deployment issue."; \
+	fi
+	@echo "✅ Address validation complete"
+	@echo ""
+	@# Deploy automation using ONLY addresses from JSON (no environment variables)
 	@. ./.env && \
 	export ORACLE_ADDRESS=$$(jq -r '.vcopCollateral.mockVcopOracle' deployed-addresses-mock.json) && \
-	export GENERIC_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.genericLoanManager' deployed-addresses-mock.json) && \
 	export FLEXIBLE_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json) && \
-	export RISK_CALCULATOR_ADDRESS=$$(jq -r '.coreLending.riskCalculator' deployed-addresses-mock.json) && \
 	export PRICE_REGISTRY_ADDRESS=$$(jq -r '.coreLending.dynamicPriceRegistry' deployed-addresses-mock.json) && \
+	echo "🚀 DEPLOYING WITH CORRECT ADDRESSES:" && \
+	echo "   FlexibleLoanManager: $$FLEXIBLE_LOAN_MANAGER_ADDRESS" && \
+	echo "   Oracle: $$ORACLE_ADDRESS" && \
+	echo "   PriceRegistry: $$PRICE_REGISTRY_ADDRESS" && \
+	echo "" && \
 	forge script script/automation/DeployAutomationMock.s.sol:DeployAutomationMock \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000 --legacy --slow
 	@echo "Updating mock JSON with automation addresses..."
