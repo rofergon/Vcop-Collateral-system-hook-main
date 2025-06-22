@@ -760,7 +760,7 @@ contract GenericLoanManager is ILoanManager, IRewardable, ILoanAutomation, Ownab
      * GenericLoanManager doesn't support vault funding, so this returns false
      */
     function vaultFundedAutomatedLiquidation(uint256 positionId) 
-        external override returns (bool success, uint256 liquidatedAmount) {
+        external override(ILoanManager, ILoanAutomation) returns (bool success, uint256 liquidatedAmount) {
         
         // GenericLoanManager doesn't support vault-funded liquidation
         // Return false to indicate this feature is not available

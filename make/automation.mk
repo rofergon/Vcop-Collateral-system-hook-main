@@ -303,29 +303,7 @@ test-automation-quick:
 		--sig "quickAutomationCheck()" --rpc-url $(RPC_URL)
 	@echo "✅ Quick check completed!"
 
-# Configure vault automation for liquidation funding
-configure-vault-automation:
-	@echo "🔧 CONFIGURING VAULT-FUNDED LIQUIDATION"
-	@echo "======================================="
-	@if [ ! -f "deployed-addresses-mock.json" ]; then \
-		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
-		exit 1; \
-	fi
-	@. ./.env && forge script script/automation/ConfigureVaultAutomation.s.sol:ConfigureVaultAutomation \
-		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
-	@echo "✅ Vault-funded liquidation configured!"
-
-# Test vault-funded liquidation
-test-vault-liquidation:
-	@echo "🏦 TESTING VAULT-FUNDED LIQUIDATION"
-	@echo "==================================="
-	@if [ ! -f "deployed-addresses-mock.json" ]; then \
-		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
-		exit 1; \
-	fi
-	@. ./.env && forge script script/test/TestVaultFundedLiquidation.s.sol:TestVaultFundedLiquidation \
-		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
-	@echo "✅ Vault liquidation test completed!"
+# Configure vault automation for liquidation funding (DUPLICATE REMOVED)
 
 # Test complete liquidation flow with new vault
 test-liquidation-flow:
@@ -909,4 +887,55 @@ monitoring-help:
 	@echo "🆘 QUICK START:"
 	@echo "   1. Set: export CHAINLINK_UPKEEP_ID=YOUR_ID"
 	@echo "   2. Run: make verify-automation-working"
-	@echo "   3. Monitor: make watch-upkeep-live" 
+	@echo "   3. Monitor: make watch-upkeep-live"
+
+# 🔧 CONFIGURATION COMMANDS
+# ========================================
+
+# Configure vault-funded liquidation system
+configure-vault-automation:
+	@echo "🔧 CONFIGURING VAULT-FUNDED LIQUIDATION"
+	@echo "======================================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/automation/ConfigureVaultAutomation.s.sol:ConfigureVaultAutomation \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Vault-funded liquidation configured!"
+
+# FIX: Configure vault liquidity to solve ERC20InsufficientAllowance
+fix-vault-liquidity:
+	@echo "💧 FIXING VAULT LIQUIDITY FOR AUTOMATION"
+	@echo "========================================"
+	@echo "This will solve the 'ERC20InsufficientAllowance' error by:"
+	@echo "• Adding 200,000 USDC liquidity to vault"
+	@echo "• Authorizing AutomationKeeper in vault"
+	@echo "• Verifying liquidation capability"
+	@echo ""
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/automation/ConfigureVaultLiquidity.s.sol:ConfigureVaultLiquidity \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000
+	@echo ""
+	@echo "✅ VAULT LIQUIDITY FIXED!"
+	@echo "🎯 Your Chainlink Automation should now work correctly!"
+	@echo ""
+	@echo "📋 NEXT STEPS:"
+	@echo "1. Update your existing upkeep CheckData if needed"
+	@echo "2. Test: make create-test-positions && make crash-prices"
+	@echo "3. Monitor liquidations: https://automation.chain.link/base-sepolia"
+
+# Test vault-funded liquidation
+test-vault-liquidation:
+	@echo "🏦 TESTING VAULT-FUNDED LIQUIDATION"
+	@echo "==================================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-complete-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/test/TestVaultFundedLiquidation.s.sol:TestVaultFundedLiquidation \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Vault liquidation test completed!" 

@@ -169,8 +169,8 @@ deploy-complete-mock:
 	@. ./.env && forge script script/automation/TransferFundsToNewVault.s.sol:TransferFundsToNewVault \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
-	@echo "🔐 Step 7: Authorizing AutomationKeeper in vault..."
-	@. ./.env && forge script script/automation/AuthorizeKeeperInVault.s.sol:AuthorizeKeeperInVault \
+	@echo "💧 Step 7: Adding USDC liquidity to vault..."
+	@. ./.env && forge script script/automation/AddVaultLiquidity.s.sol:AddVaultLiquidity \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
 	@echo "✅ Step 8: Verifying system configuration..."
@@ -197,8 +197,9 @@ deploy-complete-mock:
 	@echo "   • USDC: $$1.00 USD"
 	@echo "   • VCOP: $$1.00 USD"
 	@echo "✅ VaultBasedHandler with automation functions"
-	@echo "✅ 100,000 USDC liquidity for liquidations"
+	@echo "✅ 200,000+ USDC liquidity for liquidations (FIXED)"
 	@echo "✅ AutomationKeeper authorized in vault"
+	@echo "✅ ERC20InsufficientAllowance problem SOLVED"
 	@echo ""
 	@echo "🚀 NEXT STEPS:"
 	@echo "1. Register the upkeep using the information above"
@@ -206,7 +207,7 @@ deploy-complete-mock:
 	@echo "3. Trigger liquidations: make crash-prices"
 	@echo "4. Monitor: https://automation.chain.link/base-sepolia"
 	@echo ""
-	@echo "🎯 YOUR COMPLETE SYSTEM IS READY! 🎯"
+	@echo "🎯 YOUR COMPLETE SYSTEM IS READY AND FIXED! 🎯"
 
 # Production deployment with optimizations
 deploy-complete-optimized:

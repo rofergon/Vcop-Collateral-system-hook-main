@@ -801,7 +801,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
      * Uses VaultBasedHandler liquidity to fund liquidations automatically
      */
     function vaultFundedAutomatedLiquidation(uint256 positionId) 
-        external returns (bool success, uint256 liquidatedAmount) {
+        external override(ILoanManager, ILoanAutomation) returns (bool success, uint256 liquidatedAmount) {
         
         require(automationEnabled, "Automation disabled");
         require(msg.sender == authorizedAutomationContract, "Unauthorized automation caller");

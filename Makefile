@@ -37,6 +37,10 @@ help:
 	@echo "register-chainlink-upkeep     - Register with official Chainlink"
 	@echo "configure-forwarder           - Configure Forwarder security"
 	@echo ""
+	@echo "🔧 TROUBLESHOOTING & FIXES"
+	@echo "fix-vault-liquidity           - Fix 'ERC20InsufficientAllowance' error"
+	@echo "configure-vault-automation    - Configure vault-funded liquidation"
+	@echo ""
 	@echo "🧪 TESTING & VERIFICATION"
 	@echo "test-automation-flow          - Complete automation test flow"
 	@echo "create-test-loan              - Create test loan position"
@@ -62,6 +66,10 @@ help:
 	@echo "🌟 QUICK START GUIDES:"
 	@echo "   Production:  make deploy-full-stack"
 	@echo "   Testing:     make deploy-full-stack-mock"
+	@echo ""
+	@echo "❗ TROUBLESHOOTING:"
+	@echo "   If upkeeps execute but positions don't liquidate:"
+	@echo "   → make fix-vault-liquidity"
 
 # ========================================
 # 🔨 BASIC BUILD COMMANDS

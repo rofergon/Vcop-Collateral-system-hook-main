@@ -30,12 +30,21 @@ interface ILoanAutomation {
         external view returns (bool isAtRisk, uint256 riskLevel);
     
     /**
-     * @dev Performs automated liquidation of a position
+     * @dev Performs automated liquidation of a position (requires caller to have tokens)
      * @param positionId Position to liquidate
      * @return success True if liquidation was successful
      * @return liquidatedAmount Amount liquidated
      */
     function automatedLiquidation(uint256 positionId) 
+        external returns (bool success, uint256 liquidatedAmount);
+    
+    /**
+     * @dev 🤖 VAULT-FUNDED: Performs automated liquidation using vault liquidity
+     * @param positionId Position to liquidate
+     * @return success True if liquidation was successful
+     * @return liquidatedAmount Amount liquidated
+     */
+    function vaultFundedAutomatedLiquidation(uint256 positionId) 
         external returns (bool success, uint256 liquidatedAmount);
     
     /**

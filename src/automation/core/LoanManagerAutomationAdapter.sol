@@ -196,6 +196,81 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
     }
     
     /**
+     * @dev 🤖 VAULT-FUNDED: Performs automated liquidation using vault liquidity
+     */
+    function vaultFundedAutomatedLiquidation(uint256 positionId) 
+        external override returns (bool success, uint256 liquidatedAmount) {
+        
+        // Security: only authorized automation contract can call this
+        require(msg.sender == authorizedAutomationContract, "Unauthorized");
+        require(automationEnabled, "Automation disabled");
+        
+        // Check cooldown period
+        require(
+            block.timestamp >= lastLiquidationAttempt[positionId] + liquidationCooldown,
+            "Liquidation cooldown active"
+        );
+        
+        // Record liquidation attempt
+        lastLiquidationAttempt[positionId] = block.timestamp;
+        totalLiquidationAttempts++;
+        
+        // ⚡ ENHANCED: Double-check position is still at risk
+        (bool isAtRisk, uint256 riskLevel) = this.isPositionAtRisk(positionId);
+        if (!isAtRisk) {
+            emit LiquidationAttempted(positionId, false, "Position not at risk");
+            return (false, 0);
+        }
+        
+        // Get position details for liquidation amount calculation
+        uint256 totalDebt;
+        try loanManager.getTotalDebt(positionId) returns (uint256 debt) {
+            totalDebt = debt;
+        } catch {
+            emit LiquidationAttempted(positionId, false, "Failed to get debt");
+            liquidationFailureCount[positionId]++;
+            return (false, 0);
+        }
+        
+        // 🤖 VAULT-FUNDED: Attempt liquidation using vault liquidity
+        try loanManager.vaultFundedAutomatedLiquidation(positionId) returns (bool vaultSuccess, uint256 vaultAmount) {
+            // Liquidation successful
+            success = vaultSuccess;
+            liquidatedAmount = vaultAmount;
+            
+            if (success) {
+                totalLiquidationsExecuted++;
+                
+                // Remove from tracking since position is now closed
+                _removePositionFromTracking(positionId);
+                
+                emit LiquidationAttempted(positionId, true, "Vault-funded liquidation successful");
+            } else {
+                emit LiquidationAttempted(positionId, false, "Vault-funded liquidation failed");
+                liquidationFailureCount[positionId]++;
+            }
+            
+        } catch Error(string memory reason) {
+            // Vault-funded liquidation failed with reason
+            success = false;
+            liquidatedAmount = 0;
+            liquidationFailureCount[positionId]++;
+            
+            emit LiquidationAttempted(positionId, false, string.concat("Vault error: ", reason));
+            
+        } catch (bytes memory) {
+            // Vault-funded liquidation failed with unknown error
+            success = false;
+            liquidatedAmount = 0;
+            liquidationFailureCount[positionId]++;
+            
+            emit LiquidationAttempted(positionId, false, "Unknown vault liquidation error");
+        }
+        
+        return (success, liquidatedAmount);
+    }
+    
+    /**
      * @dev ⚡ ENHANCED: Gets position health data using FlexibleLoanManager functions
      */
     function getPositionHealthData(uint256 positionId) 

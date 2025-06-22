@@ -33,16 +33,22 @@ contract ConfigureVaultAutomation is Script {
         
         flexibleLoanManager = vm.parseJsonAddress(json, ".coreLending.flexibleLoanManager");
         vaultBasedHandler = vm.parseJsonAddress(json, ".coreLending.vaultBasedHandler");
-        automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
+        
+        // Try to load automation keeper address, but don't fail if it doesn't exist
+        try vm.parseJsonAddress(json, ".automation.automationKeeper") returns (address keeper) {
+            automationKeeper = keeper;
+            console.log("AutomationKeeper found:", automationKeeper);
+        } catch {
+            console.log("AutomationKeeper not found in JSON - will skip automation configuration");
+            automationKeeper = address(0);
+        }
         
         console.log("FlexibleLoanManager:", flexibleLoanManager);
         console.log("VaultBasedHandler:", vaultBasedHandler);
-        console.log("AutomationKeeper:", automationKeeper);
         
         // Validate addresses
         require(flexibleLoanManager != address(0), "FlexibleLoanManager address is zero");
         require(vaultBasedHandler != address(0), "VaultBasedHandler address is zero");
-        require(automationKeeper != address(0), "AutomationKeeper address is zero");
     }
     
     function configureVaultAutomation() internal {
@@ -70,11 +76,25 @@ contract ConfigureVaultAutomation is Script {
         );
         require(success, "Failed to enable automation");
         
+        // 4. Authorize automation keeper if it exists
+        if (automationKeeper != address(0)) {
+            console.log("Authorizing AutomationKeeper in vault...");
+            vault.authorizeAutomationContract(automationKeeper);
+            console.log("AutomationKeeper authorized in vault!");
+        } else {
+            console.log("AutomationKeeper not available - will be authorized after deployment");
+        }
+        
         vm.stopBroadcast();
         
         console.log("Configuration completed successfully!");
         console.log("- FlexibleLoanManager authorized in VaultBasedHandler");
         console.log("- Deployer authorized in FlexibleLoanManager for testing");
         console.log("- Automation enabled");
+        if (automationKeeper != address(0)) {
+            console.log("- AutomationKeeper authorized in vault");
+        } else {
+            console.log("- AutomationKeeper will be authorized later");
+        }
     }
 } 

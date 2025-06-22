@@ -253,7 +253,8 @@ contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
             (bool isAtRisk, uint256 currentRisk) = loanAutomation.isPositionAtRisk(positionId);
             
             if (isAtRisk && currentRisk >= minRiskThreshold) {
-                try loanAutomation.automatedLiquidation(positionId) returns (bool success, uint256 amount) {
+                // 🤖 VAULT-FUNDED LIQUIDATION: Uses vault liquidity instead of requiring keeper to have tokens
+                try loanAutomation.vaultFundedAutomatedLiquidation(positionId) returns (bool success, uint256 amount) {
                     if (success) {
                         liquidationsExecuted++;
                         lastLiquidationAttempt[positionId] = block.timestamp;
