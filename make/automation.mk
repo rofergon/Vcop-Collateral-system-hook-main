@@ -5,7 +5,7 @@
 .PHONY: deploy-automation deploy-automation-mock help-automation \
 	setup-chainlink-automation register-chainlink-upkeep configure-forwarder \
 	deploy-automation-complete deploy-automation-complete-mock deploy-automation-complete-mock-no-test \
-	check-chainlink-status update-forwarder-env configure-vault-automation
+	check-chainlink-status update-forwarder-env configure-vault-automation fix-vault-allowances
 
 help-automation:
 	@echo ""
@@ -29,6 +29,7 @@ help-automation:
 	@echo "test-automation-flow            - Test complete automation flow"
 	@echo "test-automation-quick           - Quick automation check"
 	@echo "configure-vault-automation      - Configure vault-funded liquidation"
+	@echo "fix-vault-allowances            - Fix vault allowances for automation (AUTO-INCLUDED)"
 	@echo "test-vault-liquidation          - Test vault-funded liquidation system"
 	@echo ""
 
@@ -938,4 +939,29 @@ test-vault-liquidation:
 	fi
 	@. ./.env && forge script script/test/TestVaultFundedLiquidation.s.sol:TestVaultFundedLiquidation \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
-	@echo "✅ Vault liquidation test completed!" 
+	@echo "✅ Vault liquidation test completed!"
+
+# 🔧 Fix vault allowances for automation (AUTOMATED)
+fix-vault-allowances:
+	@echo "🔧 FIXING VAULT ALLOWANCES FOR AUTOMATION"
+	@echo "========================================="
+	@echo "This will fix allowance issues and ensure automation works:"
+	@echo "• Authorize AutomationKeeper in vault"
+	@echo "• Set AutomationKeeper in LoanManager"
+	@echo "• Provide sufficient USDC liquidity"
+	@echo "• Verify automation configuration"
+	@echo ""
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-full-stack-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/automation/FixVaultAllowances.s.sol:FixVaultAllowances \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "✅ VAULT ALLOWANCES FIXED!"
+	@echo "🎯 Your Chainlink Automation should now work without allowance errors!"
+	@echo ""
+	@echo "📋 NEXT STEPS:"
+	@echo "1. Test: make test-automation-flow"
+	@echo "2. Create positions: script/automation/QuickRiskyPositions.s.sol" 
+	@echo "3. Monitor: https://automation.chain.link/base-sepolia" 

@@ -71,6 +71,10 @@ deploy-full-stack-mock:
 	@echo "🔧 Phase 3: Configuring vault-funded liquidation..."
 	@$(MAKE) configure-vault-automation
 	@echo ""
+	@echo "🔧 Phase 3.5: Fixing vault allowances for automation..."
+	@. ./.env && forge script script/automation/FixVaultAllowances.s.sol:FixVaultAllowances \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
 	@echo "🧪 Phase 4: Testing complete system..."
 	@$(MAKE) test-vault-liquidation
 	@echo ""

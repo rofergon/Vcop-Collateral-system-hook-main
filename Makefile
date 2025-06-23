@@ -39,6 +39,7 @@ help:
 	@echo ""
 	@echo "🔧 TROUBLESHOOTING & FIXES"
 	@echo "fix-vault-liquidity           - Fix 'ERC20InsufficientAllowance' error"
+	@echo "fix-vault-allowances          - Fix vault allowances for automation (NEW)"
 	@echo "configure-vault-automation    - Configure vault-funded liquidation"
 	@echo ""
 	@echo "🧪 TESTING & VERIFICATION"
@@ -69,7 +70,8 @@ help:
 	@echo ""
 	@echo "❗ TROUBLESHOOTING:"
 	@echo "   If upkeeps execute but positions don't liquidate:"
-	@echo "   → make fix-vault-liquidity"
+	@echo "   → make fix-vault-allowances (recommended)"
+	@echo "   → make fix-vault-liquidity (alternative)"
 
 # ========================================
 # 🔨 BASIC BUILD COMMANDS
