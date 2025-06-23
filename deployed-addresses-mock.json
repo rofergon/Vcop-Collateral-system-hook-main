@@ -1,35 +1,29 @@
 {
   "oracleType": "MockVCOPOracle",
   "tokens": {
-    "mockETH": "0x820b1eb06B1e19E8c717b27d1406f175dEe769b0",
-    "mockWBTC": "0x08E1D5f05609C0E1Ead06E3616b3aA4F79704f69",
-    "mockUSDC": "0x83441c9cd36f67C168F6A1FdC54CE899bf12354a",
-    "vcopToken": "0x641032B89a81A7BF1b770df491759B69B7f14d82"
+    "mockETH": "0xDe3fd80E2bcCc96f5FB43ac7481036Db9998f521",
+    "mockWBTC": "0x03f43Ce344D9988138b4807a7392A9feDea83AA1",
+    "mockUSDC": "0x45BdA644DD25600b7d6DF4EC87E9710AD1DAE9d9",
+    "vcopToken": "0x32224a6edf252c711B24f61403be011e6A7BEaEf"
   },
   "vcopCollateral": {
-    "mockVcopOracle": "0x8ebc4D501Abb32C1aAe6388Da27fFD7689d94025",
-    "vcopPriceCalculator": "0xc50fA4536d47C211E46E4C0031265F1DA868123A",
-    "vcopCollateralManager": "0x308f6ad92b0bF8CD1dfE03A92303fd8368830211",
-    "vcopCollateralHook": "0xBEb8419A0318B4EED2C506F78abAb20C28beC4C0"
+    "mockVcopOracle": "0x7c73208363e328614261b7B1fDD32FeB21582437",
+    "vcopPriceCalculator": "0x422d5A56E875177e5326c1E078575B417f4FAbC5",
+    "vcopCollateralManager": "0x3924CC0187822f40A97E97188bc6f7BCaD9e57DD",
+    "vcopCollateralHook": "0xe722168e7b4f18B20F3Eb9F383C36bB32F52C4C0"
   },
   "coreLending": {
-    "riskCalculator": "0xF4Aff4c7B0DBeeF12598D65743Bf5602272f9871",
-    "genericLoanManager": "0xFBA5CfE2AB1f6267BeC8A703237582A2c1DcD5b5",
-    "flexibleLoanManager": "0x9048690345E5247073046B749206b470cA73126e",
-    "mintableBurnableHandler": "0x55b2212b715102f874cC8D31E72E4375D81017Bc",
-    "vaultBasedHandler": "0x279E757b49aFE948fEC8E5807770E2209811e6ef",
-    "flexibleAssetHandler": "0x4d15bE4946bf7f4A2A1F584775498d8b5b3bb984",
-    "dynamicPriceRegistry": "0x12534Df5D4f8d6dE2efBA57D30061cd22261165D"
+    "riskCalculator": "0xF9254dF56ab8a5A71D2A98b605DbB62bfb69b7d7",
+    "genericLoanManager": "0x1d4d8AB4680c605A8579688e7839700C0237C36d",
+    "flexibleLoanManager": "0xAdD8cA97DcbCf7373Da978bc7b61d6Ca31b54F8d",
+    "mintableBurnableHandler": "0x7058bfEC8e010B53A8e2D2d9971729d487852A02",
+    "vaultBasedHandler": "0xC067Bb15D0f7c134916dC82949a9c4d27e6bbbC4",
+    "flexibleAssetHandler": "0x91374EF8d65846E2572C22AB5036eE8fF99a8Fd3",
+    "dynamicPriceRegistry": "0x129De7FcB08AbDf575000dceBe17E75870e67442"
   },
   "config": {
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
     "feeCollector": "0xA6B3D200cD34ca14d7579DAc8B054bf50a62c37c",
     "usdToCopRate": "4200000000"
-  },
-  "automation": {
-    "automationRegistry": "0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3",
-    "automationKeeper": "0x6aaa1ed84f6028e8a780c54a89ec6fcad9edb991",
-    "loanAdapter": "0x0e19e6914cc44793a5d8fc026eae749320a54594",
-    "priceTrigger": "0x46615ea19cbab947170d472b5f70ab2ee8fe1216"
   }
 }
