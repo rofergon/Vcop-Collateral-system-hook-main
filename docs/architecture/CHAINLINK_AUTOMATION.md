@@ -155,31 +155,33 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
 
 ```mermaid
 flowchart TB
-    subgraph "Flujo de Actualización de Precios"
+    subgraph Price ["📈 Flujo de Actualización de Precios"]
         A[DynamicPriceRegistry emite evento] 
         B[Nodo Chainlink detecta log]
         C[PriceChangeLogTrigger.checkLog]
         D{¿Cambio significativo?}
         E[Determina estrategia de liquidación]
         F[Ejecuta liquidaciones prioritarias]
+        M[Sin acción]
+        
+        A --> B --> C --> D
+        D -->|Sí| E --> F
+        D -->|No| M
     end
     
-    subgraph "Flujo de Lógica Personalizada"  
+    subgraph Logic ["🔄 Flujo de Lógica Personalizada"]
         G[Nodo Chainlink ejecuta checkUpkeep]
         H[LoanKeeper obtiene gestores registrados]
         I[LoanAdapter obtiene posiciones en rango]
         J[Evalúa riesgo por posición]
         K{¿Posiciones liquidables?}
         L[Ordena por riesgo y liquida]
+        N[Espera siguiente ciclo]
+        
+        G --> H --> I --> J --> K
+        K -->|Sí| L
+        K -->|No| N
     end
-    
-    A --> B --> C --> D
-    D -->|Sí| E --> F
-    D -->|No| M[Sin acción]
-    
-    G --> H --> I --> J --> K
-    K -->|Sí| L
-    K -->|No| N[Espera siguiente ciclo]
 ```
 
 ## ⚙️ Configuración del Sistema
