@@ -222,101 +222,101 @@ criticalThreshold = 150000      // 15% - Critical level
 volatilityBoostThreshold = 100000 // 10% - Volatility mode
 ```
 
-## 🚀 Despliegue Paso a Paso
+## 🚀 Step-by-Step Deployment
 
-### 1. Configuración del Entorno
+### 1. Environment Setup
 
 ```bash
-# Clonar y configurar
+# Clone and configure
 git clone <repo>
 cd Vcop-Collateral-system-hook-main
 
-# Configurar variables de entorno
+# Configure environment variables
 cp .env.example .env
-# Editar .env con tus valores
+# Edit .env with your values
 
-# Configurar direcciones de contratos desplegados
+# Configure deployed contract addresses
 export FLEXIBLE_LOAN_MANAGER=0x...
 export DYNAMIC_PRICE_REGISTRY=0x...
 ```
 
-### 2. Desplegar Sistema de Automatización
+### 2. Deploy Automation System
 
 ```bash
-# Opción A: Despliegue limpio completo
+# Option A: Complete clean deployment
 forge script script/automation/DeployAutomationClean.s.sol \
     --broadcast \
     --verify \
     --rpc-url $RPC_URL
 
-# Opción B: Despliegue estándar
+# Option B: Standard deployment
 forge script script/automation/DeployAutomation.s.sol \
     --broadcast \
     --verify \
     --rpc-url $RPC_URL
 ```
 
-### 3. Configurar en UI de Chainlink Automation
+### 3. Configure in Chainlink Automation UI
 
 #### Custom Logic Upkeep
 ```bash
-# Obtener checkData para registro
+# Get checkData for registration
 cast call $LOAN_AUTOMATION_KEEPER \
     "generateCheckData(address,uint256,uint256)" \
     $LOAN_ADAPTER_ADDRESS 0 25
 
-# Configuración en UI:
-# - Dirección del Contrato: $LOAN_AUTOMATION_KEEPER  
-# - checkData: <resultado del comando anterior>
-# - Límite de Gas: 2,500,000
-# - Fondos: Mínimo 10 LINK
+# UI Configuration:
+# - Contract Address: $LOAN_AUTOMATION_KEEPER  
+# - checkData: <result from previous command>
+# - Gas Limit: 2,500,000
+# - Funding: Minimum 10 LINK
 ```
 
 #### Log Trigger Upkeep
 ```bash
-# Configuración en UI:
-# - Dirección del Contrato: $PRICE_CHANGE_LOG_TRIGGER
-# - Filtro de Log: 
-#   - Dirección: $DYNAMIC_PRICE_REGISTRY
-#   - Topic0: Firma del evento TokenPriceUpdated
-# - Límite de Gas: 2,000,000  
-# - Fondos: Mínimo 5 LINK
+# UI Configuration:
+# - Contract Address: $PRICE_CHANGE_LOG_TRIGGER
+# - Log Filter: 
+#   - Address: $DYNAMIC_PRICE_REGISTRY
+#   - Topic0: TokenPriceUpdated event signature
+# - Gas Limit: 2,000,000  
+# - Funding: Minimum 5 LINK
 ```
 
-## 🔧 Funciones de Configuración
+## 🔧 Configuration Functions
 
 ### LoanAutomationKeeperOptimized
 
 ```solidity
-// Configurar umbrales
+// Configure thresholds
 loanKeeper.setMinRiskThreshold(75);
 loanKeeper.setMaxPositionsPerBatch(25);
 loanKeeper.setLiquidationCooldown(180);
 
-// Registrar gestores con prioridad
+// Register managers with priority
 loanKeeper.registerLoanManager(adapterAddress, 100);
 
-// Control de emergencia
+// Emergency control
 loanKeeper.setEmergencyPause(false);
 ```
 
 ### LoanManagerAutomationAdapter
 
 ```solidity
-// Configurar umbrales dinámicos
+// Configure dynamic thresholds
 loanAdapter.setRiskThresholds(
-    95,  // Umbral crítico
-    85,  // Umbral de peligro
-    75   // Umbral de advertencia  
+    95,  // Critical threshold
+    85,  // Danger threshold
+    75   // Warning threshold  
 );
 
-// Configurar cooldown
+// Configure cooldown
 loanAdapter.setLiquidationCooldown(180);
 
-// Conectar a automatización
+// Connect to automation
 loanAdapter.setAutomationContract(loanKeeperAddress);
 
-// Inicializar seguimiento de posiciones
+// Initialize position tracking
 uint256[] memory existingPositions = getExistingPositions();
 loanAdapter.initializePositionTracking(existingPositions);
 ```
@@ -324,44 +324,44 @@ loanAdapter.initializePositionTracking(existingPositions);
 ### PriceChangeLogTrigger
 
 ```solidity
-// Configurar umbrales de precio
+// Configure price thresholds
 priceLogTrigger.setPriceChangeThresholds(
-    50000,   // 5% básico
-    75000,   // 7.5% urgente
-    100000,  // 10% inmediato
-    150000   // 15% crítico
+    50000,   // 5% basic
+    75000,   // 7.5% urgent
+    100000,  // 10% immediate
+    150000   // 15% critical
 );
 
-// Configurar volatilidad
+// Configure volatility
 priceLogTrigger.setVolatilityParameters(
-    100000, // 10% umbral de volatilidad
-    3600    // 1 hora de duración
+    100000, // 10% volatility threshold
+    3600    // 1 hour duration
 );
 
-// Registrar gestores
+// Register managers
 priceLogTrigger.registerLoanManager(adapterAddress, 100);
 ```
 
-## 📊 Monitoreo y Análisis
+## 📊 Monitoring and Analysis
 
-### Estadísticas del Sistema
+### System Statistics
 
 ```solidity
-// Rendimiento del keeper
+// Keeper performance
 (uint256 totalLiquidations, 
  uint256 totalUpkeeps, 
  uint256 lastExecution,
  uint256 averageGas,
  uint256 managersCount) = loanKeeper.getStats();
 
-// Estadísticas del adaptador
+// Adapter statistics
 (uint256 tracked,
  uint256 atRisk, 
  uint256 liquidatable,
  uint256 critical,
  uint256 performance) = loanAdapter.getTrackingStats();
 
-// Estadísticas de precio
+// Price statistics
 (uint256 triggers,
  uint256 liquidations,
  uint256 volatilityEvents, 
@@ -369,114 +369,114 @@ priceLogTrigger.registerLoanManager(adapterAddress, 100);
  uint256 activeVolatile) = priceLogTrigger.getStatistics();
 ```
 
-### Monitoreo de Posiciones en Tiempo Real
+### Real-time Position Monitoring
 
 ```solidity
-// Obtener todas las posiciones en riesgo
+// Get all positions at risk
 (uint256[] memory riskPositions, 
  uint256[] memory riskLevels) = loanAdapter.getPositionsAtRisk();
 
-// Verificar posición específica
+// Check specific position
 (bool isAtRisk, uint256 riskLevel) = 
     loanAdapter.isPositionAtRisk(positionId);
 
-// Obtener datos de salud de posición
+// Get position health data
 (address borrower,
  uint256 collateralValue,
  uint256 debtValue, 
  uint256 healthFactor) = loanAdapter.getPositionHealthData(positionId);
 ```
 
-## 🚨 Procedimientos de Emergencia
+## 🚨 Emergency Procedures
 
-### Pausa de Emergencia
+### Emergency Pause
 
 ```solidity
-// Pausar todo el sistema
+// Pause entire system
 loanKeeper.setEmergencyPause(true);
 priceLogTrigger.setEmergencyPause(true);
 
-// Reanudar después de solucionar problemas
+// Resume after fixing issues
 loanKeeper.setEmergencyPause(false);
 priceLogTrigger.setEmergencyPause(false);
 ```
 
-### Liquidación Manual
+### Manual Liquidation
 
 ```solidity
-// Si falla la automatización, liquidar manualmente
+// If automation fails, liquidate manually
 flexibleLoanManager.liquidatePosition(positionId);
 
-// O a través del adaptador
+// Or through the adapter
 loanAdapter.automatedLiquidation(positionId);
 ```
 
-## 🎯 Mejores Prácticas
+## 🎯 Best Practices
 
-### Optimización de Gas
+### Gas Optimization
 
-- **Tamaño de Lote**: Comenzar con 25 posiciones, ajustar según uso de gas
-- **Umbrales de Riesgo**: Usar 75% mínimo para balance seguridad/eficiencia
-- **Cooldown**: Mínimo 3 minutos para prevenir spam
-- **Límites de Gas**: 2.5M para lógica personalizada, 2M para triggers de log
+- **Batch Size**: Start with 25 positions, adjust based on gas usage
+- **Risk Thresholds**: Use 75% minimum for security/efficiency balance
+- **Cooldown**: Minimum 3 minutes to prevent spam
+- **Gas Limits**: 2.5M for custom logic, 2M for log triggers
 
-### Gestión de Riesgo
+### Risk Management
 
-- **Monitoreo Activo**: Revisar métricas diariamente
-- **Alertas**: Configurar notificaciones para fallos
-- **Respaldo**: Mantener procedimientos de liquidación manual
-- **Pruebas**: Probar con posiciones de muestra regularmente
+- **Active Monitoring**: Review metrics daily
+- **Alerts**: Configure notifications for failures
+- **Backup**: Maintain manual liquidation procedures
+- **Testing**: Test with sample positions regularly
 
-## 📈 Especificaciones Técnicas
+## 📈 Technical Specifications
 
-### Versiones de Chainlink
+### Chainlink Versions
 - **AutomationCompatible**: v2.25.0
 - **ILogAutomation**: v2.25.0  
-- **Interfaces**: Chainlink Oficial
+- **Interfaces**: Official Chainlink
 
-### Compatibilidad
+### Compatibility
 - **Solidity**: ^0.8.24 - ^0.8.26
-- **FlexibleLoanManager**: ✅ Completamente integrado
-- **DynamicPriceRegistry**: ✅ Soporte nativo
-- **Multi-Asset**: ✅ Soporte completo
+- **FlexibleLoanManager**: ✅ Fully integrated
+- **DynamicPriceRegistry**: ✅ Native support
+- **Multi-Asset**: ✅ Full support
 
-### Límites del Sistema
-- **Tamaño Máximo de Lote**: 200 posiciones
-- **Gas Máximo por Upkeep**: 5,000,000
-- **Cooldown Mínimo**: 60 segundos
-- **Gestores Máximos**: Ilimitado (permitiendo gas)
+### System Limits
+- **Max Batch Size**: 200 positions
+- **Max Gas per Upkeep**: 5,000,000
+- **Min Cooldown**: 60 seconds
+- **Max Managers**: Unlimited (gas permitting)
 
-## 🎯 Resumen Ejecutivo del Sistema Actual
+## 🎯 Current System Executive Summary
 
-### Características Principales Implementadas
+### Main Implemented Features
 
-✅ **Chainlink Automation v2.25.0** - Versión más reciente con `AutomationCompatible` e `ILogAutomation`  
-✅ **Sistema de Doble Trigger** - Custom Logic + Log Triggers para cobertura completa  
-✅ **Integración FlexibleLoanManager** - Integración nativa con liquidaciones optimizadas  
-✅ **Monitoreo Dinámico de Precios** - Respuesta inmediata a cambios de `DynamicPriceRegistry`  
-✅ **Evaluación de Riesgo Multi-tier** - 4 niveles de urgencia con estrategias diferenciadas  
-✅ **Detección de Volatilidad** - Modo especial para alta volatilidad del mercado  
-✅ **Optimización de Gas** - Batching inteligente y gestión eficiente de gas  
-✅ **Seguimiento de Posiciones** - Sistema automático de seguimiento para posiciones activas  
-✅ **Métricas de Rendimiento** - Estadísticas completas y monitoreo en tiempo real  
-✅ **Controles de Emergencia** - Pausas de emergencia y procedimientos de respaldo  
+✅ **Chainlink Automation v2.25.0** - Latest version with `AutomationCompatible` and `ILogAutomation`  
+✅ **Dual Trigger System** - Custom Logic + Log Triggers for complete coverage  
+✅ **FlexibleLoanManager Integration** - Native integration with optimized liquidations  
+✅ **Dynamic Price Monitoring** - Immediate response to `DynamicPriceRegistry` changes  
+✅ **Multi-tier Risk Assessment** - 4 urgency levels with differentiated strategies  
+✅ **Volatility Detection** - Special mode for high market volatility  
+✅ **Gas Optimization** - Smart batching and efficient gas management  
+✅ **Position Tracking** - Automatic tracking system for active positions  
+✅ **Performance Metrics** - Complete statistics and real-time monitoring  
+✅ **Emergency Controls** - Emergency pauses and backup procedures  
 
-### Ventajas Técnicas del Sistema
+### Technical System Advantages
 
-🚀 **Escalabilidad**: Soporte para múltiples gestores de préstamos simultáneos  
-🛡️ **Seguridad**: Cooldowns, patrones de autorización y controles de emergencia  
-⚡ **Eficiencia**: Optimizado para gas con batching y priorización inteligente  
-🎯 **Precisión**: Evaluación de riesgo basada en datos reales del protocolo  
-🔄 **Flexibilidad**: Parámetros configurables adaptables a condiciones del mercado  
-📊 **Observabilidad**: Métricas detalladas y funciones de debugging  
+🚀 **Scalability**: Support for multiple simultaneous loan managers  
+🛡️ **Security**: Cooldowns, authorization patterns and emergency controls  
+⚡ **Efficiency**: Gas optimized with batching and smart prioritization  
+🎯 **Precision**: Risk assessment based on real protocol data  
+🔄 **Flexibility**: Configurable parameters adaptable to market conditions  
+📊 **Observability**: Detailed metrics and debugging functions  
 
-## 🔗 Recursos Adicionales
+## 🔗 Additional Resources
 
-- [Documentación de Chainlink Automation](https://docs.chain.link/chainlink-automation)
-- [Guía de FlexibleLoanManager](../../../src/core/README.md)
-- [Documentación de DynamicPriceRegistry](../../../src/interfaces/IPriceRegistry.sol)
-- [Interfaz ILoanAutomation](../../../src/automation/interfaces/ILoanAutomation.sol)
+- [Chainlink Automation Documentation](https://docs.chain.link/chainlink-automation)
+- [FlexibleLoanManager Guide](../../../src/core/README.md)
+- [DynamicPriceRegistry Documentation](../../../src/interfaces/IPriceRegistry.sol)
+- [ILoanAutomation Interface](../../../src/automation/interfaces/ILoanAutomation.sol)
 
 ---
 
-*Sistema diseñado para máxima eficiencia, seguridad y flexibilidad en el manejo automatizado de liquidaciones para el protocolo de préstamos.* 
+*System designed for maximum efficiency, security and flexibility in automated liquidation handling for the lending protocol.* 
