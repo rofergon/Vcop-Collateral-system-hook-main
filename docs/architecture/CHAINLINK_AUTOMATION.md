@@ -62,27 +62,27 @@ El sistema actual funciona de la siguiente manera:
 
 ### Ciclo de Custom Logic Automation
 
-**🔄 Flujo de Ejecución Programada:**
+**Flujo de Ejecución Programada:**
 
-1. **⏰ Activación**: El nodo de Chainlink ejecuta `checkUpkeep()` periódicamente
-2. **📋 Obtención de Gestores**: LoanKeeper consulta los gestores registrados
-3. **📊 Consulta de Posiciones**: LoanAdapter obtiene posiciones en el rango especificado
-4. **⚠️ Evaluación de Riesgo**: Analiza cada posición para determinar el nivel de riesgo
-5. **🎯 Decisión**:
-   - **SI** hay posiciones liquidables → Ordena por riesgo y ejecuta liquidaciones
-   - **NO** hay posiciones liquidables → Espera al siguiente ciclo de verificación
+1. **Activación**: El nodo de Chainlink ejecuta `checkUpkeep()` cada intervalo configurado
+2. **Consulta de Gestores**: LoanKeeper obtiene la lista de gestores de préstamos registrados
+3. **Obtención de Posiciones**: LoanAdapter consulta posiciones activas en el rango especificado
+4. **Evaluación de Riesgo**: Calcula el nivel de riesgo para cada posición individual
+5. **Toma de Decisión**:
+   - **Posiciones liquidables encontradas**: Ordena por nivel de riesgo (mayor primero) y ejecuta liquidaciones en lotes
+   - **No hay posiciones liquidables**: Finaliza el ciclo y espera el siguiente intervalo programado
 
 ### Ciclo de Log Trigger Automation
 
-**📈 Flujo de Respuesta a Eventos:**
+**Flujo de Respuesta a Eventos de Precio:**
 
-1. **📢 Emisión de Evento**: DynamicPriceRegistry emite evento de cambio de precio
-2. **👂 Detección**: El nodo de Chainlink detecta el log del evento automáticamente
-3. **🔍 Verificación**: PriceChangeLogTrigger ejecuta `checkLog()` para analizar el evento
-4. **📊 Evaluación**: Determina si el cambio de precio es significativo según umbrales configurados
-5. **🎯 Acción**:
-   - **SI** es cambio significativo → Determina estrategia y ejecuta liquidaciones prioritarias
-   - **NO** es significativo → No realiza ninguna acción y continúa monitoreando
+1. **Emisión de Evento**: DynamicPriceRegistry emite evento `TokenPriceUpdated` cuando cambia el precio
+2. **Detección Automática**: El nodo de Chainlink detecta el log del evento inmediatamente
+3. **Análisis del Evento**: PriceChangeLogTrigger ejecuta `checkLog()` para decodificar y analizar el cambio
+4. **Evaluación de Impacto**: Compara el cambio porcentual contra umbrales configurados (5%, 7.5%, 10%, 15%)
+5. **Ejecución de Acción**:
+   - **Cambio significativo detectado**: Determina el nivel de urgencia y ejecuta liquidaciones priorizadas por riesgo
+   - **Cambio dentro de rango normal**: Registra el evento pero no ejecuta liquidaciones
 
 ### Detalles de Implementación Técnica
 
@@ -141,44 +141,46 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
 - **Auto-sincronización**: Limpieza automática de posiciones cerradas
 - **Métricas de Rendimiento**: Tasa de éxito y estadísticas de liquidación
 
-#### 4. **Flujo de Datos en Tiempo Real**
+#### 4. **Integración y Flujo de Datos**
 
-**🔄 Sistema Dual de Automatización:**
+**Sistema Dual de Automatización:**
 
-### **📈 Flujo de Actualización de Precios (Log Trigger)**
+### **A. Automatización por Eventos de Precio (Log Trigger)**
+
+**Secuencia de Ejecución:**
 ```
-📢 DynamicPriceRegistry emite evento
-    ↓
-👂 Nodo Chainlink detecta log automáticamente  
-    ↓
-🔍 PriceChangeLogTrigger.checkLog() analiza evento
-    ↓
-📊 ¿Cambio significativo? (umbrales: 5%, 7.5%, 10%, 15%)
-    ↓                    ↓
-✅ SÍ                   ❌ NO
-    ↓                    ↓
-🎯 Determina estrategia  ⏸️ Sin acción
-    ↓
-💥 Ejecuta liquidaciones prioritarias
+1. DynamicPriceRegistry emite evento TokenPriceUpdated
+2. Nodo Chainlink detecta el log automáticamente
+3. PriceChangeLogTrigger.checkLog() decodifica el evento
+4. Sistema evalúa si el cambio supera umbrales configurados
+5. DECISIÓN:
+   - Cambio ≥ 5%: Ejecuta liquidaciones básicas
+   - Cambio ≥ 7.5%: Activa modo urgente
+   - Cambio ≥ 10%: Liquidaciones inmediatas
+   - Cambio ≥ 15%: Modo crítico + volatilidad temporal
+   - Cambio < 5%: Registra pero no actúa
 ```
 
-### **🔄 Flujo de Lógica Personalizada (Custom Logic)**
+### **B. Automatización por Lógica Programada (Custom Logic)**
+
+**Ciclo de Verificación:**
 ```
-⏰ Nodo Chainlink ejecuta checkUpkeep() (programado)
-    ↓
-📋 LoanKeeper obtiene gestores registrados
-    ↓
-📊 LoanAdapter obtiene posiciones en rango configurado
-    ↓
-⚠️ Evalúa riesgo por posición individual
-    ↓
-🎯 ¿Posiciones liquidables? (umbral mínimo 75%)
-    ↓                    ↓
-✅ SÍ                   ❌ NO
-    ↓                    ↓
-🔥 Ordena por riesgo    ⏳ Espera siguiente ciclo
-   y liquida
+1. Nodo Chainlink ejecuta checkUpkeep() según programación
+2. LoanKeeper consulta gestores de préstamos registrados
+3. LoanAdapter obtiene posiciones activas en rango especificado
+4. Sistema calcula riesgo individual por posición
+5. DECISIÓN:
+   - Riesgo ≥ 95%: Liquidación crítica inmediata
+   - Riesgo ≥ 85%: Liquidación alta prioridad  
+   - Riesgo ≥ 75%: Liquidación estándar
+   - Riesgo < 75%: Solo monitoreo, sin acción
 ```
+
+**Parámetros de Configuración:**
+- Tamaño máximo de lote: 25 posiciones por ejecución
+- Cooldown entre liquidaciones: 180 segundos
+- Gas máximo por upkeep: 2,500,000
+- Intervalo de verificación: Configurable (típicamente 5-10 minutos)
 
 ## ⚙️ Configuración del Sistema
 
