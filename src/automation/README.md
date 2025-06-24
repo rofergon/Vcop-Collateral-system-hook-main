@@ -8,36 +8,6 @@ Sistema de automatización completo que utiliza **Chainlink Automation v2.25.0**
 
 ### Componentes Principales
 
-```mermaid
-graph TB
-    subgraph "Chainlink Network"
-        CL[Chainlink Automation]
-        CN[Chainlink Nodes]
-    end
-    
-    subgraph "Core System"
-        AR[AutomationRegistry]
-        LAK[LoanAutomationKeeperOptimized]
-        LMAA[LoanManagerAutomationAdapter]
-        PCLT[PriceChangeLogTrigger]
-    end
-    
-    subgraph "Lending Protocol"
-        FLM[FlexibleLoanManager]
-        DPR[DynamicPriceRegistry]
-        AH[AssetHandlers]
-    end
-    
-    CL --> LAK
-    CL --> PCLT
-    LAK --> AR
-    LAK --> LMAA
-    PCLT --> LMAA
-    LMAA --> FLM
-    PCLT --> DPR
-    AR --> LMAA
-```
-
 ### 1. **AutomationRegistry** 📋
 **Función**: Registry central para gestión de loan managers
 - **Ubicación**: `src/automation/core/AutomationRegistry.sol`
@@ -90,113 +60,9 @@ El sistema de automatización implementa dos tipos de triggers de Chainlink v2.2
 
 #### Arquitectura de Integración
 
-```mermaid
-graph LR
-    subgraph "Chainlink Automation v2.25.0"
-        CLA[Custom Logic Trigger]
-        LTA[Log Trigger]
-    end
-    
-    subgraph "Core Automation"
-        AR[AutomationRegistry]
-        LAK[LoanAutomationKeeperOptimized]
-        PCLT[PriceChangeLogTrigger]
-    end
-    
-    subgraph "Adapter Layer"
-        LMAA[LoanManagerAutomationAdapter]
-        ILA[ILoanAutomation Interface]
-    end
-    
-    subgraph "Lending Protocol"
-        FLM[FlexibleLoanManager]
-        DPR[DynamicPriceRegistry]
-    end
-    
-    CLA --> LAK
-    LTA --> PCLT
-    LAK --> AR
-    AR --> LMAA
-    PCLT --> LMAA
-    LMAA --> ILA
-    ILA --> FLM
-    DPR --> LTA
-```
-
 ### Ciclo de Custom Logic Automation
 
-```mermaid
-sequenceDiagram
-    participant CN as Chainlink Node
-    participant LAK as LoanAutomationKeeper
-    participant AR as AutomationRegistry  
-    participant LMAA as LoanAdapter
-    participant FLM as FlexibleLoanManager
-    
-    CN->>LAK: checkUpkeep(checkData)
-    LAK->>AR: getActiveManagersWithBatchInfo()
-    AR-->>LAK: [managers, indices, batchSizes]
-    
-    loop For each manager
-        LAK->>LMAA: getPositionsInRange(start, end)
-        LMAA-->>LAK: [positionIds]
-        
-        loop For each position
-            LAK->>LMAA: isPositionAtRisk(positionId)
-            LMAA->>FLM: canLiquidate(positionId)
-            FLM-->>LMAA: isLiquidatable
-            LMAA->>FLM: getCollateralizationRatio(positionId)
-            FLM-->>LMAA: ratio
-            LMAA-->>LAK: (isAtRisk, riskLevel)
-        end
-    end
-    
-    LAK-->>CN: (upkeepNeeded, performData)
-    
-    alt upkeepNeeded == true
-        CN->>LAK: performUpkeep(performData)
-        LAK->>LMAA: automatedLiquidation(positionId)
-        LMAA->>FLM: liquidatePosition(positionId)
-        FLM-->>LMAA: liquidation result
-        LMAA-->>LAK: (success, amount)
-        LAK->>AR: updateLastCheckedIndex()
-    end
-```
-
 ### Ciclo de Log Trigger Automation
-
-```mermaid
-sequenceDiagram
-    participant DPR as DynamicPriceRegistry
-    participant CN as Chainlink Node
-    participant PCLT as PriceChangeLogTrigger
-    participant LMAA as LoanAdapter
-    participant FLM as FlexibleLoanManager
-    
-    DPR->>DPR: Price Update Event
-    Note over DPR: TokenPriceUpdated(token, price, decimals)
-    
-    CN->>PCLT: checkLog(log, checkData)
-    PCLT->>PCLT: decodePriceUpdate(log.data)
-    PCLT->>PCLT: _analyzePriceChange(asset, newPrice)
-    
-    alt Significant price change detected
-        PCLT-->>CN: (true, performData)
-        CN->>PCLT: performUpkeep(performData)
-        
-        PCLT->>PCLT: _determineLiquidationStrategy(urgencyLevel)
-        
-        loop For each registered manager
-            PCLT->>LMAA: getTotalActivePositions()
-            PCLT->>LMAA: getPositionsInRange(0, batchSize)
-            
-            loop For high-risk positions
-                PCLT->>LMAA: automatedLiquidation(positionId)
-                LMAA->>FLM: liquidatePosition(positionId)
-            end
-        end
-    end
-```
 
 ### Detalles de Implementación Técnica
 
