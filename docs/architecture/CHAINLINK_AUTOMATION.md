@@ -6,98 +6,41 @@ Sistema completo de automatización usando **Chainlink Automation v2.25.0** con 
 
 ## 🏗️ Arquitectura del Sistema
 
-### 🎯 **Componentes Principales del Ecosistema**
+### Componentes Principales
 
----
+### 1. **LoanAutomationKeeperOptimized** ⚡ 
+**Función**: Keeper Principal (Custom Logic Automation)
+- **Ubicación**: `src/automation/core/LoanAutomationKeeperOptimized.sol`
+- **Propósito**: Ejecuta liquidaciones basadas en lógica personalizada
+- **Características**:
+  - Extiende `AutomationCompatible` (detección automática en UI)
+  - Registro interno de gestores de préstamos con prioridades
+  - Procesamiento en lotes optimizado para gas
+  - Priorización por nivel de riesgo
+  - Cooldown entre liquidaciones
+  - Métricas de rendimiento integradas
 
-## 🤖 **NÚCLEO DE AUTOMATIZACIÓN**
+### 2. **LoanManagerAutomationAdapter** 🔗
+**Función**: Adaptador para FlexibleLoanManager
+- **Ubicación**: `src/automation/core/LoanManagerAutomationAdapter.sol`
+- **Propósito**: Interfaz entre automatización y protocolo de préstamos
+- **Características**:
+  - Implementa la interfaz `ILoanAutomation`
+  - Seguimiento eficiente de posiciones activas
+  - Evaluación dinámica de riesgo
+  - Integración directa con `FlexibleLoanManager`
 
-| Componente | Función | Tipo | Estado |
-|------------|---------|------|--------|
-| **⚡ LoanAutomationKeeperOptimized** | Keeper Principal | Custom Logic | 🟢 Activo |
-| **🔗 LoanManagerAutomationAdapter** | Adaptador Inteligente | Interface | 🟢 Activo |
-| **📈 PriceChangeLogTrigger** | Detector de Eventos | Log Trigger | 🟢 Activo |
-
----
-
-### 1️⃣ **LoanAutomationKeeperOptimized** ⚡
-
-```
-┌─────────────────────────────────────────────────────────┐
-│               🤖 KEEPER PRINCIPAL                       │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  📁 src/automation/core/LoanAutomationKeeperOptimized.sol │
-│                                                         │
-│  🎯 FUNCIÓN: Custom Logic Automation                   │
-│     ├─ ⚡ Liquidaciones automáticas programadas         │
-│     ├─ 📊 Procesamiento por lotes (hasta 200)          │
-│     ├─ ⚖️ Priorización inteligente por riesgo          │
-│     └─ 🔄 Ciclos de 5 minutos con cooldown             │
-│                                                         │
-│  🚀 CAPACIDADES:                                       │
-│     ├─ ✅ AutomationCompatible v2.25.0                │
-│     ├─ ✅ Registro interno de gestores                 │
-│     ├─ ✅ Optimización avanzada de gas                 │
-│     ├─ ✅ Métricas en tiempo real                      │
-│     └─ ✅ Controles de emergencia                      │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-### 2️⃣ **LoanManagerAutomationAdapter** 🔗
-
-```
-┌─────────────────────────────────────────────────────────┐
-│             🔗 ADAPTADOR INTELIGENTE                    │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  📁 src/automation/core/LoanManagerAutomationAdapter.sol │
-│                                                         │
-│  🎯 FUNCIÓN: Bridge FlexibleLoanManager ↔ Automation   │
-│     ├─ 🔄 Sincronización automática de posiciones      │
-│     ├─ ⚖️ Evaluación dinámica de riesgo                │
-│     ├─ 📊 Tracking optimizado de arrays                │
-│     └─ 💥 Ejecución directa de liquidaciones           │
-│                                                         │
-│  🧠 INTELIGENCIA:                                      │
-│     ├─ ✅ Implementa ILoanAutomation completa          │
-│     ├─ ✅ Cálculo basado en canLiquidate()             │
-│     ├─ ✅ Auto-limpieza de posiciones cerradas         │
-│     ├─ ✅ Métricas de rendimiento integradas           │
-│     └─ ✅ Cooldown anti-spam personalizable            │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-### 3️⃣ **PriceChangeLogTrigger** 📈
-
-```
-┌─────────────────────────────────────────────────────────┐
-│            📈 DETECTOR DE VOLATILIDAD                   │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  📁 src/automation/core/PriceChangeLogTrigger.sol      │
-│                                                         │
-│  🎯 FUNCIÓN: Log Trigger Automation Reactiva           │
-│     ├─ ⚡ Respuesta instantánea a eventos (<1s)        │
-│     ├─ 🚨 Detección multi-nivel de volatilidad         │
-│     ├─ 🧠 Modo temporal de alta volatilidad            │
-│     └─ 💥 Liquidaciones prioritarias inmediatas        │
-│                                                         │
-│  📊 UMBRALES INTELIGENTES:                             │
-│     ├─ 🟡 5% → Monitoreo básico                       │
-│     ├─ 🟠 7.5% → Liquidaciones urgentes               │
-│     ├─ 🔴 10% → Liquidaciones inmediatas              │
-│     ├─ 🚨 15% → Modo crítico total                    │
-│     └─ ⏰ Modo volatilidad: 1 hora automática         │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+### 3. **PriceChangeLogTrigger** 📈
+**Función**: Trigger basado en eventos de precio (Log Automation)
+- **Ubicación**: `src/automation/core/PriceChangeLogTrigger.sol`
+- **Propósito**: Respuesta inmediata a cambios de precio
+- **Características**:
+  - Usa la interfaz oficial `ILogAutomation` de Chainlink
+  - Registro interno de gestores de préstamos con prioridades
+  - Detección de volatilidad en tiempo real
+  - Múltiples niveles de urgencia (4 niveles)
+  - Modo de volatilidad temporal
+  - Integración directa con `DynamicPriceRegistry`
 
 ## 🔄 Flujo de Trabajo Detallado
 
@@ -108,91 +51,38 @@ El sistema de automatización implementa dos tipos de triggers de Chainlink v2.2
 1. **Custom Logic Automation**: Ejecución cíclica programada para verificar posiciones
 2. **Log Trigger Automation**: Ejecución reactiva basada en eventos de precio
 
-#### 🔗 **Arquitectura del Sistema de Interconexión**
+#### Arquitectura del Sistema Actual
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    🏗️ ECOSISTEMA AUTOMATIZACIÓN                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  🤖 LoanAutomationKeeperOptimized                              │
-│     ├─ 📋 registeredManagers: mapping(address => ManagerInfo)  │
-│     ├─ 📊 managersList: address[] (iteración optimizada)      │
-│     ├─ ⚖️ priority: uint256 (ordenamiento inteligente)        │
-│     └─ 🔄 AutomationCompatible v2.25.0 (oficial)             │
-│                                                                 │
-│  📈 PriceChangeLogTrigger                                      │
-│     ├─ 📋 registeredLoanManagers: mapping(address => bool)    │
-│     ├─ 📊 loanManagersList: address[] (ejecución rápida)      │
-│     ├─ 🚨 volatilityMode: temporal state management           │
-│     └─ ⚡ ILogAutomation v2.25.0 (oficial)                    │
-│                                                                 │
-│  🔗 LoanManagerAutomationAdapter                               │
-│     ├─ 🎯 ILoanAutomation: interfaz completa implementada     │
-│     ├─ 🔄 FlexibleLoanManager: conexión directa nativa        │
-│     ├─ 📊 positionTracking: array optimizado para gas         │
-│     └─ ⚖️ riskCalculation: tiempo real con cache              │
-│                                                                 │
-│  🏛️ CONTRATOS OFICIALES CHAINLINK                             │
-│     ├─ ✅ AutomationCompatible v2.25.0                        │
-│     ├─ ✅ ILogAutomation v2.25.0                              │
-│     ├─ ✅ UI Detection: automática                            │
-│     └─ ✅ Gas Optimization: nativa                            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+El sistema actual funciona de la siguiente manera:
+
+- **LoanAutomationKeeperOptimized**: Maneja su propio registro de gestores de préstamos con `registeredManagers` y `managersList`
+- **PriceChangeLogTrigger**: Mantiene su propia lista de gestores de préstamos con `registeredLoanManagers` y `loanManagersList`  
+- **LoanManagerAutomationAdapter**: Implementa `ILoanAutomation` y se conecta directamente con `FlexibleLoanManager`
+- **Interfaces Oficiales**: Usa `AutomationCompatible` e `ILogAutomation` de Chainlink v2.25.0
 
 ### Ciclo de Custom Logic Automation
 
-**🔄 Flujo de Ejecución Automática:**
+**🔄 Flujo de Ejecución Programada:**
 
-```
-🚀 INICIO
-   ⬇️
-🔍 1. Chainlink Node ejecuta checkUpkeep
-   ⬇️
-📋 2. LoanKeeper obtiene gestores registrados
-   ⬇️
-📊 3. LoanAdapter obtiene posiciones en rango
-   ⬇️
-⚖️  4. Evalúa riesgo por posición
-   ⬇️
-❓ 5. ¿Posiciones liquidables?
-   ⬇️                    ⬇️
-✅ SÍ                   ❌ NO
-   ⬇️                    ⬇️
-💥 6. Ordena por        ⏳ Espera siguiente
-   riesgo y liquida        ciclo (5 min)
-   ⬇️                    ⬇️
-✅ FIN                  🔄 REINICIA
-```
+1. **⏰ Activación**: El nodo de Chainlink ejecuta `checkUpkeep()` periódicamente
+2. **📋 Obtención de Gestores**: LoanKeeper consulta los gestores registrados
+3. **📊 Consulta de Posiciones**: LoanAdapter obtiene posiciones en el rango especificado
+4. **⚠️ Evaluación de Riesgo**: Analiza cada posición para determinar el nivel de riesgo
+5. **🎯 Decisión**:
+   - **SI** hay posiciones liquidables → Ordena por riesgo y ejecuta liquidaciones
+   - **NO** hay posiciones liquidables → Espera al siguiente ciclo de verificación
 
 ### Ciclo de Log Trigger Automation
 
-**📈 Flujo de Respuesta a Eventos de Precio:**
+**📈 Flujo de Respuesta a Eventos:**
 
-```
-⚡ EVENTO DE PRECIO
-   ⬇️
-📊 1. DynamicPriceRegistry emite evento
-   ⬇️
-🔍 2. Nodo Chainlink detecta log automáticamente
-   ⬇️
-⚙️  3. PriceChangeLogTrigger.checkLog se ejecuta
-   ⬇️
-❓ 4. ¿Cambio significativo de precio?
-   ⬇️                      ⬇️
-✅ SÍ (>5% cambio)        ❌ NO
-   ⬇️                      ⬇️
-🧠 5. Determina            😴 Sin acción
-   estrategia de           ⬇️
-   liquidación             ✅ FIN
-   ⬇️
-💥 6. Ejecuta liquidaciones
-   prioritarias inmediatas
-   ⬇️
-✅ FIN
-```
+1. **📢 Emisión de Evento**: DynamicPriceRegistry emite evento de cambio de precio
+2. **👂 Detección**: El nodo de Chainlink detecta el log del evento automáticamente
+3. **🔍 Verificación**: PriceChangeLogTrigger ejecuta `checkLog()` para analizar el evento
+4. **📊 Evaluación**: Determina si el cambio de precio es significativo según umbrales configurados
+5. **🎯 Acción**:
+   - **SI** es cambio significativo → Determina estrategia y ejecuta liquidaciones prioritarias
+   - **NO** es significativo → No realiza ninguna acción y continúa monitoreando
 
 ### Detalles de Implementación Técnica
 
@@ -255,45 +145,40 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
 
 **🔄 Sistema Dual de Automatización:**
 
----
+### **📈 Flujo de Actualización de Precios (Log Trigger)**
+```
+📢 DynamicPriceRegistry emite evento
+    ↓
+👂 Nodo Chainlink detecta log automáticamente  
+    ↓
+🔍 PriceChangeLogTrigger.checkLog() analiza evento
+    ↓
+📊 ¿Cambio significativo? (umbrales: 5%, 7.5%, 10%, 15%)
+    ↓                    ↓
+✅ SÍ                   ❌ NO
+    ↓                    ↓
+🎯 Determina estrategia  ⏸️ Sin acción
+    ↓
+💥 Ejecuta liquidaciones prioritarias
+```
 
-### 📈 **RAMA A: Actualización de Precios** (Reactiva)
-
-| Paso | Componente | Acción | Tiempo |
-|------|------------|--------|---------|
-| **1** | 📊 DynamicPriceRegistry | Emite evento de precio | Inmediato |
-| **2** | 🔍 Chainlink Node | Detecta log automáticamente | <1 segundo |
-| **3** | ⚙️ PriceChangeLogTrigger | Ejecuta checkLog() | <2 segundos |
-| **4** | 🧠 Sistema | Evalúa significancia del cambio | <1 segundo |
-| **5a** | ✅ Si significativo | → Estrategia de liquidación | <5 segundos |
-| **5b** | ❌ Si no significativo | → Sin acción | Inmediato |
-| **6** | 💥 Ejecución | Liquidaciones prioritarias | 10-30 segundos |
-
-**🚨 Umbrales de Activación:**
-- 🟡 **5%** → Monitoreo básico
-- 🟠 **7.5%** → Liquidaciones urgentes  
-- 🔴 **10%** → Liquidaciones inmediatas
-- 🚨 **15%** → Modo crítico
-
----
-
-### 🔄 **RAMA B: Lógica Personalizada** (Programada)
-
-| Paso | Componente | Acción | Frecuencia |
-|------|------------|--------|-------------|
-| **1** | 🔍 Chainlink Node | Ejecuta checkUpkeep() | Cada 5 minutos |
-| **2** | 📋 LoanKeeper | Obtiene gestores registrados | Automático |
-| **3** | 📊 LoanAdapter | Obtiene posiciones en rango | Lotes de 25 |
-| **4** | ⚖️ Sistema | Evalúa riesgo por posición | Tiempo real |
-| **5a** | ✅ Si liquidables | → Ordenar por riesgo | Inmediato |
-| **5b** | ❌ Si no liquidables | → Esperar siguiente ciclo | 5 minutos |
-| **6** | 💥 Ejecución | Liquidaciones en lote | 30-60 segundos |
-
-**🎯 Criterios de Priorización:**
-- 🔴 **95%+** → Crítico (liquidación inmediata)
-- 🟠 **85-94%** → Alto riesgo (alta prioridad)
-- 🟡 **75-84%** → Riesgo medio (prioridad estándar)
-- 🟢 **60-74%** → Advertencia (solo monitoreo)
+### **🔄 Flujo de Lógica Personalizada (Custom Logic)**
+```
+⏰ Nodo Chainlink ejecuta checkUpkeep() (programado)
+    ↓
+📋 LoanKeeper obtiene gestores registrados
+    ↓
+📊 LoanAdapter obtiene posiciones en rango configurado
+    ↓
+⚠️ Evalúa riesgo por posición individual
+    ↓
+🎯 ¿Posiciones liquidables? (umbral mínimo 75%)
+    ↓                    ↓
+✅ SÍ                   ❌ NO
+    ↓                    ↓
+🔥 Ordena por riesgo    ⏳ Espera siguiente ciclo
+   y liquida
+```
 
 ## ⚙️ Configuración del Sistema
 
@@ -312,228 +197,88 @@ LIQUIDATION_COOLDOWN=180          # Cooldown entre liquidaciones (segundos)
 ENABLE_VOLATILITY_MODE=true       # Habilitar detección de volatilidad
 ```
 
-### 🎯 **Sistema Inteligente de Evaluación de Riesgo**
+### Umbrales de Riesgo Multi-Nivel
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                  ⚖️ MATRIZ DE RIESGO AVANZADA                    │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  🚨 NIVEL CRÍTICO (95%+)                                        │
-│     ├─ 🔴 Color: Rojo                                           │
-│     ├─ ⚡ Acción: Liquidación INMEDIATA                         │
-│     ├─ 🎯 Prioridad: MÁXIMA                                     │
-│     ├─ ⏱️ Tiempo: <10 segundos                                  │
-│     └─ 💰 Gas: Ilimitado                                        │
-│                                                                  │
-│  🔥 NIVEL INMEDIATO (85-94%)                                    │
-│     ├─ 🟠 Color: Naranja                                        │
-│     ├─ ⚡ Acción: Liquidación ALTA PRIORIDAD                    │
-│     ├─ 🎯 Prioridad: ALTA                                       │
-│     ├─ ⏱️ Tiempo: <30 segundos                                  │
-│     └─ 💰 Gas: 80% del límite                                   │
-│                                                                  │
-│  ⚠️ NIVEL URGENTE (75-84%)                                      │
-│     ├─ 🟡 Color: Amarillo                                       │
-│     ├─ ⚡ Acción: Liquidación ESTÁNDAR                          │
-│     ├─ 🎯 Prioridad: MEDIA                                      │
-│     ├─ ⏱️ Tiempo: <60 segundos                                  │
-│     └─ 💰 Gas: 60% del límite                                   │
-│                                                                  │
-│  🔍 NIVEL ADVERTENCIA (60-74%)                                  │
-│     ├─ 🟢 Color: Verde                                          │
-│     ├─ 👁️ Acción: MONITOREO INTENSIVO                           │
-│     ├─ 🎯 Prioridad: BAJA                                       │
-│     ├─ ⏱️ Tiempo: Cada ciclo (5 min)                            │
-│     └─ 💰 Gas: Mínimo necesario                                 │
-│                                                                  │
-│  😌 NIVEL SEGURO (<60%)                                         │
-│     ├─ ⚪ Color: Blanco                                         │
-│     ├─ 😴 Acción: SIN ACCIÓN                                    │
-│     ├─ 🎯 Prioridad: NINGUNA                                    │
-│     ├─ ⏱️ Tiempo: Check pasivo                                  │
-│     └─ 💰 Gas: Cero                                             │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
+El sistema usa evaluación de riesgo por niveles:
+
+| Nivel | Rango | Color | Acción | Prioridad |
+|-------|-------|-------|--------|-----------|
+| **🔴 Crítico** | 95%+ | Rojo | Liquidación inmediata | Máxima |
+| **🟠 Inmediato** | 85-94% | Naranja | Liquidación alta prioridad | Alta |
+| **🟡 Urgente** | 75-84% | Amarillo | Liquidación estándar | Media |
+| **🟢 Advertencia** | 60-74% | Verde | Solo monitoreo | Baja |
+| **⚪ Seguro** | <60% | Blanco | Sin acción | - |
+
+### Detección de Volatilidad
+
+```solidity
+// Umbrales de cambio de precio (base 1,000,000)
+priceChangeThreshold = 50000    // 5% - Activación básica
+urgentThreshold = 75000         // 7.5% - Nivel urgente  
+immediateThreshold = 100000     // 10% - Nivel inmediato
+criticalThreshold = 150000      // 15% - Nivel crítico
+volatilityBoostThreshold = 100000 // 10% - Modo volatilidad
 ```
 
-**🧠 Algoritmo de Decisión Inteligente:**
+## 🚀 Despliegue Paso a Paso
 
-| Condición | Evaluación | Acción Automática | Escalación |
-|-----------|------------|-------------------|------------|
-| **riskLevel >= 95%** | 🚨 CRÍTICO | ⚡ Liquidar YA | → Usar todo el gas disponible |
-| **85% <= riskLevel < 95%** | 🔥 INMEDIATO | ⚡ Liquidar pronto | → Prioridad en cola |
-| **75% <= riskLevel < 85%** | ⚠️ URGENTE | ⚡ Liquidar normal | → Proceso estándar |
-| **60% <= riskLevel < 75%** | 🔍 OBSERVAR | 👁️ Solo monitorear | → Incrementar frecuencia |
-| **riskLevel < 60%** | 😌 SEGURO | 😴 Sin acción | → Check rutinario |
-
-### 📊 **Sistema Avanzado de Detección de Volatilidad**
-
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                🌪️ DETECTOR DE VOLATILIDAD INTELIGENTE              │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  📈 UMBRALES DE PRECIO (Base: 1,000,000)                          │
-│                                                                    │
-│  🟢 NIVEL BÁSICO                                                   │
-│     ├─ 💰 Umbral: 50,000 (5%)                                     │
-│     ├─ 🎯 Activación: Monitoreo básico                            │
-│     ├─ ⚡ Respuesta: <5 segundos                                   │
-│     └─ 🔄 Acción: Evaluación inicial                              │
-│                                                                    │
-│  🟡 NIVEL URGENTE                                                  │
-│     ├─ 💰 Umbral: 75,000 (7.5%)                                   │
-│     ├─ 🎯 Activación: Liquidaciones urgentes                      │
-│     ├─ ⚡ Respuesta: <3 segundos                                   │
-│     └─ 🔄 Acción: Procesamiento acelerado                         │
-│                                                                    │
-│  🟠 NIVEL INMEDIATO                                                │
-│     ├─ 💰 Umbral: 100,000 (10%)                                   │
-│     ├─ 🎯 Activación: Liquidaciones inmediatas                    │
-│     ├─ ⚡ Respuesta: <1 segundo                                    │
-│     └─ 🔄 Acción: Máxima prioridad                                │
-│                                                                    │
-│  🔴 NIVEL CRÍTICO                                                  │
-│     ├─ 💰 Umbral: 150,000 (15%)                                   │
-│     ├─ 🎯 Activación: MODO PÁNICO                                 │
-│     ├─ ⚡ Respuesta: INMEDIATO                                     │
-│     └─ 🔄 Acción: Liquidación masiva                              │
-│                                                                    │
-│  🌪️ MODO VOLATILIDAD TEMPORAL                                     │
-│     ├─ 💰 Trigger: 100,000 (10%)                                  │
-│     ├─ ⏰ Duración: 3600 segundos (1 hora)                        │
-│     ├─ 🚀 Boost: 2x velocidad de procesamiento                    │
-│     └─ 🎯 Objetivo: Máxima protección                             │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
-```
-
-**🧠 Algoritmo de Volatilidad Adaptativo:**
-
-```
-📊 ENTRADA: Nuevo precio detectado
-   ⬇️
-🧮 CÁLCULO: |precioNuevo - precioAnterior| / precioAnterior * 1,000,000
-   ⬇️
-🔍 EVALUACIÓN: Comparar con umbrales configurados
-   ⬇️
-🎯 DECISIÓN:
-   ├─ >= 150,000 → 🚨 MODO CRÍTICO (todo el sistema)
-   ├─ >= 100,000 → 🔴 INMEDIATO + ACTIVAR MODO VOLATILIDAD
-   ├─ >= 75,000  → 🟠 URGENTE (prioridad alta)
-   ├─ >= 50,000  → 🟡 BÁSICO (monitoreo)
-   └─ < 50,000   → 😴 Sin acción
-   ⬇️
-⚡ EJECUCIÓN: Liquidaciones priorizadas según nivel
-```
-
-## 🚀 **Guía de Despliegue Profesional**
-
-### 🏗️ **FASE 1: Preparación del Entorno**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                🔧 CONFIGURACIÓN INICIAL                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  📦 1. CLONAR REPOSITORIO                                  │
-│     ├─ git clone <repo>                                    │
-│     ├─ cd Vcop-Collateral-system-hook-main                 │
-│     └─ 🔍 Verificar estructura de archivos                  │
-│                                                             │
-│  ⚙️ 2. CONFIGURAR VARIABLES DE ENTORNO                     │
-│     ├─ cp .env.example .env                                │
-│     ├─ 📝 Editar .env con configuraciones                  │
-│     └─ 🔐 Verificar claves privadas seguras               │
-│                                                             │
-│  🎯 3. CONFIGURAR CONTRATOS OBJETIVO                       │
-│     ├─ export FLEXIBLE_LOAN_MANAGER=0x...                  │
-│     ├─ export DYNAMIC_PRICE_REGISTRY=0x...                 │
-│     └─ ✅ Verificar direcciones en blockchain               │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-### 🚀 **FASE 2: Despliegue del Sistema**
-
-| Opción | Comando | Propósito | Recomendado |
-|--------|---------|-----------|-------------|
-| **🧹 Despliegue Limpio** | `DeployAutomationClean.s.sol` | Instalación desde cero | ✅ Producción |
-| **🔄 Despliegue Estándar** | `DeployAutomation.s.sol` | Actualización/testing | 🔧 Desarrollo |
+### 1. Configuración del Entorno
 
 ```bash
-# 🎯 OPCIÓN RECOMENDADA: Despliegue Limpio Completo
+# Clonar y configurar
+git clone <repo>
+cd Vcop-Collateral-system-hook-main
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus valores
+
+# Configurar direcciones de contratos desplegados
+export FLEXIBLE_LOAN_MANAGER=0x...
+export DYNAMIC_PRICE_REGISTRY=0x...
+```
+
+### 2. Desplegar Sistema de Automatización
+
+```bash
+# Opción A: Despliegue limpio completo
 forge script script/automation/DeployAutomationClean.s.sol \
     --broadcast \
     --verify \
-    --rpc-url $RPC_URL \
-    --private-key $PRIVATE_KEY \
-    --etherscan-api-key $ETHERSCAN_API_KEY
+    --rpc-url $RPC_URL
 
-# 📊 VERIFICAR DESPLIEGUE
-echo "✅ Contracts deployed successfully!"
-echo "📋 LoanAutomationKeeper: $(cat deployments/LoanAutomationKeeper.addr)"
-echo "🔗 LoanManagerAdapter: $(cat deployments/LoanManagerAdapter.addr)"
-echo "📈 PriceChangeLogTrigger: $(cat deployments/PriceChangeLogTrigger.addr)"
+# Opción B: Despliegue estándar
+forge script script/automation/DeployAutomation.s.sol \
+    --broadcast \
+    --verify \
+    --rpc-url $RPC_URL
 ```
 
----
+### 3. Configurar en UI de Chainlink Automation
 
-### 🔗 **FASE 3: Configuración en Chainlink Automation**
+#### Custom Logic Upkeep
+```bash
+# Obtener checkData para registro
+cast call $LOAN_AUTOMATION_KEEPER \
+    "generateCheckData(address,uint256,uint256)" \
+    $LOAN_ADAPTER_ADDRESS 0 25
 
-#### ⚡ **Custom Logic Upkeep Setup**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│              🤖 CONFIGURACIÓN CUSTOM LOGIC                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  🔧 1. GENERAR CHECKDATA                                   │
-│     ├─ cast call $LOAN_AUTOMATION_KEEPER \                 │
-│     │   "generateCheckData(address,uint256,uint256)" \      │
-│     │   $LOAN_ADAPTER_ADDRESS 0 25                          │
-│     └─ 📋 Copiar resultado para registro                   │
-│                                                             │
-│  ⚙️ 2. CONFIGURAR EN CHAINLINK UI                          │
-│     ├─ 🏠 Target Contract: $LOAN_AUTOMATION_KEEPER         │
-│     ├─ 📊 Check Data: <resultado paso anterior>            │
-│     ├─ ⛽ Gas Limit: 2,500,000                             │
-│     ├─ 💰 Starting Balance: 10 LINK                        │
-│     ├─ 📧 Email Alerts: alerts@tudominio.com               │
-│     └─ ✅ Auto-funding: Enabled                            │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+# Configuración en UI:
+# - Dirección del Contrato: $LOAN_AUTOMATION_KEEPER  
+# - checkData: <resultado del comando anterior>
+# - Límite de Gas: 2,500,000
+# - Fondos: Mínimo 10 LINK
 ```
 
-#### 📈 **Log Trigger Upkeep Setup**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│               📊 CONFIGURACIÓN LOG TRIGGER                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  🎯 CONFIGURACIÓN PRINCIPAL                                │
-│     ├─ 🏠 Target Contract: $PRICE_CHANGE_LOG_TRIGGER       │
-│     ├─ 📈 Log Source: $DYNAMIC_PRICE_REGISTRY              │
-│     ├─ 🔍 Event Signature: TokenPriceUpdated(...)          │
-│     └─ ⛽ Gas Limit: 2,000,000                             │
-│                                                             │
-│  🔍 FILTROS DE LOG                                         │
-│     ├─ 📊 Address: DynamicPriceRegistry address            │
-│     ├─ 🎯 Topic0: 0x... (TokenPriceUpdated signature)      │
-│     ├─ 🔢 Topic1: Token address (opcional)                 │
-│     └─ 📋 ABI: Usar ABI oficial del contrato               │
-│                                                             │
-│  💰 FUNDING & ALERTAS                                      │
-│     ├─ 💵 Starting Balance: 5 LINK                         │
-│     ├─ 🔄 Auto-refill: 10 LINK cuando <2 LINK              │
-│     ├─ 📧 Low Balance Alert: Enabled                       │
-│     └─ 📊 Performance Alerts: Enabled                      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+#### Log Trigger Upkeep
+```bash
+# Configuración en UI:
+# - Dirección del Contrato: $PRICE_CHANGE_LOG_TRIGGER
+# - Filtro de Log: 
+#   - Dirección: $DYNAMIC_PRICE_REGISTRY
+#   - Topic0: Firma del evento TokenPriceUpdated
+# - Límite de Gas: 2,000,000  
+# - Fondos: Mínimo 5 LINK
 ```
 
 ## 🔧 Funciones de Configuración
@@ -699,66 +444,26 @@ loanAdapter.automatedLiquidation(positionId);
 - **Cooldown Mínimo**: 60 segundos
 - **Gestores Máximos**: Ilimitado (permitiendo gas)
 
-## 🎯 **Resumen Ejecutivo del Ecosistema**
+## 🎯 Resumen Ejecutivo del Sistema Actual
 
-### 🏆 **Suite de Características de Clase Mundial**
+### Características Principales Implementadas
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                  🚀 TECNOLOGÍAS IMPLEMENTADAS                      │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  🤖 AUTOMATIZACIÓN INTELIGENTE                                    │
-│     ├─ ✅ Chainlink Automation v2.25.0 (última versión)          │
-│     ├─ ✅ AutomationCompatible + ILogAutomation oficiales         │
-│     ├─ ✅ Dual Trigger System (Custom Logic + Log Events)         │
-│     └─ ✅ UI Auto-Detection para fácil configuración              │
-│                                                                    │
-│  🎯 GESTIÓN DE RIESGO AVANZADA                                    │
-│     ├─ ✅ Evaluación Multi-tier (5 niveles de riesgo)            │
-│     ├─ ✅ Algoritmo adaptativo de priorización                    │
-│     ├─ ✅ Detección de volatilidad en tiempo real                 │
-│     └─ ✅ Modo pánico para situaciones críticas                   │
-│                                                                    │
-│  ⚡ OPTIMIZACIÓN EXTREMA                                          │
-│     ├─ ✅ Batching inteligente (hasta 200 posiciones)            │
-│     ├─ ✅ Gas optimization con reservas dinámicas                 │
-│     ├─ ✅ Cooldown anti-spam personalizable                       │
-│     └─ ✅ Ejecución sub-segundo para eventos críticos             │
-│                                                                    │
-│  🔗 INTEGRACIÓN NATIVA                                           │
-│     ├─ ✅ FlexibleLoanManager: conexión directa                   │
-│     ├─ ✅ DynamicPriceRegistry: monitoreo automático              │
-│     ├─ ✅ Position tracking: sincronización automática            │
-│     └─ ✅ Risk calculation: tiempo real con cache                 │
-│                                                                    │
-│  📊 OBSERVABILIDAD TOTAL                                          │
-│     ├─ ✅ Métricas en tiempo real                                 │
-│     ├─ ✅ Estadísticas de rendimiento completas                   │
-│     ├─ ✅ Alertas configurables                                   │
-│     └─ ✅ Debugging y troubleshooting avanzado                    │
-│                                                                    │
-│  🛡️ SEGURIDAD EMPRESARIAL                                        │
-│     ├─ ✅ Controles de emergencia (pause/unpause)                 │
-│     ├─ ✅ Patrones de autorización robustos                       │
-│     ├─ ✅ Backup procedures automatizados                         │
-│     └─ ✅ Fail-safe mechanisms integrados                         │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
-```
+✅ **Chainlink Automation v2.25.0** - Versión más reciente con `AutomationCompatible` e `ILogAutomation`  
+✅ **Sistema de Doble Trigger** - Custom Logic + Log Triggers para cobertura completa  
+✅ **Integración FlexibleLoanManager** - Integración nativa con liquidaciones optimizadas  
+✅ **Monitoreo Dinámico de Precios** - Respuesta inmediata a cambios de `DynamicPriceRegistry`  
+✅ **Evaluación de Riesgo Multi-tier** - 4 niveles de urgencia con estrategias diferenciadas  
+✅ **Detección de Volatilidad** - Modo especial para alta volatilidad del mercado  
+✅ **Optimización de Gas** - Batching inteligente y gestión eficiente de gas  
+✅ **Seguimiento de Posiciones** - Sistema automático de seguimiento para posiciones activas  
+✅ **Métricas de Rendimiento** - Estadísticas completas y monitoreo en tiempo real  
+✅ **Controles de Emergencia** - Pausas de emergencia y procedimientos de respaldo  
 
----
+### Ventajas Técnicas del Sistema
 
-### 🏅 **Ventajas Competitivas del Sistema**
-
-| Aspecto | Capacidad | Impacto | Diferenciación |
-|---------|-----------|---------|----------------|
-| **🚀 Escalabilidad** | Gestores ilimitados simultáneos | Alto rendimiento | Arquitectura modular única |
-| **🛡️ Seguridad** | Múltiples capas de protección | Riesgo minimizado | Fail-safe automático |
-| **⚡ Velocidad** | <1s respuesta crítica | Liquidaciones eficientes | Sub-segundo execution |
-| **🧠 Inteligencia** | Algoritmos adaptativos | Optimización continua | ML-ready architecture |
-| **🔧 Flexibilidad** | Configuración dinámica | Adaptable a mercados | Zero-downtime updates |
-| **📊 Transparencia** | Observabilidad total | Debugging simplificado | Real-time insights |
+🚀 **Escalabilidad**: Soporte para múltiples gestores de préstamos simultáneos  
+🛡️ **Seguridad**: Cooldowns, patrones de autorización y controles de emergencia  
+⚡ **Eficiencia**: Optimizado para gas con batching y priorización inteligente  
 🎯 **Precisión**: Evaluación de riesgo basada en datos reales del protocolo  
 🔄 **Flexibilidad**: Parámetros configurables adaptables a condiciones del mercado  
 📊 **Observabilidad**: Métricas detalladas y funciones de debugging  
