@@ -1,225 +1,225 @@
-# 🤖 Sistema de Automatización Avanzada con Chainlink
+# 🤖 Advanced Chainlink Automation System
 
-## 🚀 Descripción General
+## 🚀 Overview
 
-Sistema completo de automatización usando **Chainlink Automation v2.25.0** con soporte para `FlexibleLoanManager`, `DynamicPriceRegistry` y liquidaciones automatizadas inteligentes. El sistema implementa tanto **Custom Logic Automation** como **Log Trigger Automation** para máxima eficiencia.
+Complete automation system using **Chainlink Automation v2.25.0** with support for `FlexibleLoanManager`, `DynamicPriceRegistry` and intelligent automated liquidations. The system implements both **Custom Logic Automation** and **Log Trigger Automation** for maximum efficiency.
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ System Architecture
 
-### Componentes Principales
+### Main Components
 
 ### 1. **LoanAutomationKeeperOptimized** ⚡ 
-**Función**: Keeper Principal (Custom Logic Automation)
-- **Ubicación**: `src/automation/core/LoanAutomationKeeperOptimized.sol`
-- **Propósito**: Ejecuta liquidaciones basadas en lógica personalizada
-- **Características**:
-  - Extiende `AutomationCompatible` (detección automática en UI)
-  - Registro interno de gestores de préstamos con prioridades
-  - Procesamiento en lotes optimizado para gas
-  - Priorización por nivel de riesgo
-  - Cooldown entre liquidaciones
-  - Métricas de rendimiento integradas
+**Function**: Main Keeper (Custom Logic Automation)
+- **Location**: `src/automation/core/LoanAutomationKeeperOptimized.sol`
+- **Purpose**: Executes liquidations based on custom logic
+- **Features**:
+  - Extends `AutomationCompatible` (automatic UI detection)
+  - Internal registration of loan managers with priorities
+  - Gas-optimized batch processing
+  - Risk level prioritization
+  - Cooldown between liquidations
+  - Integrated performance metrics
 
 ### 2. **LoanManagerAutomationAdapter** 🔗
-**Función**: Adaptador para FlexibleLoanManager
-- **Ubicación**: `src/automation/core/LoanManagerAutomationAdapter.sol`
-- **Propósito**: Interfaz entre automatización y protocolo de préstamos
-- **Características**:
-  - Implementa la interfaz `ILoanAutomation`
-  - Seguimiento eficiente de posiciones activas
-  - Evaluación dinámica de riesgo
-  - Integración directa con `FlexibleLoanManager`
+**Function**: Adapter for FlexibleLoanManager
+- **Location**: `src/automation/core/LoanManagerAutomationAdapter.sol`
+- **Purpose**: Interface between automation and lending protocol
+- **Features**:
+  - Implements `ILoanAutomation` interface
+  - Efficient tracking of active positions
+  - Dynamic risk assessment
+  - Direct integration with `FlexibleLoanManager`
 
 ### 3. **PriceChangeLogTrigger** 📈
-**Función**: Trigger basado en eventos de precio (Log Automation)
-- **Ubicación**: `src/automation/core/PriceChangeLogTrigger.sol`
-- **Propósito**: Respuesta inmediata a cambios de precio
-- **Características**:
-  - Usa la interfaz oficial `ILogAutomation` de Chainlink
-  - Registro interno de gestores de préstamos con prioridades
-  - Detección de volatilidad en tiempo real
-  - Múltiples niveles de urgencia (4 niveles)
-  - Modo de volatilidad temporal
-  - Integración directa con `DynamicPriceRegistry`
+**Function**: Price event-based trigger (Log Automation)
+- **Location**: `src/automation/core/PriceChangeLogTrigger.sol`
+- **Purpose**: Immediate response to price changes
+- **Features**:
+  - Uses official Chainlink `ILogAutomation` interface
+  - Internal registration of loan managers with priorities
+  - Real-time volatility detection
+  - Multiple urgency levels (4 levels)
+  - Temporary volatility mode
+  - Direct integration with `DynamicPriceRegistry`
 
-## 🔄 Flujo de Trabajo Detallado
+## 🔄 Detailed Workflow
 
-### Análisis Técnico del Sistema
+### Technical System Analysis
 
-El sistema de automatización implementa dos tipos de triggers de Chainlink v2.25.0:
+The automation system implements two types of Chainlink v2.25.0 triggers:
 
-1. **Custom Logic Automation**: Ejecución cíclica programada para verificar posiciones
-2. **Log Trigger Automation**: Ejecución reactiva basada en eventos de precio
+1. **Custom Logic Automation**: Scheduled cyclic execution to verify positions
+2. **Log Trigger Automation**: Reactive execution based on price events
 
-#### Arquitectura del Sistema Actual
+#### Current System Architecture
 
-El sistema actual funciona de la siguiente manera:
+The current system works as follows:
 
-- **LoanAutomationKeeperOptimized**: Maneja su propio registro de gestores de préstamos con `registeredManagers` y `managersList`
-- **PriceChangeLogTrigger**: Mantiene su propia lista de gestores de préstamos con `registeredLoanManagers` y `loanManagersList`  
-- **LoanManagerAutomationAdapter**: Implementa `ILoanAutomation` y se conecta directamente con `FlexibleLoanManager`
-- **Interfaces Oficiales**: Usa `AutomationCompatible` e `ILogAutomation` de Chainlink v2.25.0
+- **LoanAutomationKeeperOptimized**: Manages its own registry of loan managers with `registeredManagers` and `managersList`
+- **PriceChangeLogTrigger**: Maintains its own list of loan managers with `registeredLoanManagers` and `loanManagersList`  
+- **LoanManagerAutomationAdapter**: Implements `ILoanAutomation` and connects directly with `FlexibleLoanManager`
+- **Official Interfaces**: Uses `AutomationCompatible` and `ILogAutomation` from Chainlink v2.25.0
 
-### Ciclo de Custom Logic Automation
+### Custom Logic Automation Cycle
 
-**Flujo de Ejecución Programada:**
+**Scheduled Execution Flow:**
 
-1. **Activación**: El nodo de Chainlink ejecuta `checkUpkeep()` cada intervalo configurado
-2. **Consulta de Gestores**: LoanKeeper obtiene la lista de gestores de préstamos registrados
-3. **Obtención de Posiciones**: LoanAdapter consulta posiciones activas en el rango especificado
-4. **Evaluación de Riesgo**: Calcula el nivel de riesgo para cada posición individual
-5. **Toma de Decisión**:
-   - **Posiciones liquidables encontradas**: Ordena por nivel de riesgo (mayor primero) y ejecuta liquidaciones en lotes
-   - **No hay posiciones liquidables**: Finaliza el ciclo y espera el siguiente intervalo programado
+1. **Activation**: Chainlink node executes `checkUpkeep()` at configured intervals
+2. **Manager Query**: LoanKeeper obtains the list of registered loan managers
+3. **Position Retrieval**: LoanAdapter queries active positions in the specified range
+4. **Risk Assessment**: Calculates risk level for each individual position
+5. **Decision Making**:
+   - **Liquidatable positions found**: Orders by risk level (highest first) and executes liquidations in batches
+   - **No liquidatable positions**: Completes the cycle and waits for the next scheduled interval
 
-### Ciclo de Log Trigger Automation
+### Log Trigger Automation Cycle
 
-**Flujo de Respuesta a Eventos de Precio:**
+**Price Event Response Flow:**
 
-1. **Emisión de Evento**: DynamicPriceRegistry emite evento `TokenPriceUpdated` cuando cambia el precio
-2. **Detección Automática**: El nodo de Chainlink detecta el log del evento inmediatamente
-3. **Análisis del Evento**: PriceChangeLogTrigger ejecuta `checkLog()` para decodificar y analizar el cambio
-4. **Evaluación de Impacto**: Compara el cambio porcentual contra umbrales configurados (5%, 7.5%, 10%, 15%)
-5. **Ejecución de Acción**:
-   - **Cambio significativo detectado**: Determina el nivel de urgencia y ejecuta liquidaciones priorizadas por riesgo
-   - **Cambio dentro de rango normal**: Registra el evento pero no ejecuta liquidaciones
+1. **Event Emission**: DynamicPriceRegistry emits `TokenPriceUpdated` event when price changes
+2. **Automatic Detection**: Chainlink node detects the event log immediately
+3. **Event Analysis**: PriceChangeLogTrigger executes `checkLog()` to decode and analyze the change
+4. **Impact Assessment**: Compares percentage change against configured thresholds (5%, 7.5%, 10%, 15%)
+5. **Action Execution**:
+   - **Significant change detected**: Determines urgency level and executes risk-prioritized liquidations
+   - **Change within normal range**: Logs the event but does not execute liquidations
 
-### Detalles de Implementación Técnica
+### Technical Implementation Details
 
-#### 1. **LoanAutomationKeeperOptimized** - Análisis de Código
+#### 1. **LoanAutomationKeeperOptimized** - Code Analysis
 
 ```solidity
 // 📍 src/automation/core/LoanAutomationKeeperOptimized.sol
 contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
     
-    // ✅ Extiende AutomationCompatible (no solo interfaz) para detección automática en UI
-    // ✅ Registro interno de gestores de préstamos con sistema de prioridades
-    // ✅ Implementa lógica de batching optimizada para gas
-    // ✅ Sistema de priorización basado en riesgo
+    // ✅ Extends AutomationCompatible (not just interface) for automatic UI detection
+    // ✅ Internal registry of loan managers with priority system
+    // ✅ Implements gas-optimized batching logic
+    // ✅ Risk-based prioritization system
 ```
 
-**Características Clave**:
-- **Batching Inteligente**: Procesa hasta 200 posiciones por ejecución
-- **Ordenamiento por Riesgo**: Prioriza posiciones con mayor riesgo
-- **Optimización de Gas**: Reserva gas para completar y previene out-of-gas
-- **Sistema de Cooldown**: Previene spam de liquidaciones
-- **Métricas en Tiempo Real**: Seguimiento de rendimiento y estadísticas
+**Key Features**:
+- **Smart Batching**: Processes up to 200 positions per execution
+- **Risk Ordering**: Prioritizes positions with higher risk
+- **Gas Optimization**: Reserves gas for completion and prevents out-of-gas
+- **Cooldown System**: Prevents liquidation spam
+- **Real-time Metrics**: Performance tracking and statistics
 
-#### 2. **PriceChangeLogTrigger** - Respuesta a Eventos
+#### 2. **PriceChangeLogTrigger** - Event Response
 
 ```solidity
 // 📍 src/automation/core/PriceChangeLogTrigger.sol  
 contract PriceChangeLogTrigger is ILogAutomation, Ownable {
     
-    // ✅ Usa la interfaz oficial ILogAutomation v2.25.0
-    // ✅ Detección de volatilidad multi-nivel
-    // ✅ Modo de volatilidad temporal (1 hora por defecto)
-    // ✅ Estrategias dinámicas de liquidación
+    // ✅ Uses official ILogAutomation interface v2.25.0
+    // ✅ Multi-level volatility detection
+    // ✅ Temporary volatility mode (1 hour default)
+    // ✅ Dynamic liquidation strategies
 ```
 
-**Características Técnicas**:
-- **Umbrales Multi-tier**: 4 niveles de urgencia (5%, 7.5%, 10%, 15%)
-- **Modo Volatilidad**: Activación automática con parámetros ajustables
-- **Decodificación de Precios**: Soporte para múltiples formatos de eventos
-- **Filtrado de Activos**: Liquidación selectiva por activo afectado
+**Technical Features**:
+- **Multi-tier Thresholds**: 4 urgency levels (5%, 7.5%, 10%, 15%)
+- **Volatility Mode**: Automatic activation with adjustable parameters
+- **Price Decoding**: Support for multiple event formats
+- **Asset Filtering**: Selective liquidation by affected asset
 
-#### 3. **LoanManagerAutomationAdapter** - Interfaz Inteligente
+#### 3. **LoanManagerAutomationAdapter** - Smart Interface
 
 ```solidity
 // 📍 src/automation/core/LoanManagerAutomationAdapter.sol
 contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
     
-    // ✅ Implementa la interfaz completa ILoanAutomation
-    // ✅ Seguimiento eficiente de posiciones activas  
-    // ✅ Integración directa con FlexibleLoanManager
-    // ✅ Sistema dinámico de evaluación de riesgo
+    // ✅ Implements complete ILoanAutomation interface
+    // ✅ Efficient active position tracking  
+    // ✅ Direct integration with FlexibleLoanManager
+    // ✅ Dynamic risk assessment system
 ```
 
-**Características Avanzadas**:
-- **Seguimiento de Posiciones**: Array optimizado para iteración eficiente
-- **Evaluación de Riesgo**: Calcula riesgo basado en `canLiquidate()` y ratio de colateralización
-- **Auto-sincronización**: Limpieza automática de posiciones cerradas
-- **Métricas de Rendimiento**: Tasa de éxito y estadísticas de liquidación
+**Advanced Features**:
+- **Position Tracking**: Optimized array for efficient iteration
+- **Risk Assessment**: Calculates risk based on `canLiquidate()` and collateralization ratio
+- **Auto-sync**: Automatic cleanup of closed positions
+- **Performance Metrics**: Success rate and liquidation statistics
 
-#### 4. **Integración y Flujo de Datos**
+#### 4. **Integration and Data Flow**
 
-**Sistema Dual de Automatización:**
+**Dual Automation System:**
 
-### **A. Automatización por Eventos de Precio (Log Trigger)**
+### **A. Price Event Automation (Log Trigger)**
 
-**Secuencia de Ejecución:**
+**Execution Sequence:**
 ```
-1. DynamicPriceRegistry emite evento TokenPriceUpdated
-2. Nodo Chainlink detecta el log automáticamente
-3. PriceChangeLogTrigger.checkLog() decodifica el evento
-4. Sistema evalúa si el cambio supera umbrales configurados
-5. DECISIÓN:
-   - Cambio ≥ 5%: Ejecuta liquidaciones básicas
-   - Cambio ≥ 7.5%: Activa modo urgente
-   - Cambio ≥ 10%: Liquidaciones inmediatas
-   - Cambio ≥ 15%: Modo crítico + volatilidad temporal
-   - Cambio < 5%: Registra pero no actúa
-```
-
-### **B. Automatización por Lógica Programada (Custom Logic)**
-
-**Ciclo de Verificación:**
-```
-1. Nodo Chainlink ejecuta checkUpkeep() según programación
-2. LoanKeeper consulta gestores de préstamos registrados
-3. LoanAdapter obtiene posiciones activas en rango especificado
-4. Sistema calcula riesgo individual por posición
-5. DECISIÓN:
-   - Riesgo ≥ 95%: Liquidación crítica inmediata
-   - Riesgo ≥ 85%: Liquidación alta prioridad  
-   - Riesgo ≥ 75%: Liquidación estándar
-   - Riesgo < 75%: Solo monitoreo, sin acción
+1. DynamicPriceRegistry emits TokenPriceUpdated event
+2. Chainlink node detects the log automatically
+3. PriceChangeLogTrigger.checkLog() decodes the event
+4. System evaluates if the change exceeds configured thresholds
+5. DECISION:
+   - Change ≥ 5%: Execute basic liquidations
+   - Change ≥ 7.5%: Activate urgent mode
+   - Change ≥ 10%: Immediate liquidations
+   - Change ≥ 15%: Critical mode + temporary volatility
+   - Change < 5%: Log but take no action
 ```
 
-**Parámetros de Configuración:**
-- Tamaño máximo de lote: 25 posiciones por ejecución
-- Cooldown entre liquidaciones: 180 segundos
-- Gas máximo por upkeep: 2,500,000
-- Intervalo de verificación: Configurable (típicamente 5-10 minutos)
+### **B. Scheduled Logic Automation (Custom Logic)**
 
-## ⚙️ Configuración del Sistema
+**Verification Cycle:**
+```
+1. Chainlink node executes checkUpkeep() according to schedule
+2. LoanKeeper queries registered loan managers
+3. LoanAdapter obtains active positions in specified range
+4. System calculates individual risk per position
+5. DECISION:
+   - Risk ≥ 95%: Immediate critical liquidation
+   - Risk ≥ 85%: High priority liquidation  
+   - Risk ≥ 75%: Standard liquidation
+   - Risk < 75%: Monitoring only, no action
+```
 
-### Variables de Entorno
+**Configuration Parameters:**
+- Maximum batch size: 25 positions per execution
+- Cooldown between liquidations: 180 seconds
+- Maximum gas per upkeep: 2,500,000
+- Verification interval: Configurable (typically 5-10 minutes)
+
+## ⚙️ System Configuration
+
+### Environment Variables
 
 ```bash
-# Contratos requeridos
-FLEXIBLE_LOAN_MANAGER=0x...        # Dirección de FlexibleLoanManager
-DYNAMIC_PRICE_REGISTRY=0x...       # Dirección de DynamicPriceRegistry
-PRIVATE_KEY=0x...                  # Clave privada del deployer
+# Required contracts
+FLEXIBLE_LOAN_MANAGER=0x...        # FlexibleLoanManager address
+DYNAMIC_PRICE_REGISTRY=0x...       # DynamicPriceRegistry address
+PRIVATE_KEY=0x...                  # Deployer private key
 
-# Configuración de automatización
-MAX_GAS_PER_UPKEEP=2500000        # Gas máximo por upkeep
-MIN_RISK_THRESHOLD=75             # Umbral mínimo de riesgo (%)
-LIQUIDATION_COOLDOWN=180          # Cooldown entre liquidaciones (segundos)
-ENABLE_VOLATILITY_MODE=true       # Habilitar detección de volatilidad
+# Automation configuration
+MAX_GAS_PER_UPKEEP=2500000        # Maximum gas per upkeep
+MIN_RISK_THRESHOLD=75             # Minimum risk threshold (%)
+LIQUIDATION_COOLDOWN=180          # Cooldown between liquidations (seconds)
+ENABLE_VOLATILITY_MODE=true       # Enable volatility detection
 ```
 
-### Umbrales de Riesgo Multi-Nivel
+### Multi-Level Risk Thresholds
 
-El sistema usa evaluación de riesgo por niveles:
+The system uses tiered risk assessment:
 
-| Nivel | Rango | Color | Acción | Prioridad |
+| Level | Range | Color | Action | Priority |
 |-------|-------|-------|--------|-----------|
-| **🔴 Crítico** | 95%+ | Rojo | Liquidación inmediata | Máxima |
-| **🟠 Inmediato** | 85-94% | Naranja | Liquidación alta prioridad | Alta |
-| **🟡 Urgente** | 75-84% | Amarillo | Liquidación estándar | Media |
-| **🟢 Advertencia** | 60-74% | Verde | Solo monitoreo | Baja |
-| **⚪ Seguro** | <60% | Blanco | Sin acción | - |
+| **🔴 Critical** | 95%+ | Red | Immediate liquidation | Maximum |
+| **🟠 Immediate** | 85-94% | Orange | High priority liquidation | High |
+| **🟡 Urgent** | 75-84% | Yellow | Standard liquidation | Medium |
+| **🟢 Warning** | 60-74% | Green | Monitoring only | Low |
+| **⚪ Safe** | <60% | White | No action | - |
 
-### Detección de Volatilidad
+### Volatility Detection
 
 ```solidity
-// Umbrales de cambio de precio (base 1,000,000)
-priceChangeThreshold = 50000    // 5% - Activación básica
-urgentThreshold = 75000         // 7.5% - Nivel urgente  
-immediateThreshold = 100000     // 10% - Nivel inmediato
-criticalThreshold = 150000      // 15% - Nivel crítico
-volatilityBoostThreshold = 100000 // 10% - Modo volatilidad
+// Price change thresholds (base 1,000,000)
+priceChangeThreshold = 50000    // 5% - Basic activation
+urgentThreshold = 75000         // 7.5% - Urgent level  
+immediateThreshold = 100000     // 10% - Immediate level
+criticalThreshold = 150000      // 15% - Critical level
+volatilityBoostThreshold = 100000 // 10% - Volatility mode
 ```
 
 ## 🚀 Despliegue Paso a Paso
