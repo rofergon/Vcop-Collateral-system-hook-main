@@ -62,36 +62,54 @@ El sistema actual funciona de la siguiente manera:
 
 ### Ciclo de Custom Logic Automation
 
-```mermaid
-flowchart TB
-    A[Chainlink Node ejecuta checkUpkeep] 
-    B[LoanKeeper obtiene gestores registrados]
-    C[LoanAdapter obtiene posiciones en rango]
-    D[Evalúa riesgo por posición]
-    E{¿Posiciones liquidables?}
-    F[Ordena por riesgo y liquida]
-    G[Espera siguiente ciclo]
-    
-    A --> B --> C --> D --> E
-    E -->|Sí| F
-    E -->|No| G
+**🔄 Flujo de Ejecución Automática:**
+
+```
+🚀 INICIO
+   ⬇️
+🔍 1. Chainlink Node ejecuta checkUpkeep
+   ⬇️
+📋 2. LoanKeeper obtiene gestores registrados
+   ⬇️
+📊 3. LoanAdapter obtiene posiciones en rango
+   ⬇️
+⚖️  4. Evalúa riesgo por posición
+   ⬇️
+❓ 5. ¿Posiciones liquidables?
+   ⬇️                    ⬇️
+✅ SÍ                   ❌ NO
+   ⬇️                    ⬇️
+💥 6. Ordena por        ⏳ Espera siguiente
+   riesgo y liquida        ciclo (5 min)
+   ⬇️                    ⬇️
+✅ FIN                  🔄 REINICIA
 ```
 
 ### Ciclo de Log Trigger Automation
 
-```mermaid
-flowchart TB
-    A[DynamicPriceRegistry emite evento] 
-    B[Nodo Chainlink detecta log]
-    C[PriceChangeLogTrigger.checkLog]
-    D{¿Cambio significativo?}
-    E[Determina estrategia de liquidación]
-    F[Ejecuta liquidaciones prioritarias]
-    G[Sin acción]
-    
-    A --> B --> C --> D
-    D -->|Sí| E --> F
-    D -->|No| G
+**📈 Flujo de Respuesta a Eventos de Precio:**
+
+```
+⚡ EVENTO DE PRECIO
+   ⬇️
+📊 1. DynamicPriceRegistry emite evento
+   ⬇️
+🔍 2. Nodo Chainlink detecta log automáticamente
+   ⬇️
+⚙️  3. PriceChangeLogTrigger.checkLog se ejecuta
+   ⬇️
+❓ 4. ¿Cambio significativo de precio?
+   ⬇️                      ⬇️
+✅ SÍ (>5% cambio)        ❌ NO
+   ⬇️                      ⬇️
+🧠 5. Determina            😴 Sin acción
+   estrategia de           ⬇️
+   liquidación             ✅ FIN
+   ⬇️
+💥 6. Ejecuta liquidaciones
+   prioritarias inmediatas
+   ⬇️
+✅ FIN
 ```
 
 ### Detalles de Implementación Técnica
@@ -153,36 +171,47 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
 
 #### 4. **Flujo de Datos en Tiempo Real**
 
-```mermaid
-flowchart TB
-    subgraph Price ["📈 Flujo de Actualización de Precios"]
-        A[DynamicPriceRegistry emite evento] 
-        B[Nodo Chainlink detecta log]
-        C[PriceChangeLogTrigger.checkLog]
-        D{¿Cambio significativo?}
-        E[Determina estrategia de liquidación]
-        F[Ejecuta liquidaciones prioritarias]
-        M[Sin acción]
-        
-        A --> B --> C --> D
-        D -->|Sí| E --> F
-        D -->|No| M
-    end
-    
-    subgraph Logic ["🔄 Flujo de Lógica Personalizada"]
-        G[Nodo Chainlink ejecuta checkUpkeep]
-        H[LoanKeeper obtiene gestores registrados]
-        I[LoanAdapter obtiene posiciones en rango]
-        J[Evalúa riesgo por posición]
-        K{¿Posiciones liquidables?}
-        L[Ordena por riesgo y liquida]
-        N[Espera siguiente ciclo]
-        
-        G --> H --> I --> J --> K
-        K -->|Sí| L
-        K -->|No| N
-    end
-```
+**🔄 Sistema Dual de Automatización:**
+
+---
+
+### 📈 **RAMA A: Actualización de Precios** (Reactiva)
+
+| Paso | Componente | Acción | Tiempo |
+|------|------------|--------|---------|
+| **1** | 📊 DynamicPriceRegistry | Emite evento de precio | Inmediato |
+| **2** | 🔍 Chainlink Node | Detecta log automáticamente | <1 segundo |
+| **3** | ⚙️ PriceChangeLogTrigger | Ejecuta checkLog() | <2 segundos |
+| **4** | 🧠 Sistema | Evalúa significancia del cambio | <1 segundo |
+| **5a** | ✅ Si significativo | → Estrategia de liquidación | <5 segundos |
+| **5b** | ❌ Si no significativo | → Sin acción | Inmediato |
+| **6** | 💥 Ejecución | Liquidaciones prioritarias | 10-30 segundos |
+
+**🚨 Umbrales de Activación:**
+- 🟡 **5%** → Monitoreo básico
+- 🟠 **7.5%** → Liquidaciones urgentes  
+- 🔴 **10%** → Liquidaciones inmediatas
+- 🚨 **15%** → Modo crítico
+
+---
+
+### 🔄 **RAMA B: Lógica Personalizada** (Programada)
+
+| Paso | Componente | Acción | Frecuencia |
+|------|------------|--------|-------------|
+| **1** | 🔍 Chainlink Node | Ejecuta checkUpkeep() | Cada 5 minutos |
+| **2** | 📋 LoanKeeper | Obtiene gestores registrados | Automático |
+| **3** | 📊 LoanAdapter | Obtiene posiciones en rango | Lotes de 25 |
+| **4** | ⚖️ Sistema | Evalúa riesgo por posición | Tiempo real |
+| **5a** | ✅ Si liquidables | → Ordenar por riesgo | Inmediato |
+| **5b** | ❌ Si no liquidables | → Esperar siguiente ciclo | 5 minutos |
+| **6** | 💥 Ejecución | Liquidaciones en lote | 30-60 segundos |
+
+**🎯 Criterios de Priorización:**
+- 🔴 **95%+** → Crítico (liquidación inmediata)
+- 🟠 **85-94%** → Alto riesgo (alta prioridad)
+- 🟡 **75-84%** → Riesgo medio (prioridad estándar)
+- 🟢 **60-74%** → Advertencia (solo monitoreo)
 
 ## ⚙️ Configuración del Sistema
 
