@@ -8,28 +8,19 @@ Sistema de automatización completo que utiliza **Chainlink Automation v2.25.0**
 
 ### Componentes Principales
 
-### 1. **AutomationRegistry** 📋
-**Función**: Registry central para gestión de loan managers
-- **Ubicación**: `src/automation/core/AutomationRegistry.sol`
-- **Propósito**: Coordina múltiples loan managers y sus configuraciones
-- **Características**:
-  - Registro de managers con configuración individual
-  - Tracking de posiciones activas por manager
-  - Configuración de batch sizes y risk thresholds
-  - Sistema de autorización para contratos de automatización
-
-### 2. **LoanAutomationKeeperOptimized** ⚡ 
+### 1. **LoanAutomationKeeperOptimized** ⚡ 
 **Función**: Keeper principal (Custom Logic Automation)
 - **Ubicación**: `src/automation/core/LoanAutomationKeeperOptimized.sol`
 - **Propósito**: Ejecuta liquidaciones basadas en lógica personalizada
 - **Características**:
   - Extiende `AutomationCompatible` (detección automática UI)
+  - Registro interno de loan managers con prioridades
   - Procesamiento por lotes optimizado para gas
   - Priorización por nivel de riesgo
   - Cooldown entre liquidaciones
   - Métricas de rendimiento integradas
 
-### 3. **LoanManagerAutomationAdapter** 🔗
+### 2. **LoanManagerAutomationAdapter** 🔗
 **Función**: Adaptador para FlexibleLoanManager
 - **Ubicación**: `src/automation/core/LoanManagerAutomationAdapter.sol`
 - **Propósito**: Interfaz entre automatización y lending protocol
@@ -39,15 +30,17 @@ Sistema de automatización completo que utiliza **Chainlink Automation v2.25.0**
   - Evaluación de riesgo dinámica
   - Integración directa con `FlexibleLoanManager`
 
-### 4. **PriceChangeLogTrigger** 📈
+### 3. **PriceChangeLogTrigger** 📈
 **Función**: Trigger basado en eventos de precios (Log Automation)
 - **Ubicación**: `src/automation/core/PriceChangeLogTrigger.sol`
 - **Propósito**: Respuesta inmediata a cambios de precios
 - **Características**:
-  - Usa `ILogAutomation` interface oficial
+  - Usa `ILogAutomation` interface oficial de Chainlink
+  - Registro interno de loan managers con prioridades
   - Detección de volatilidad en tiempo real
-  - Múltiples niveles de urgencia
+  - Múltiples niveles de urgencia (4 niveles)
   - Modo volatilidad temporal
+  - Integración directa con `DynamicPriceRegistry`
 
 ## 🔄 Flujo de Trabajo Detallado
 
@@ -58,7 +51,14 @@ El sistema de automatización implementa dos tipos de triggers de Chainlink v2.2
 1. **Custom Logic Automation**: Ejecución cíclica programada para verificar posiciones
 2. **Log Trigger Automation**: Ejecución reactiva basada en eventos de precio
 
-#### Arquitectura de Integración
+#### Arquitectura del Sistema Actual
+
+El sistema actual funciona de la siguiente manera:
+
+- **LoanAutomationKeeperOptimized**: Maneja su propio registro de loan managers con `registeredManagers` y `managersList`
+- **PriceChangeLogTrigger**: Mantiene su propia lista de loan managers con `registeredLoanManagers` y `loanManagersList`  
+- **LoanManagerAutomationAdapter**: Implementa `ILoanAutomation` y se conecta directamente con `FlexibleLoanManager`
+- **Interfaces Oficiales**: Usa `AutomationCompatible` e `ILogAutomation` de Chainlink v2.25.0
 
 ### Ciclo de Custom Logic Automation
 
@@ -73,7 +73,7 @@ El sistema de automatización implementa dos tipos de triggers de Chainlink v2.2
 contract LoanAutomationKeeperOptimized is AutomationCompatible, Ownable {
     
     // ✅ Extiende AutomationCompatible (no solo interfaz) para detección UI automática
-    // ✅ Usa AutomationRegistry para coordinar múltiples loan managers
+    // ✅ Registro interno de loan managers con sistema de prioridades
     // ✅ Implementa lógica de batching optimizada para gas
     // ✅ Sistema de priorización por riesgo
 ```
@@ -136,7 +136,7 @@ flowchart TB
     
     subgraph "Custom Logic Flow"  
         G[Chainlink Node ejecuta checkUpkeep]
-        H[AutomationRegistry provee managers activos]
+        H[LoanKeeper obtiene managers registrados]
         I[LoanAdapter obtiene posiciones en rango]
         J[Evaluar riesgo por posición]
         K{Posiciones liquidables?}
@@ -255,31 +255,6 @@ cast call $LOAN_AUTOMATION_KEEPER \
 
 ## 🔧 Funciones de Configuración
 
-### AutomationRegistry
-
-```solidity
-// Registrar loan manager
-automationRegistry.registerLoanManager(
-    adapterAddress,     // Adapter address
-    "FlexibleLoanManager", // Name
-    25,                // Batch size
-    75                 // Risk threshold
-);
-
-// Configurar autorización
-automationRegistry.setAutomationContractAuthorization(
-    loanKeeperAddress, 
-    true
-);
-
-// Configurar defaults globales
-automationRegistry.setGlobalDefaults(
-    50,     // Default batch size
-    80,     // Default risk threshold  
-    200     // Max batch size
-);
-```
-
 ### LoanAutomationKeeperOptimized
 
 ```solidity
@@ -338,27 +313,6 @@ priceLogTrigger.registerLoanManager(adapterAddress, 100);
 ```
 
 ### Estado Actual del Sistema - Funciones Específicas
-
-#### AutomationRegistry - Funciones Principales
-
-```solidity
-// 📋 Gestión de Loan Managers
-function registerLoanManager(address manager, string name, uint256 batchSize, uint256 riskThreshold) external;
-function unregisterLoanManager(address manager) external;
-function updateLoanManagerSettings(address manager, uint256 batchSize, uint256 riskThreshold) external;
-
-// 📊 Información del Sistema  
-function getActiveManagersWithBatchInfo() external view returns (
-    address[] memory activeManagers,
-    uint256[] memory nextStartIndices, 
-    uint256[] memory batchSizes,
-    uint256[] memory totalPositions
-);
-
-// 🔄 Tracking de Posiciones
-function updatePositionCount(address manager) external;
-function updateLastCheckedIndex(address manager, uint256 newIndex) external;
-```
 
 #### LoanAutomationKeeperOptimized - Funciones Clave
 
@@ -555,9 +509,6 @@ loanAdapter.automatedLiquidation(positionId);
 ```solidity
 // Sincronizar tracking de posiciones
 loanAdapter.syncPositionTracking();
-
-// Actualizar conteos en registry
-automationRegistry.bulkUpdatePositionCounts();
 ```
 
 ## 🔍 Debugging y Troubleshooting
@@ -619,9 +570,9 @@ function testCheckUpkeep() external view {
 
 // Verificar configuración del sistema
 function verifySystemConfiguration() external view {
-    // Verificar registry
-    require(automationRegistry.isManagerActive(adapterAddress), 
-            "Manager not active");
+    // Verificar manager registrado
+require(loanKeeper.registeredManagers(adapterAddress), 
+        "Manager not registered");
     
     // Verificar adapter
     require(loanAdapter.isAutomationEnabled(), 
@@ -713,12 +664,12 @@ function verifySystemConfiguration() external view {
 
 | Componente | Estado | Funcionalidad |
 |------------|--------|---------------|
-| **AutomationRegistry** | ✅ Completo | Gestión de managers y configuración |
-| **LoanAutomationKeeper** | ✅ Optimizado | Custom logic automation con batching |
+| **LoanAutomationKeeper** | ✅ Optimizado | Custom logic automation con batching y registro interno |
 | **LoanManagerAdapter** | ✅ Integrado | Interface con FlexibleLoanManager |
-| **PriceChangeLogTrigger** | ✅ Avanzado | Log automation con detección de volatilidad |
+| **PriceChangeLogTrigger** | ✅ Avanzado | Log automation con detección de volatilidad y registro interno |
 | **Deployment Scripts** | ✅ Funcionales | Scripts de despliegue automatizado |
 | **Configuration Tools** | ✅ Disponibles | Funciones de configuración completas |
+| **Chainlink Integration** | ✅ Oficial | Usa interfaces oficiales AutomationCompatible e ILogAutomation |
 
 ### Próximos Pasos Recomendados
 
