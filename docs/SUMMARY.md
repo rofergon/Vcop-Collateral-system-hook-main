@@ -10,6 +10,7 @@
 * [🆕 New Architecture](architecture/NUEVA_ARQUITECTURA.md)
 * [🔧 Maximum Flexibility](architecture/FLEXIBILIDAD_MAXIMA.md)
 * [🔗 Uniswap v4 Hook](architecture/UNISWAP_V4_HOOK.md)
+* [🤖 Chainlink Automation](architecture/CHAINLINK_AUTOMATION.md)
 
 ## 📊 Risk Management
 

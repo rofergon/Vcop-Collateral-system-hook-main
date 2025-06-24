@@ -25,6 +25,19 @@ This section contains all documentation related to the design and architecture o
 - ✅ Extreme use cases (90%+ LTV allowed)
 - ✅ Comparison: restrictive vs flexible system
 
+### 📄 [CHAINLINK_AUTOMATION.md](./CHAINLINK_AUTOMATION.md)
+**Advanced Chainlink Automation System v2.25.0**
+
+**Includes:**
+- ✅ Dual trigger system (Custom Logic + Log Automation)
+- ✅ FlexibleLoanManager native integration
+- ✅ Real-time price monitoring with DynamicPriceRegistry
+- ✅ Multi-tier risk assessment (4 urgency levels)
+- ✅ Volatility detection and temporary mode
+- ✅ Gas optimization with intelligent batching
+- ✅ Position tracking and performance metrics
+- ✅ Emergency controls and backup procedures
+
 ## 🎯 NEW ARCHITECTURE OBJECTIVES
 
 ### **1. UNIVERSALITY**
@@ -50,10 +63,10 @@ This section contains all documentation related to the design and architecture o
 ## 🔧 MAIN COMPONENTS
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    NEW ARCHITECTURE                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
+┌────────────────────────────────────────────────────────────┐
+│                        ARCHITECTURE                        │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
 │  ┌─────────────────┐    ┌─────────────────┐                │
 │  │ FlexibleLoan    │    │ RiskCalculator  │                │
 │  │ Manager         │    │                 │                │
@@ -61,7 +74,7 @@ This section contains all documentation related to the design and architecture o
 │  │ • Zero limits   │    │ • Real time     │                │
 │  │ • Ultra flexible│    │ • Predictive    │                │
 │  └─────────────────┘    └─────────────────┘                │
-│                                                             │
+│                                                            │
 │  ┌─────────────────┐    ┌─────────────────┐                │
 │  │ FlexibleAsset   │    │ GenericOracle   │                │
 │  │ Handler         │    │                 │                │
@@ -70,8 +83,17 @@ This section contains all documentation related to the design and architecture o
 │  │ • Mintable +    │    │ • Manual feeds  │                │
 │  │   Vault based   │    │ • Hybrid        │                │
 │  └─────────────────┘    └─────────────────┘                │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+│                                                            │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │ Chainlink       │    │ Automation      │                │
+│  │ Automation      │    │ Log Triggers    │                │
+│  │                 │    │                 │                │
+│  │ • Custom Logic  │    │ • Price events  │                │
+│  │ • Auto batching │    │ • Volatility    │                │
+│  │ • Risk priority │    │ • Immediate     │                │
+│  └─────────────────┘    └─────────────────┘                │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
 ```
 
 ## 📊 COMPETITIVE ADVANTAGES
