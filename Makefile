@@ -53,6 +53,17 @@ help:
 	@echo "check-addresses               - Show all contract addresses"
 	@echo "test-oracle                   - Test Oracle functionality"
 	@echo ""
+	@echo "✅ CONTRACT VERIFICATION"
+	@echo "verify-all-contracts-fixed    - ⭐ RECOMMENDED: Verify with correct constructor args"
+	@echo "verify-contracts-sepolia-fixed - ⭐ RECOMMENDED: Verify on Base Sepolia (fixed)"
+	@echo "verify-contracts-mainnet-fixed - ⭐ RECOMMENDED: Verify on Base Mainnet (fixed)"
+	@echo "verify-all-contracts          - Basic verification (may fail on some contracts)"
+	@echo "verify-contracts-sepolia      - Basic verification on Base Sepolia"
+	@echo "verify-contracts-mainnet      - Basic verification on Base Mainnet"
+	@echo "verify-contracts-custom       - Verify with JSON_FILE=path/to/file.json"
+	@echo "show-deployed-addresses       - Show all deployed contract addresses"
+	@echo "show-addresses-custom         - Show addresses with JSON_FILE=path/to/file.json"
+	@echo ""
 	@echo "🛠️ UTILITIES"
 	@echo "build                         - Smart compilation"
 	@echo "clean                         - Clean build artifacts"
@@ -67,11 +78,14 @@ help:
 	@echo "🌟 QUICK START GUIDES:"
 	@echo "   Production:  make deploy-full-stack"
 	@echo "   Testing:     make deploy-full-stack-mock"
+	@echo "   Verification: make verify-all-contracts-fixed"
 	@echo ""
 	@echo "❗ TROUBLESHOOTING:"
 	@echo "   If upkeeps execute but positions don't liquidate:"
 	@echo "   → make fix-vault-allowances (recommended)"
 	@echo "   → make fix-vault-liquidity (alternative)"
+	@echo "   If contract verification fails:"
+	@echo "   → Use verify-all-contracts-fixed instead of verify-all-contracts"
 
 # ========================================
 # 🔨 BASIC BUILD COMMANDS
@@ -100,3 +114,63 @@ status: check-status
 
 # Quick test
 test: test-automation-flow
+
+# ========================================
+# 🔍 VERIFICATION COMMANDS
+# ========================================
+
+# Verify all contracts dynamically from deployed-addresses-mock.json
+verify-all-contracts:
+	@echo "🔍 Verificando todos los contratos de forma dinámica..."
+	@chmod +x tools/verify-all-contracts.sh
+	@./tools/verify-all-contracts.sh
+
+# Verify all contracts with improved constructor arguments (RECOMMENDED)
+verify-all-contracts-fixed:
+	@echo "🔍 Verificando todos los contratos con argumentos mejorados..."
+	@chmod +x tools/verify-all-contracts-fixed.sh
+	@./tools/verify-all-contracts-fixed.sh
+
+# Verify contracts for Base Sepolia (testnet)
+verify-contracts-sepolia:
+	@echo "🔍 Verificando contratos en Base Sepolia..."
+	@CHAIN_ID=84532 ./tools/verify-all-contracts.sh
+
+# Verify contracts for Base Sepolia with fixed constructor args (RECOMMENDED)
+verify-contracts-sepolia-fixed:
+	@echo "🔍 Verificando contratos en Base Sepolia (versión mejorada)..."
+	@CHAIN_ID=84532 ./tools/verify-all-contracts-fixed.sh
+
+# Verify contracts for Base Mainnet
+verify-contracts-mainnet:
+	@echo "🔍 Verificando contratos en Base Mainnet..."
+	@CHAIN_ID=8453 ./tools/verify-all-contracts.sh
+
+# Verify contracts for Base Mainnet with fixed constructor args (RECOMMENDED)
+verify-contracts-mainnet-fixed:
+	@echo "🔍 Verificando contratos en Base Mainnet (versión mejorada)..."
+	@CHAIN_ID=8453 ./tools/verify-all-contracts-fixed.sh
+
+# Verify with custom JSON file
+verify-contracts-custom:
+	@echo "🔍 Verificando contratos desde archivo personalizado..."
+	@if [ -z "$(JSON_FILE)" ]; then \
+		echo "❌ Error: Especifica JSON_FILE=path/to/file.json"; \
+		exit 1; \
+	fi
+	@JSON_FILE=$(JSON_FILE) ./tools/verify-all-contracts.sh
+
+# Show all deployed addresses from JSON
+show-deployed-addresses:
+	@echo "📋 Mostrando todas las direcciones desplegadas..."
+	@chmod +x tools/show-deployed-addresses.sh
+	@./tools/show-deployed-addresses.sh
+
+# Show addresses from custom JSON file
+show-addresses-custom:
+	@echo "📋 Mostrando direcciones desde archivo personalizado..."
+	@if [ -z "$(JSON_FILE)" ]; then \
+		echo "❌ Error: Especifica JSON_FILE=path/to/file.json"; \
+		exit 1; \
+	fi
+	@JSON_FILE=$(JSON_FILE) ./tools/show-deployed-addresses.sh
