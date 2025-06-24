@@ -20,7 +20,7 @@ if [ -z "$CHAINLINK_UPKEEP_ID" ]; then
     echo ""
     echo "Then set it:"
     echo "  export CHAINLINK_UPKEEP_ID=123456789"
-    echo "  ./monitor-live-upkeep.sh"
+    echo "  ./tools/monitor-live-upkeep.sh"
     echo ""
     exit 1
 fi

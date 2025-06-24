@@ -69,14 +69,14 @@ deploy-automation-complete:
 	@echo "⚠️  IMPORTANT: Update .env with the Forwarder address from above"
 	@echo ""
 	@echo "Option 1: Use the helper script (recommended)"
-	@echo "   ./update-env-forwarder.sh"
+	@echo "   ./tools/update-env-forwarder.sh"
 	@echo ""
 	@echo "Option 2: Manually add to .env:"
 	@echo "   CHAINLINK_FORWARDER_ADDRESS=0x[your_forwarder_address]"
 	@echo ""
 	@read -p "Continue to run update-env-forwarder.sh? (y/N): " update_env && \
 	if [ "$$update_env" = "y" ]; then \
-		./update-env-forwarder.sh; \
+		./tools/update-env-forwarder.sh; \
 	else \
 		echo "Please update .env manually with the Forwarder address"; \
 		read -p "Press Enter after updating .env..."; \
@@ -139,7 +139,7 @@ deploy-automation:
 	forge script script/automation/DeployAutomationProduction.s.sol:DeployAutomationProduction \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000 --legacy --slow
 	@echo "Updating JSON with automation addresses..."
-	@./update-automation-addresses.sh
+	@./tools/update-automation-addresses.sh
 	@echo "✅ AUTOMATION CONTRACTS DEPLOYED!"
 
 # Deploy Chainlink Automation for mock system
@@ -180,7 +180,7 @@ deploy-automation-mock:
 	forge script script/automation/DeployAutomationMock.s.sol:DeployAutomationMock \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000 --legacy --slow
 	@echo "Updating mock JSON with automation addresses..."
-	@./update-automation-addresses-mock.sh
+	@./tools/update-automation-addresses-mock.sh
 	@echo "✅ MOCK AUTOMATION CONTRACTS DEPLOYED!"
 
 # Setup Chainlink environment
@@ -191,7 +191,7 @@ setup-chainlink-automation:
 		echo "❌ deployed-addresses.json not found!"; \
 		exit 1; \
 	fi
-	@./setup-chainlink-automation.sh
+	@./tools/setup-chainlink-automation.sh
 	@echo "✅ CHAINLINK ENVIRONMENT CONFIGURED!"
 
 # Register upkeep with official Chainlink Registry
@@ -232,7 +232,7 @@ configure-forwarder:
 update-forwarder-env:
 	@echo "🔧 UPDATING .ENV WITH FORWARDER ADDRESS"
 	@echo "======================================="
-	@./update-env-forwarder.sh
+	@./tools/update-env-forwarder.sh
 
 # ========================================
 # 🔍 STATUS & VERIFICATION
@@ -526,7 +526,7 @@ automation-help-complete:
 	@echo "   make monitor-chainlink-upkeep         Full upkeep status"
 	@echo "   make emergency-upkeep-check          Quick health check"
 	@echo "   make watch-upkeep-live               Continuous monitoring"
-	@echo "   ./monitor-live-upkeep.sh             Interactive monitoring"
+	@echo "   ./tools/monitor-live-upkeep.sh             Interactive monitoring"
 	@echo ""
 	@echo "💰 LINK VERIFICATION:"
 	@echo "   make check-link-consumption          Check LINK spending"
@@ -562,7 +562,7 @@ automation-help-complete:
 	@echo "   4. make verify-automation-working"
 	@echo ""
 	@echo "📋 FOR MONITORING:"
-	@echo "   ./monitor-live-upkeep.sh"
+	@echo "   ./tools/monitor-live-upkeep.sh"
 	@echo ""
 	@echo "Need help? Read: docs/CHAINLINK_LIVE_VERIFICATION_GUIDE.md"
 

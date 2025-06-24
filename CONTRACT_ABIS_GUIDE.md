@@ -173,7 +173,7 @@ If you need to regenerate the ABIs after code changes:
 forge build
 
 # Extract ABIs again
-./extract-abis.sh
+./tools/extract-abis.sh
 ```
 
 ## 📁 File Structure
@@ -201,7 +201,7 @@ abi/
 └── [previous ABI files]
 
 deployed-addresses.json        # Deployed contract addresses
-extract-abis.sh               # Script to extract ABIs
+tools/extract-abis.sh               # Script to extract ABIs
 ```
 
 ## 🎯 Next Steps

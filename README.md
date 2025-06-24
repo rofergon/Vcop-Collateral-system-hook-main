@@ -378,7 +378,7 @@ make deploy-mainnet
 After deployment, you can verify contracts using:
 
 ```bash
-./verify-contracts.sh
+./tools/verify-contracts.sh
 ```
 
 The deployed contracts are documented in `docs/MAINNET_DEPLOYMENT_RECORD.md`.
