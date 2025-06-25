@@ -42,7 +42,7 @@ VCOP is a collateralized stablecoin that maintains its target peg of 1 COP throu
 ## System Architecture
 
 ```
-┌──────────────────────── CHAINLINK AUTOMATION ────────────────────────┐
+┌──────────────────────── CHAINLINK AUTOMATION ─────────────────────────┐
 │                                                                       │
 │  ┌──────────────────────┐            ┌─────────────────────────────┐  │
 │  │   Custom Logic       │            │      Log Trigger            │  │
@@ -55,7 +55,7 @@ VCOP is a collateralized stablecoin that maintains its target peg of 1 COP throu
 │  └──────────┬───────────┘            └─────────────┬───────────────┘  │
 │             │                                      │                  │
 │             └─────────────┬────────────────────────┘                  │
-└───────────────────────────┼────────────────────────────────────────────┘
+└───────────────────────────┼───────────────────────────────────────────┘
                             │
                     ┌───────▼───────┐
                     │ Automation    │
@@ -64,8 +64,8 @@ VCOP is a collateralized stablecoin that maintains its target peg of 1 COP throu
                     │ + Bridge)     │
                     └───────┬───────┘
                             │
-┌───────────────────────────┼───── CORE LENDING SYSTEM ──────────────────┐
-│                           │                                             │
+┌───────────────────────────┼───── CORE LENDING SYSTEM ────────────────────┐
+│                           │                                              │
 │  ┌────────────────────────▼───┐    ┌─────────────────────────────────┐   │
 │  │   FlexibleLoanManager      │    │     DynamicPriceRegistry        │   │
 │  │                            │    │                                 │   │
@@ -81,10 +81,10 @@ VCOP is a collateralized stablecoin that maintains its target peg of 1 COP throu
 │                         │ • automationRepay() │                          │
 │                         │ • Emergency modes   │                          │
 │                         └──────────┬──────────┘                          │
-└────────────────────────────────────┼───────────────────────────────────────┘
+└────────────────────────────────────┼─────────────────────────────────────┘
                                      │
-┌────────────────────────────────────┼───── UNISWAP V4 + PSM ──────────────┐
-│                                    │                                     │
+┌────────────────────────────────────┼───── UNISWAP V4 + PSM ─────────────┐
+│                                    │                                    │
 │                          ┌─────────▼─────────┐                          │
 │                          │ VCOPCollateralHook│                          │
 │                          │ (PSM + Hook)      │                          │
@@ -94,26 +94,26 @@ VCOP is a collateralized stablecoin that maintains its target peg of 1 COP throu
 │                          │ • User PSM swaps  │                          │
 │                          │ • Hook callbacks  │                          │
 │                          └─────────┬─────────┘                          │
-│                                    │                                     │
-│  ┌─────────────────────────────────┼─────────────────────────────────┐   │
-│  │             Uniswap v4 Pool     │                                 │   │
-│  │                                 │                                 │   │
-│  │  VCOP/USDC Liquidity           │                                 │   │
-│  │  Price Discovery                │                                 │   │
-│  │  Swap Execution                 │                                 │   │
-│  └─────────────────────────────────┼─────────────────────────────────┘   │
-└────────────────────────────────────┼───────────────────────────────────────┘
+│                                    │                                    │
+│  ┌─────────────────────────────────┼─────────────────────────────────┐  │
+│  │             Uniswap v4 Pool     │                                 │  │
+│  │                                 │                                 │  │
+│  │  VCOP/USDC Liquidity            │                                 │  │
+│  │  Price Discovery                │                                 │  │
+│  │  Swap Execution                 │                                 │  │
+│  └─────────────────────────────────┼─────────────────────────────────┘  │
+└────────────────────────────────────┼────────────────────────────────────┘
                                      │
            ┌─────────────────────────┼─────────────────────────┐
            │                         │                         │
            ▼                         ▼                         ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────────────┐
+┌─────────────────┐ ┌──────────────────┐ ┌─────────────────────────┐
 │CollateralManager│ │ RewardDistributor│ │    Emergency Registry   │
 │                 │ │                  │ │                         │
 │• PSM reserves   │ │• VCOP minting    │ │• Centralized emergency  │
 │• Vault funding  │ │• Multi-pool      │ │• Cross-handler coord    │
 │• VCOP mint/burn │ │• Stake tracking  │ │• Dynamic thresholds     │
-└─────────────────┘ └─────────────────┘ └─────────────────────────┘
+└─────────────────┘ └──────────────────┘ └─────────────────────────┘
            │                         │
            └─────────────┬───────────┘
                          │
