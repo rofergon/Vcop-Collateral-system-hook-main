@@ -6,17 +6,17 @@ A collateralized stablecoin backed by USDC with autonomous liquidation protectio
 
 VCOP features an advanced **automated liquidation system** that protects the protocol from bad debt 24/7. The system uses Chainlink Automation v2.25.0 with dual automation strategies:
 
-- **🕒 Scheduled Monitoring**: Regular position scanning every 5-10 minutes using Custom Logic automation
-- **⚡ Instant Response**: Immediate reaction to price changes via Log Trigger automation
-- **🔄 Scalable Architecture**: Efficiently handles thousands of positions through smart batch processing
+- **🔧 Custom Logic Automation**: On-demand position scanning triggered by Chainlink when `checkUpkeep()` returns true
+- **⚡ Log Trigger Automation**: Instant response to price change events from the DynamicPriceRegistry
+- **🔄 Scalable Architecture**: Smart batch processing with O(1) position tracking and automatic cleanup
 - **💰 Vault-Funded**: Uses protocol's own liquidity for liquidations (no external tokens needed)
 
-### Key Features
-- **24/7 Protection** against undercollateralized positions
-- **Gas Optimized** batch processing with O(1) position tracking
-- **Risk Prioritization** - liquidates highest-risk positions first
-- **Dual Triggers** - scheduled + event-based monitoring
-- **Auto-scaling** - system handles 1,000 to 100,000+ positions efficiently
+### How It Actually Works
+- **Custom Logic**: Chainlink calls `checkUpkeep()` → if liquidations needed → calls `performUpkeep()` 
+- **Log Trigger**: Price change event → immediate `checkLog()` → urgent liquidations via `performUpkeep()`
+- **Risk Assessment**: Positions with ratio ≤ 105% = Critical, ≤ 110% = Immediate, ≤ 120% = High priority
+- **Batch Processing**: Handles up to 100 positions per upkeep with gas-safe early termination
+- **Position Tracking**: O(1) add/remove operations with automatic cleanup of closed positions
 
 **📖 [Complete Automation Documentation →](docs/architecture/CHAINLINK_AUTOMATION.md)**
 
@@ -117,12 +117,12 @@ VCOP is a collateralized stablecoin that maintains its target peg of 1 COP throu
 ## Key System Features
 
 ### 🛡️ Automated Liquidation Protection
-The system uses **Chainlink Automation** to continuously monitor loan positions and execute liquidations automatically:
+The system uses **Chainlink Automation** to monitor loan positions and execute liquidations when needed:
 
-- **Custom Logic Automation**: Scheduled position scanning (every 5-10 minutes)
-- **Log Trigger Automation**: Instant response to price changes (1-2 blocks)
-- **Risk-Based Prioritization**: Liquidates highest-risk positions first
-- **Scalable Processing**: Handles thousands of positions through batch optimization
+- **Custom Logic Automation**: Chainlink triggers `checkUpkeep()` when positions need checking
+- **Log Trigger Automation**: Instant response to price change events (1-2 blocks)
+- **Risk-Based Prioritization**: Sorts positions by risk level (100 = critical, 95 = immediate)
+- **Vault-Funded Liquidations**: Protocol provides its own liquidity via `vaultFundedAutomatedLiquidation()`
 
 ### 🔄 Peg Stability Module (PSM)
 The PSM maintains VCOP's peg through direct USDC ↔ VCOP swaps:
@@ -146,10 +146,10 @@ The `VCOPCollateralHook` provides real-time pool monitoring:
 
 #### 🔄 Automated Liquidation Process
 ```
-1. Chainlink Automation monitors loan positions continuously
-2. Risk assessment: Position ratio < liquidation threshold?
-3. If yes: Execute vault-funded liquidation automatically
-4. Update tracking, remove liquidated position from monitoring
+1. Chainlink calls checkUpkeep() → LoanAutomationKeeperOptimized checks positions
+2. If liquidatable positions found → returns performData with position IDs
+3. Chainlink calls performUpkeep() → executes vaultFundedAutomatedLiquidation()
+4. LoanManagerAutomationAdapter removes liquidated positions from tracking
 ```
 
 #### 💱 PSM Operations
@@ -170,11 +170,11 @@ The `VCOPCollateralHook` provides real-time pool monitoring:
 
 ### Key System Components
 
-- **LoanAutomationKeeperOptimized**: Batch processes positions, handles scaling automatically
-- **PriceChangeLogTrigger**: Instant price change response with multi-tier urgency
-- **LoanManagerAutomationAdapter**: O(1) position tracking with automatic cleanup
-- **VCOPCollateralHook**: PSM operations + Uniswap v4 integration
-- **VCOPCollateralManager**: Reserves management + vault-funded liquidations
+- **LoanAutomationKeeperOptimized**: Implements `checkUpkeep()` and `performUpkeep()` for Custom Logic automation
+- **PriceChangeLogTrigger**: Implements `checkLog()` and `performUpkeep()` for Log Trigger automation  
+- **LoanManagerAutomationAdapter**: Bridges automation to FlexibleLoanManager with O(1) position tracking
+- **VCOPCollateralHook**: PSM operations + Uniswap v4 integration for price stability
+- **FlexibleLoanManager**: Core lending logic with `vaultFundedAutomatedLiquidation()` function
 
 ## Requirements
 
