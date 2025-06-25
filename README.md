@@ -1,256 +1,180 @@
-# VCOP Stablecoin with Uniswap v4
+# VCOP Protocol
 
-A collateralized stablecoin backed by USDC with a Peg Stability Module (PSM) operating through a Uniswap v4 hook.
+A collateralized stablecoin backed by USDC with autonomous liquidation protection powered by **Chainlink Automation**.
 
-## Description
+## 🤖 Chainlink Automation Integration
 
-VCOP is a collateralized stablecoin that maintains its target peg of 1 COP thanks to a collateral-based Peg Stability Module (PSM) and automatic monitoring via a Uniswap v4 hook. The system integrates:
+VCOP features an advanced **automated liquidation system** that protects the protocol from bad debt 24/7. The system uses Chainlink Automation v2.25.0 with dual automation strategies:
 
-- `VCOPCollateralized.sol`: Collateralized stablecoin token with 6 decimals
-- `VCOPOracle.sol`: Price oracle for VCOP/COP and USD/COP rates
-- `VCOPCollateralHook.sol`: Uniswap v4 hook implementing the PSM and monitoring swaps
-- `VCOPPriceCalculator.sol`: Auxiliary price calculator for accurate rate conversion
-
-## 🤖 Automated Liquidation Protection
-
-VCOP includes a sophisticated **Chainlink Automation system** that provides 24/7 protection against bad debt by automatically monitoring and liquidating risky loan positions.
+- **🕒 Scheduled Monitoring**: Regular position scanning every 5-10 minutes using Custom Logic automation
+- **⚡ Instant Response**: Immediate reaction to price changes via Log Trigger automation
+- **🔄 Scalable Architecture**: Efficiently handles thousands of positions through smart batch processing
+- **💰 Vault-Funded**: Uses protocol's own liquidity for liquidations (no external tokens needed)
 
 ### Key Features
-- **Dual Automation Strategy**: Combines scheduled monitoring (every 5-10 minutes) with instant price-based responses
-- **Scalable Architecture**: Efficiently handles thousands of positions using smart batch processing and O(1) position tracking
-- **Vault-Funded Liquidations**: Uses protocol's own liquidity, no external tokens needed
-- **Risk-Based Prioritization**: Always processes the most critical positions first
+- **24/7 Protection** against undercollateralized positions
+- **Gas Optimized** batch processing with O(1) position tracking
+- **Risk Prioritization** - liquidates highest-risk positions first
+- **Dual Triggers** - scheduled + event-based monitoring
+- **Auto-scaling** - system handles 1,000 to 100,000+ positions efficiently
 
-### How It Works
-The system uses two complementary automation approaches:
-1. **Scheduled Monitoring** (`LoanAutomationKeeperOptimized`): Regular position health checks
-2. **Price Event Response** (`PriceChangeLogTrigger`): Instant reaction to significant price changes
-
-When positions become risky (collateralization ratio ≤ 110%), the system automatically executes liquidations to protect the protocol from bad debt.
-
-📖 **[Complete Automation Documentation →](docs/architecture/CHAINLINK_AUTOMATION.md)**
+**📖 [Complete Automation Documentation →](docs/architecture/CHAINLINK_AUTOMATION.md)**
 
 ---
+
+## System Overview
+
+VCOP is a collateralized stablecoin that maintains its target peg of 1 COP through:
+
+- **Peg Stability Module (PSM)** operating via Uniswap v4 hook
+- **Automated liquidation protection** via Chainlink Automation
+- **Real-time price monitoring** and stabilization
+- **Collateral-backed minting** with USDC reserves
+
+### Core Components
+- `VCOPCollateralized.sol`: Collateralized stablecoin token (6 decimals)
+- `VCOPOracle.sol`: Price oracle for VCOP/COP and USD/COP rates
+- `VCOPCollateralHook.sol`: Uniswap v4 hook implementing PSM
+- `VCOPPriceCalculator.sol`: Price calculation utilities
+- `LoanAutomationKeeperOptimized.sol`: Chainlink automation keeper
+- `PriceChangeLogTrigger.sol`: Price change event automation
 
 ## System Architecture
 
 ```
-┌───────────────────────────── UNISWAP V4 INTEGRATION ────────────────────────────┐
-│                                                                                 │
-│  ┌────────────────────────┐                  ┌───────────────────────────────┐  │
-│  │   Uniswap v4 Pool      │                  │     Pool Events & Hooks       │  │
-│  │                        │                  │                               │  │
-│  │  VCOP/USDC Liquidity   │◄───Monitors──────┤ • beforeSwap                  │  │
-│  │  Price Discovery       │                  │ • afterSwap                   │  │
-│  │  Swap Execution        │──Hook Callbacks─►│ • afterAddLiquidity           │  │
-│  └──────────┬─────────────┘                  └────────────────┬──────────────┘  │
-│             │                                                 │                 │
-│             │                                                 │                 │
-│             │           ┌─────────────────────┐               │                 │
-│             └──────────►│  Uniswap Pool State │◄──────────────┘                 │
-│                         │                     │                                 │
-│                         │ • sqrtPriceX96      │◄───────┐                        │
-│                         │ • liquidity         │        │                        │
-│                         │ • tick              │        │                        │
-│                         └──────────┬──────────┘        │                        │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │                  │
-                                      │                  │ Reads Price
-                                      │                  │
-          ┌─────────────────────┐     │                  │
-          │      External       │     │                  │
-          │      Systems        │     │                  │
-          │  (USDC, Users)      │     │                  │
-          └──────────┬──────────┘     │                  │
-                     │                │                  │
-                     │                │                  │
-                     ▼                ▼                  ▼
-┌─────────────────────────────┐     ┌─────────────────────────────┐
-│    VCOPCollateralHook       │     │       VCOPOracle            │
-├─────────────────────────────┤     ├─────────────────────────────┤
-│ HOOK IMPLEMENTATION:        │     │ PRICE DATA:                 │
-│ - getHookPermissions()      │     │ - getVcopToCopRate()        │
-│ - _beforeSwap()             │     │ - getUsdToCopRate()         │
-│ - _afterSwap()              │     │ - updateRatesFromPool()     │
-├─────────────────────────────┤     └────────────┬────────────────┘
-│ PSM OPERATIONS:             │                  │
-│ - psmSwapVCOPForCollateral()│                  │
-│ - psmSwapCollateralForVCOP()│                  │
-│ - stabilizePriceWithPSM()   │                  │
-├─────────────────────────────┤                  │
-│ STABILITY CONTROL:          │                  │
-│ - monitorPrice()            │                  │
-│ - _wouldBreakPeg()          │                  │
-│ - _isLargeSwap()            │                  │
-└───────┬─────────┬───────────┘                  │
-        │         │                              │
-        │         │                  ┌─────────────────────────────┐
-        │         │                  │    VCOPPriceCalculator      │
-        │         │                  ├─────────────────────────────┤
-        │         │                  │ POOL PRICE CALCULATION:     │
-        │         │                  │ - getVcopToUsdPriceFromPool()│
-        │         │                  │ - getVcopToCopPrice()       │
-        │         │                  │ - createPoolKey()           │
-        │         │                  │ - isVcopAtParity()          │
-        │         │                  └─────────────────────────────┘
-        │         │
-        │         ▼
-        │  ┌─────────────────────────────┐
-        │  │     VCOPCollateralManager   │
-        │  ├─────────────────────────────┤
-        │  │ RESERVES MANAGEMENT:        │
-        │  │ - mintPSMVcop()             │
-        │  │ - transferPSMCollateral()   │
-        │  │ - registerPSMFunds()        │
-        │  │ - hasPSMReservesFor()       │
-        │  │ - getPSMReserves()          │
-        │  └────────────────┬────────────┘
-        │                   │
-        │                   │
-        ▼                   ▼
-┌─────────────────────────────┐
-│    VCOPCollateralized       │
-├─────────────────────────────┤
-│ TOKEN OPERATIONS:           │
-│ - mint()                    │
-│ - burn()                    │
-│ - transfer()/transferFrom() │
-└─────────────────────────────┘
+┌──────────────────────── CHAINLINK AUTOMATION ────────────────────────┐
+│                                                                       │
+│  ┌──────────────────────┐            ┌─────────────────────────────┐  │
+│  │   Custom Logic       │            │      Log Trigger            │  │
+│  │   (Scheduled)        │            │      (Event-based)          │  │
+│  │                      │            │                             │  │
+│  │ LoanKeeper           │            │ PriceLogTrigger             │  │
+│  │ - 24/7 monitoring    │            │ - Instant price response   │  │
+│  │ - Batch processing   │            │ - Multi-tier urgency        │  │
+│  │ - Risk prioritization│            │ - 1-2 block reaction        │  │
+│  └──────────┬───────────┘            └─────────────┬───────────────┘  │
+│             │                                      │                  │
+│             └─────────────┬────────────────────────┘                  │
+└───────────────────────────┼────────────────────────────────────────────┘
+                            │
+                    ┌───────▼───────┐
+                    │ Automation    │
+                    │ Adapter       │
+                    │ (Protocol     │
+                    │  Bridge)      │
+                    └───────┬───────┘
+                            │
+┌───────────────────────────┼───── UNISWAP V4 INTEGRATION ────────────────┐
+│                           │                                             │
+│  ┌────────────────────────▼───┐    ┌─────────────────────────────────┐   │
+│  │   Uniswap v4 Pool          │    │     Pool Events & Hooks         │   │
+│  │                            │    │                                 │   │
+│  │  VCOP/USDC Liquidity       │◄───┤ • beforeSwap                    │   │
+│  │  Price Discovery           │    │ • afterSwap                     │   │
+│  │  Swap Execution            │────┤ • Price monitoring              │   │
+│  └──────────┬─────────────────┘    └────────────────┬────────────────┘   │
+│             │                                       │                    │
+│             │                                       │                    │
+│             │           ┌─────────────────────┐     │                    │
+│             └──────────►│  Pool State         │◄────┘                    │
+│                         │  • sqrtPriceX96     │                          │
+│                         │  • liquidity        │                          │
+│                         │  • tick             │                          │
+│                         └──────────┬──────────┘                          │
+└────────────────────────────────────┼───────────────────────────────────────┘
+                                     │
+                          ┌──────────▼──────────┐
+                          │  VCOPCollateralHook │
+                          │  (PSM + Hook)       │
+                          │                     │
+                          │ • Peg maintenance   │
+                          │ • Price monitoring  │
+                          │ • User swaps        │
+                          │ • Hook callbacks    │
+                          └──────────┬──────────┘
+                                     │
+                  ┌──────────────────┼──────────────────┐
+                  │                  │                  │
+                  ▼                  ▼                  ▼
+    ┌─────────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+    │  CollateralManager  │ │   VCOP Oracle   │ │ PriceCalculator │
+    │                     │ │                 │ │                 │
+    │ • Reserves mgmt     │ │ • Rate feeds    │ │ • Pool pricing  │
+    │ • Vault funding     │ │ • COP/USD data  │ │ • Conversions   │
+    │ • Liquidations      │ │ • Price updates │ │ • Parity check  │
+    └─────────────────────┘ └─────────────────┘ └─────────────────┘
+                  │
+                  ▼
+        ┌─────────────────────┐
+        │  VCOPCollateralized │
+        │                     │
+        │ • ERC-20 token      │
+        │ • Mint/burn control │
+        │ • 6 decimal places  │
+        └─────────────────────┘
 ```
 
-## Uniswap v4 Integration Details
+## Key System Features
 
-### 1. Hook Implementation
+### 🛡️ Automated Liquidation Protection
+The system uses **Chainlink Automation** to continuously monitor loan positions and execute liquidations automatically:
 
-The `VCOPCollateralHook` contract integrates with Uniswap v4 through the hook interface:
+- **Custom Logic Automation**: Scheduled position scanning (every 5-10 minutes)
+- **Log Trigger Automation**: Instant response to price changes (1-2 blocks)
+- **Risk-Based Prioritization**: Liquidates highest-risk positions first
+- **Scalable Processing**: Handles thousands of positions through batch optimization
 
-```solidity
-function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
-    return Hooks.Permissions({
-        beforeInitialize: false,
-        afterInitialize: false,
-        beforeAddLiquidity: false,
-        afterAddLiquidity: true,
-        beforeRemoveLiquidity: false,
-        afterRemoveLiquidity: false,
-        beforeSwap: true,
-        afterSwap: true,
-        beforeDonate: false,
-        afterDonate: false,
-        beforeSwapReturnDelta: false,
-        afterSwapReturnDelta: false,
-        afterAddLiquidityReturnDelta: false,
-        afterRemoveLiquidityReturnDelta: false
-    });
-}
+### 🔄 Peg Stability Module (PSM)
+The PSM maintains VCOP's peg through direct USDC ↔ VCOP swaps:
+
+- **Automated Stabilization**: Triggers when price deviates from 1 COP target
+- **User Direct Access**: Manual PSM swaps available anytime
+- **Vault-Funded Operations**: Uses protocol reserves for efficiency
+- **Uniswap v4 Integration**: Monitors pool activity via hooks
+
+### ⚡ Uniswap v4 Hook Integration
+The `VCOPCollateralHook` provides real-time pool monitoring:
+
+- **Price Monitoring**: Tracks VCOP/USDC price in real-time
+- **Swap Intervention**: Can stabilize before large swaps break peg
+- **Liquidity Tracking**: Monitors pool liquidity changes
+- **Event Triggers**: Feeds price data to Chainlink Log Trigger automation
+
+## How It Works
+
+### Core Process Flows
+
+#### 🔄 Automated Liquidation Process
+```
+1. Chainlink Automation monitors loan positions continuously
+2. Risk assessment: Position ratio < liquidation threshold?
+3. If yes: Execute vault-funded liquidation automatically
+4. Update tracking, remove liquidated position from monitoring
 ```
 
-This hook implementation allows the contract to:
-1. **Monitor swaps** - Be notified before and after swaps occur in the VCOP/USDC pool
-2. **Track liquidity** - Be notified after liquidity is added to the pool
-3. **Take action** - Execute stabilization operations when necessary
+#### 💱 PSM Operations
+```
+1. User/System initiates USDC ↔ VCOP swap
+2. VCOPCollateralHook manages the swap logic
+3. VCOPCollateralManager handles reserves and minting
+4. Price maintained at 1 VCOP = 1 COP target
+```
 
-### 2. Price Monitoring & Stabilization
+#### 📊 Price Monitoring & Response
+```
+1. Uniswap v4 pool state changes trigger hook
+2. VCOPOracle + PriceCalculator assess deviation
+3. If outside bounds: Automated PSM stabilization
+4. Log events trigger instant Chainlink response
+```
 
-When a swap occurs in the VCOP/USDC pool:
+### Key System Components
 
-1. The **beforeSwap** hook is triggered:
-   - Checks if the swap is large enough to potentially break the peg
-   - Can preemptively execute stabilization if needed
-
-2. The **afterSwap** hook is triggered:
-   - Monitors the price after the swap is completed
-   - Triggers the PSM stabilization mechanism if the price is outside bounds
-
-3. **Price evaluation process**:
-   ```
-   Uniswap Pool → VCOPOracle → VCOPPriceCalculator → VCOPCollateralHook
-   ```
-   - PriceCalculator reads the pool's `sqrtPriceX96` value
-   - Converts to VCOP/USDC and then to VCOP/COP
-   - Returns this to the hook for evaluation
-
-4. **Stabilization triggers** when price crosses thresholds:
-   - If VCOP < pegLowerBound: Buy VCOP with collateral (raise price)
-   - If VCOP > pegUpperBound: Sell VCOP for collateral (lower price)
-
-### 3. PSM Direct Operations
-
-Users can directly interact with the PSM through two main functions:
-
-1. **psmSwapVCOPForCollateral**:
-   ```
-   User → [VCOP tokens] → VCOPCollateralHook → Burns VCOP → VCOPCollateralManager → [USDC] → User
-   ```
-
-2. **psmSwapCollateralForVCOP**:
-   ```
-   User → [USDC] → VCOPCollateralHook → VCOPCollateralManager → Mints VCOP → [VCOP tokens] → User
-   ```
-
-## Contract Interactions
-
-### 1. Core Process Flows
-
-#### PSM Swap Flow (User → VCOP)
-1. User initiates PSM swap via `VCOPCollateralHook` functions
-2. Hook transfers collateral to/from `VCOPCollateralManager`  
-3. Manager instructs token contract to mint/burn VCOP
-4. User receives VCOP tokens or collateral tokens
-
-#### Price Monitoring Flow
-1. Uniswap V4 swap triggers hook callbacks in `VCOPCollateralHook`
-2. Hook calls `VCOPOracle` to check current prices
-3. Oracle uses `VCOPPriceCalculator` to get accurate pool prices
-4. Hook executes stability operations if price is outside target range
-
-#### Automatic Stabilization Flow
-1. Large swap is detected in the pool through beforeSwap hook
-2. System evaluates if swap would break peg using `_wouldBreakPeg()`
-3. If necessary, initiates `stabilizePriceWithPSM()` operation
-4. Based on price deviation, executes buy or sell operation via PSM
-
-### 2. Key Contract Responsibilities
-
-#### VCOPCollateralHook
-- **Primary Role**: Uniswap v4 hook for monitoring pool activity and price
-- **Key Functions**:
-  - `psmSwapVCOPForCollateral()`: User-facing function to sell VCOP for collateral
-  - `psmSwapCollateralForVCOP()`: User-facing function to buy VCOP with collateral
-  - `stabilizePriceWithPSM()`: Automated market operations to maintain peg
-  - `monitorPrice()`: Check if VCOP price is within target bounds
-  - `_beforeSwap()/_afterSwap()`: Hook callbacks from Uniswap v4
-
-#### VCOPCollateralManager
-- **Primary Role**: Manage collateral reserves and token minting permissions
-- **Key Functions**:
-  - `mintPSMVcop()`: Create new VCOP tokens backed by collateral
-  - `transferPSMCollateral()`: Move collateral tokens from reserves
-  - `registerPSMFunds()`: Record new collateral in the system
-  - `hasPSMReservesFor()`: Check if sufficient reserves exist for an operation
-  - `getPSMReserves()`: Get current collateral and VCOP reserve amounts
-
-#### VCOPCollateralized
-- **Primary Role**: ERC-20 stablecoin token implementation
-- **Key Functions**:
-  - `mint()`: Create new tokens (restricted to authorized callers)
-  - `burn()`: Destroy tokens (restricted to authorized callers)
-  - `transfer()` & `transferFrom()`: Standard ERC-20 token operations
-
-#### VCOPOracle
-- **Primary Role**: Provide exchange rates for the system
-- **Key Functions**:
-  - `getVcopToCopRate()`: Get current VCOP/COP exchange rate
-  - `getUsdToCopRate()`: Get current USD/COP exchange rate
-  - `updateRatesFromPool()`: Update rates from Uniswap pool data
-
-#### VCOPPriceCalculator
-- **Primary Role**: Handle complex price calculations from Uniswap pool data
-- **Key Functions**:
-  - `getVcopToUsdPriceFromPool()`: Calculate VCOP/USD price from pool's sqrtPriceX96
-  - `getVcopToCopPrice()`: Convert to VCOP/COP rate
-  - `isVcopAtParity()`: Check if VCOP is at target 1:1 parity with COP
-  - `createPoolKey()`: Generate the PoolKey needed to query Uniswap v4
+- **LoanAutomationKeeperOptimized**: Batch processes positions, handles scaling automatically
+- **PriceChangeLogTrigger**: Instant price change response with multi-tier urgency
+- **LoanManagerAutomationAdapter**: O(1) position tracking with automatic cleanup
+- **VCOPCollateralHook**: PSM operations + Uniswap v4 integration
+- **VCOPCollateralManager**: Reserves management + vault-funded liquidations
 
 ## Requirements
 
