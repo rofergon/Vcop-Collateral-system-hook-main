@@ -19,7 +19,8 @@ VCOP features an advanced **automated liquidation system** that protects the pro
 - **Position Tracking**: O(1) add/remove operations with automatic cleanup of closed positions
 
 **📖 [Complete Automation Documentation →](docs/architecture/CHAINLINK_AUTOMATION.md)**
-chainlink automation deployment directory https://github.com/rofergon/Vcop-Collateral-system-hook-main/tree/main/src/automation
+
+**🤖 [chainlink automation deployment directory→](https://github.com/rofergon/Vcop-Collateral-system-hook-main/tree/main/src/automation)**
 
 ---
 
