@@ -217,7 +217,7 @@ contract RepayLoanPosition is Script {
     /**
      * @dev Detecta qué asset handler maneja el token especificado
      */
-    function _detectAssetHandler(address token) internal returns (address) {
+    function _detectAssetHandler(address token) internal view returns (address) {
         // Leer las direcciones de los asset handlers desde variables de entorno
         address flexibleHandler = vm.envAddress("FLEXIBLE_ASSET_HANDLER_ADDRESS");
         address vaultHandler = vm.envAddress("VAULT_BASED_HANDLER_ADDRESS");

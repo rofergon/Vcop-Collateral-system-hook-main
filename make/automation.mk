@@ -941,6 +941,18 @@ test-vault-liquidation:
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
 	@echo "✅ Vault liquidation test completed!"
 
+# Quick system check
+quick-system-check:
+	@echo "⚡ QUICK SYSTEM CHECK"
+	@echo "===================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ Mock system not deployed! Run 'make deploy-full-stack-mock' first"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/automation/QuickSystemCheck.s.sol:QuickSystemCheck \
+		--rpc-url $$RPC_URL --gas-price 2000000000
+	@echo "✅ System check completed!"
+
 # 🔧 Fix vault allowances for automation (AUTOMATED)
 fix-vault-allowances:
 	@echo "🔧 FIXING VAULT ALLOWANCES FOR AUTOMATION"

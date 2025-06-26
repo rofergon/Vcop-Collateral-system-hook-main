@@ -46,6 +46,8 @@ help:
 	@echo "test-automation-flow          - Complete automation test flow"
 	@echo "create-test-loan              - Create test loan position"
 	@echo "liquidate-position            - Liquidate test position"
+	@echo "crash-market                  - Crash market prices by 50% (NEW)"
+	@echo "increase-market               - Increase market prices by 50% (NEW)"
 	@echo ""
 	@echo "🔍 STATUS & MONITORING"
 	@echo "check-status                  - Check all deployment status"
@@ -114,6 +116,24 @@ status: check-status
 
 # Quick test
 test: test-automation-flow
+
+# Crash market prices
+crash-market:
+	@echo "💥 Crashing market prices..."
+	@eval $$(cat .env) && forge script script/test/CrashMarket.s.sol:CrashMarket \
+		--rpc-url $$RPC_URL \
+		--private-key $$PRIVATE_KEY \
+		--broadcast \
+		-vvv
+
+# Increase market prices
+increase-market:
+	@echo "📈 Increasing market prices..."
+	@eval $$(cat .env) && forge script script/test/IncreaseMarket.s.sol:IncreaseMarket \
+		--rpc-url $$RPC_URL \
+		--private-key $$PRIVATE_KEY \
+		--broadcast \
+		-vvv
 
 # ========================================
 # 🔍 VERIFICATION COMMANDS
