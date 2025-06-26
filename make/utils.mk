@@ -17,28 +17,28 @@ help-utils:
 
 # Check deployment status
 check-status:
-	@echo "📊 CHECKING DEPLOYMENT STATUS"
-	@echo "============================="
-	@if [ -f "deployed-addresses.json" ]; then \
-		echo "✅ deployed-addresses.json found"; \
-		echo "📋 Contract addresses:"; \
-		cat deployed-addresses.json | jq -r '.vcopCollateral.vcopToken // "N/A"' | xargs -I {} echo "  VCOP Token: {}"; \
-		cat deployed-addresses.json | jq -r '.vcopCollateral.oracle // "N/A"' | xargs -I {} echo "  Oracle: {}"; \
-		cat deployed-addresses.json | jq -r '.coreLending.genericLoanManager // "N/A"' | xargs -I {} echo "  GenericLoanManager: {}"; \
-		cat deployed-addresses.json | jq -r '.coreLending.flexibleLoanManager // "N/A"' | xargs -I {} echo "  FlexibleLoanManager: {}"; \
-		cat deployed-addresses.json | jq -r '.rewards.rewardDistributor // "N/A"' | xargs -I {} echo "  RewardDistributor: {}"; \
+	@echo "🔍 CHECKING DEPLOYMENT STATUS"
+	@echo "============================"
+	@if [ -f "deployed-addresses-mock.json" ]; then \
+		echo "✅ deployed-addresses-mock.json found"; \
+		echo "📋 Key contracts:"; \
+		cat deployed-addresses-mock.json | jq -r '.tokens.vcopToken // "N/A"' | xargs -I {} echo "  VCOP Token: {}"; \
+		cat deployed-addresses-mock.json | jq -r '.vcopCollateral.mockVcopOracle // "N/A"' | xargs -I {} echo "  Oracle: {}"; \
+		cat deployed-addresses-mock.json | jq -r '.coreLending.genericLoanManager // "N/A"' | xargs -I {} echo "  GenericLoanManager: {}"; \
+		cat deployed-addresses-mock.json | jq -r '.coreLending.flexibleLoanManager // "N/A"' | xargs -I {} echo "  FlexibleLoanManager: {}"; \
+		cat deployed-addresses-mock.json | jq -r '.rewards.rewardDistributor // "N/A"' | xargs -I {} echo "  RewardDistributor: {}"; \
 	else \
-		echo "❌ deployed-addresses.json not found - run make deploy-complete first"; \
+		echo "❌ deployed-addresses-mock.json not found - run make deploy-complete first"; \
 	fi
 
 # Show all deployed contract addresses
 check-addresses:
 	@echo "📋 DEPLOYED CONTRACT ADDRESSES"
 	@echo "=============================="
-	@if [ -f "deployed-addresses.json" ]; then \
-		cat deployed-addresses.json | jq .; \
+	@if [ -f "deployed-addresses-mock.json" ]; then \
+		cat deployed-addresses-mock.json | jq .; \
 	else \
-		echo "❌ deployed-addresses.json not found"; \
+		echo "❌ deployed-addresses-mock.json not found"; \
 		echo "Run 'make deploy-complete' first"; \
 	fi
 
@@ -85,9 +85,9 @@ verify-authorizations:
 	@echo "✅ VERIFYING SYSTEM AUTHORIZATIONS"
 	@echo "=================================="
 	@echo "Checking contract permissions and roles..."
-	@if [ -f "deployed-addresses.json" ]; then \
-		REWARD_DISTRIBUTOR=$$(jq -r '.rewards.rewardDistributor' deployed-addresses.json) && \
-		FLEXIBLE_LOAN_MANAGER=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses.json) && \
+	@if [ -f "deployed-addresses-mock.json" ]; then \
+		REWARD_DISTRIBUTOR=$$(jq -r '.rewards.rewardDistributor' deployed-addresses-mock.json) && \
+		FLEXIBLE_LOAN_MANAGER=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json) && \
 		. ./.env && \
 		echo "RewardDistributor: $$REWARD_DISTRIBUTOR" && \
 		echo "FlexibleLoanManager: $$FLEXIBLE_LOAN_MANAGER" && \

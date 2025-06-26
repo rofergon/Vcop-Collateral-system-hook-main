@@ -124,18 +124,18 @@ deploy-automation-complete-mock-no-test:
 deploy-automation:
 	@echo "🤖 DEPLOYING CHAINLINK AUTOMATION CONTRACTS"
 	@echo "============================================="
-	@echo "Reading addresses from deployed-addresses.json..."
-	@if [ ! -f "deployed-addresses.json" ]; then \
-		echo "❌ deployed-addresses.json not found! Deploy core system first."; \
+	@echo "Reading addresses from deployed-addresses-mock.json..."
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ deployed-addresses-mock.json not found! Deploy core system first."; \
 		echo "   Run: make deploy-complete"; \
 		exit 1; \
 	fi
 	@. ./.env && \
-	export ORACLE_ADDRESS=$$(jq -r '.vcopCollateral.oracle' deployed-addresses.json) && \
-	export GENERIC_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.genericLoanManager' deployed-addresses.json) && \
-	export FLEXIBLE_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses.json) && \
-	export RISK_CALCULATOR_ADDRESS=$$(jq -r '.coreLending.riskCalculator' deployed-addresses.json) && \
-	export PRICE_REGISTRY_ADDRESS=$$(jq -r '.priceRegistry' deployed-addresses.json) && \
+	export ORACLE_ADDRESS=$$(jq -r '.vcopCollateral.mockVcopOracle' deployed-addresses-mock.json) && \
+	export GENERIC_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.genericLoanManager' deployed-addresses-mock.json) && \
+	export FLEXIBLE_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json) && \
+	export RISK_CALCULATOR_ADDRESS=$$(jq -r '.coreLending.riskCalculator' deployed-addresses-mock.json) && \
+	export PRICE_REGISTRY_ADDRESS=$$(jq -r '.coreLending.dynamicPriceRegistry' deployed-addresses-mock.json) && \
 	forge script script/automation/DeployAutomationProduction.s.sol:DeployAutomationProduction \
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000 --legacy --slow
 	@echo "Updating JSON with automation addresses..."
@@ -187,8 +187,8 @@ deploy-automation-mock:
 setup-chainlink-automation:
 	@echo "🔧 SETTING UP CHAINLINK ENVIRONMENT"
 	@echo "==================================="
-	@if [ ! -f "deployed-addresses.json" ]; then \
-		echo "❌ deployed-addresses.json not found!"; \
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ deployed-addresses-mock.json not found!"; \
 		exit 1; \
 	fi
 	@./tools/setup-chainlink-automation.sh
@@ -204,14 +204,14 @@ register-chainlink-upkeep:
 	@echo "📋 Registration Details:"
 	@echo "   Network: Base Sepolia"
 	@echo "   Trigger: Custom Logic"
-	@echo "   Target Contract: $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "CHECK_DEPLOYED_ADDRESSES"')"
+	@echo "   Target Contract: $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "CHECK_DEPLOYED_ADDRESSES"')"
 	@echo "   Gas Limit: 2000000"
 	@echo "   Starting Balance: 5 LINK"
 	@echo ""
 	@echo "🔧 CheckData (copy this hex):"
-	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "0x0"') \
+	@cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "0x0"') \
 		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
-		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER // "0x0"') \
+		$(shell cat deployed-addresses-mock.json | jq -r '.coreLending.flexibleLoanManager // "0x0"') \
 		0 25 2>/dev/null || echo "❌ Run deploy-automation-production first"
 	@echo ""
 	@echo "💰 Get LINK tokens: https://faucets.chain.link/"
@@ -221,7 +221,7 @@ configure-forwarder:
 	@echo "⚡ Configuring Chainlink Forwarder..."
 	@echo "Enter the forwarder address from your registered upkeep:"
 	@read -p "Forwarder Address: " FORWARDER; \
-	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"setChainlinkForwarder(address)" \
 		$$FORWARDER \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -243,16 +243,16 @@ check-automation-status:
 	@echo "📊 AUTOMATION SYSTEM STATUS"
 	@echo "=========================="
 	@echo ""
-	@echo "🎯 Keeper Contract: $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "NOT_DEPLOYED"')"
+	@echo "🎯 Keeper Contract: $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "NOT_DEPLOYED"')"
 	@echo "📊 Stats:"
-	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	@cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"getStats()(uint256,uint256,uint256,uint256,uint256)" \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null | \
 		awk 'BEGIN{print "   Total Liquidations: " $$1 "\n   Total Upkeeps: " $$2 "\n   Last Execution: " $$3 "\n   Avg Gas Used: " $$4 "\n   Registered Managers: " $$5}' || \
 		echo "❌ Could not fetch stats - check deployment"
 	@echo ""
 	@echo "🏥 Emergency Status:"
-	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	@cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"emergencyPause()(bool)" \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null | \
 		sed 's/true/🚨 EMERGENCY PAUSED/; s/false/✅ Active/' || \
@@ -363,14 +363,14 @@ register-chainlink-upkeep:
 	@echo "📋 Registration Details:"
 	@echo "   Network: Base Sepolia"
 	@echo "   Trigger: Custom Logic"
-	@echo "   Target Contract: $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "CHECK_DEPLOYED_ADDRESSES"')"
+	@echo "   Target Contract: $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "CHECK_DEPLOYED_ADDRESSES"')"
 	@echo "   Gas Limit: 2000000"
 	@echo "   Starting Balance: 5 LINK"
 	@echo ""
 	@echo "🔧 CheckData (copy this hex):"
-	@cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "0x0"') \
+	@cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "0x0"') \
 		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
-		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER // "0x0"') \
+		$(shell cat deployed-addresses-mock.json | jq -r '.coreLending.flexibleLoanManager // "0x0"') \
 		0 25 2>/dev/null || echo "❌ Run deploy-automation-production first"
 	@echo ""
 	@echo "💰 Get LINK tokens: https://faucets.chain.link/"
@@ -381,7 +381,7 @@ configure-forwarder:
 	@echo "⚡ Configuring Chainlink Forwarder..."
 	@echo "Enter the forwarder address from your registered upkeep:"
 	@read -p "Forwarder Address: " FORWARDER; \
-	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"setChainlinkForwarder(address)" \
 		$$FORWARDER \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -392,7 +392,7 @@ configure-forwarder:
 .PHONY: enable-forwarder-restriction
 enable-forwarder-restriction:
 	@echo "🔒 Enabling forwarder restriction for production security..."
-	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"setForwarderRestriction(bool)" \
 		true \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -403,7 +403,7 @@ enable-forwarder-restriction:
 .PHONY: configure-risk-thresholds
 configure-risk-thresholds:
 	@echo "🎛️ Configuring risk thresholds..."
-	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"setMinRiskThreshold(uint256)" \
 		85 \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -414,7 +414,7 @@ configure-risk-thresholds:
 .PHONY: configure-price-triggers
 configure-price-triggers:
 	@echo "📈 Configuring price change triggers..."
-	cast send $(shell cat deployed-addresses.json | jq -r '.PRICE_TRIGGER // "NOT_DEPLOYED"') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.priceTrigger // "NOT_DEPLOYED"') \
 		"setPriceChangeThresholds(uint256,uint256,uint256,uint256)" \
 		50000 75000 100000 150000 \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -426,7 +426,7 @@ configure-price-triggers:
 .PHONY: emergency-pause
 emergency-pause:
 	@echo "🚨 EMERGENCY PAUSE - Stopping all automation..."
-	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"setEmergencyPause(bool)" \
 		true \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -436,7 +436,7 @@ emergency-pause:
 .PHONY: emergency-resume
 emergency-resume:
 	@echo "✅ Resuming automation..."
-	cast send $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast send $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"setEmergencyPause(bool)" \
 		false \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
@@ -447,12 +447,12 @@ emergency-resume:
 .PHONY: simulate-upkeep
 simulate-upkeep:
 	@echo "🔍 Simulating upkeep execution..."
-	@CHECKDATA=$$(cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	@CHECKDATA=$$(cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
-		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER') \
+		$(shell cat deployed-addresses-mock.json | jq -r '.coreLending.flexibleLoanManager') \
 		0 25 --rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null); \
 	echo "📋 CheckData: $$CHECKDATA"; \
-	cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"checkUpkeep(bytes)(bool,bytes)" \
 		$$CHECKDATA \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null || \
@@ -468,8 +468,8 @@ automation-dashboard:
 	@echo "   https://automation.chain.link/base-sepolia"
 	@echo ""
 	@echo "🔗 Your Contracts:"
-	@echo "   Keeper: https://sepolia.basescan.org/address/$(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "NOT_DEPLOYED"')"
-	@echo "   Price Trigger: https://sepolia.basescan.org/address/$(shell cat deployed-addresses.json | jq -r '.PRICE_TRIGGER // "NOT_DEPLOYED"')"
+	@echo "   Keeper: https://sepolia.basescan.org/address/$(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "NOT_DEPLOYED"')"
+	@echo "   Price Trigger: https://sepolia.basescan.org/address/$(shell cat deployed-addresses-mock.json | jq -r '.automation.priceTrigger // "NOT_DEPLOYED"')"
 	@echo ""
 	@echo "📈 Quick Status Check:"
 	@make check-automation-status
@@ -632,13 +632,13 @@ manual-checkupkeep-test:
 	@echo "=========================="
 	@echo "Directly calling checkUpkeep() function..."
 	@echo ""
-	@CHECKDATA=$$(cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER // "0x0"') \
+	@CHECKDATA=$$(cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper // "0x0"') \
 		"generateOptimizedCheckData(address,uint256,uint256)(bytes)" \
-		$(shell cat deployed-addresses.json | jq -r '.FLEXIBLE_LOAN_MANAGER // "0x0"') \
+		$(shell cat deployed-addresses-mock.json | jq -r '.coreLending.flexibleLoanManager // "0x0"') \
 		0 25 --rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null); \
 	echo "📋 Generated CheckData: $$CHECKDATA"; \
 	echo "🔍 Calling checkUpkeep..."; \
-	cast call $(shell cat deployed-addresses.json | jq -r '.AUTOMATION_KEEPER') \
+	cast call $(shell cat deployed-addresses-mock.json | jq -r '.automation.automationKeeper') \
 		"checkUpkeep(bytes)(bool,bytes)" \
 		"$$CHECKDATA" \
 		--rpc-url $(BASE_SEPOLIA_RPC_URL) 2>/dev/null || \

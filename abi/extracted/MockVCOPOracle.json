@@ -3,16 +3,6 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "initialUsdToCopRate",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_poolManager",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
         "name": "_vcopAddress",
         "type": "address",
         "internalType": "address"
@@ -21,76 +11,9 @@
         "name": "_usdcAddress",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "_fee",
-        "type": "uint24",
-        "internalType": "uint24"
-      },
-      {
-        "name": "_tickSpacing",
-        "type": "int24",
-        "internalType": "int24"
-      },
-      {
-        "name": "_hookAddress",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "BTC_USD_FEED",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "ETH_USD_FEED",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "PRICE_STALENESS_THRESHOLD",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "chainlinkEnabled",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -149,19 +72,6 @@
   },
   {
     "type": "function",
-    "name": "fee",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint24",
-        "internalType": "uint24"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getBtcPriceFromChainlink",
     "inputs": [],
     "outputs": [
@@ -203,6 +113,72 @@
         "name": "isStale",
         "type": "bool",
         "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getConfiguration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "usdToCopRate",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "vcopToCopRate",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "vcopToUsdRate",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "mockETHAddr",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "mockWBTCAddr",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "mockUSDCAddr",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCurrentMarketPrices",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "ethPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "btcPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "vcopPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "usdCopRate",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -463,32 +439,6 @@
   },
   {
     "type": "function",
-    "name": "hookAddress",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "isVCOPToken0",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "isVcopAtParity",
     "inputs": [],
     "outputs": [
@@ -554,34 +504,51 @@
   },
   {
     "type": "function",
-    "name": "poolManager",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IPoolManager"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "priceCalculator",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract VCOPPriceCalculator"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "resetToDefaults",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setBatchPrices",
+    "inputs": [
+      {
+        "name": "baseTokens",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "quoteTokens",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "prices",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setBtcPrice",
+    "inputs": [
+      {
+        "name": "newBtcPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -593,6 +560,26 @@
         "name": "enabled",
         "type": "bool",
         "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setCurrentMarketDefaults",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setEthPrice",
+    "inputs": [
+      {
+        "name": "newEthPrice",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -621,6 +608,29 @@
         "name": "fallbackType",
         "type": "uint8",
         "internalType": "enum IGenericOracle.PriceFeedType"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMockPrice",
+    "inputs": [
+      {
+        "name": "baseToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "quoteToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "price",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -664,6 +674,29 @@
   },
   {
     "type": "function",
+    "name": "setRealistic2025Prices",
+    "inputs": [
+      {
+        "name": "ethPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "btcPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "vcopPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setUsdToCopRate",
     "inputs": [
       {
@@ -677,16 +710,55 @@
   },
   {
     "type": "function",
-    "name": "tickSpacing",
-    "inputs": [],
-    "outputs": [
+    "name": "setUsdToCopRateRealistic",
+    "inputs": [
       {
-        "name": "",
-        "type": "int24",
-        "internalType": "int24"
+        "name": "newRate",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
-    "stateMutability": "view"
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setVcopToCopRate",
+    "inputs": [
+      {
+        "name": "newRate",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setVcopToUsdRate",
+    "inputs": [
+      {
+        "name": "newRate",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "simulateMarketCrash",
+    "inputs": [
+      {
+        "name": "crashPercentage",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -799,63 +871,6 @@
   },
   {
     "type": "event",
-    "name": "ChainlinkFeedStatusChanged",
-    "inputs": [
-      {
-        "name": "enabled",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "ChainlinkPriceObtained",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "price",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "timestamp",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "FallbackPriceUsed",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "reason",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "FeedPrioritySet",
     "inputs": [
       {
@@ -887,32 +902,19 @@
   },
   {
     "type": "event",
-    "name": "OwnershipTransferred",
+    "name": "MockPriceSet",
     "inputs": [
       {
-        "name": "previousOwner",
+        "name": "baseToken",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "newOwner",
+        "name": "quoteToken",
         "type": "address",
         "indexed": true,
         "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "PoolPriceUpdated",
-    "inputs": [
-      {
-        "name": "sqrtPriceX96",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
       },
       {
         "name": "price",
@@ -925,12 +927,18 @@
   },
   {
     "type": "event",
-    "name": "PriceCalculatorSet",
+    "name": "OwnershipTransferred",
     "inputs": [
       {
-        "name": "calculator",
+        "name": "previousOwner",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
         "internalType": "address"
       }
     ],
@@ -1064,6 +1072,25 @@
   {
     "type": "event",
     "name": "VcopToCopRateUpdated",
+    "inputs": [
+      {
+        "name": "oldRate",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newRate",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "VcopToUsdRateUpdated",
     "inputs": [
       {
         "name": "oldRate",

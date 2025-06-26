@@ -1,0 +1,72 @@
+{
+  "contracts": {
+    "MockETH": {
+      "address": "0xDe3fd80E2bcCc96f5FB43ac7481036Db9998f521",
+      "abi": "MockETH.json"
+    },
+    "MockWBTC": {
+      "address": "0x03f43Ce344D9988138b4807a7392A9feDea83AA1",
+      "abi": "MockWBTC.json"
+    },
+    "MockUSDC": {
+      "address": "0x45BdA644DD25600b7d6DF4EC87E9710AD1DAE9d9",
+      "abi": "MockUSDC.json"
+    },
+    "VCOPCollateralized": {
+      "address": "0x32224a6edf252c711B24f61403be011e6A7BEaEf",
+      "abi": "VCOPCollateralized.json"
+    },
+    "MockVCOPOracle": {
+      "address": "0x7c73208363e328614261b7B1fDD32FeB21582437",
+      "abi": "MockVCOPOracle.json"
+    },
+    "VCOPPriceCalculator": {
+      "address": "0x422d5A56E875177e5326c1E078575B417f4FAbC5",
+      "abi": "VCOPPriceCalculator.json"
+    },
+    "VCOPCollateralManager": {
+      "address": "0x3924CC0187822f40A97E97188bc6f7BCaD9e57DD",
+      "abi": "VCOPCollateralManager.json"
+    },
+    "VCOPCollateralHook": {
+      "address": "0xe722168e7b4f18B20F3Eb9F383C36bB32F52C4C0",
+      "abi": "VCOPCollateralHook.json"
+    },
+    "RiskCalculator": {
+      "address": "0xF9254dF56ab8a5A71D2A98b605DbB62bfb69b7d7",
+      "abi": "RiskCalculator.json"
+    },
+    "GenericLoanManager": {
+      "address": "0x1d4d8AB4680c605A8579688e7839700C0237C36d",
+      "abi": "GenericLoanManager.json"
+    },
+    "FlexibleLoanManager": {
+      "address": "0xAdD8cA97DcbCf7373Da978bc7b61d6Ca31b54F8d",
+      "abi": "FlexibleLoanManager.json"
+    },
+    "MintableBurnableHandler": {
+      "address": "0x7058bfEC8e010B53A8e2D2d9971729d487852A02",
+      "abi": "MintableBurnableHandler.json"
+    },
+    "VaultBasedHandler": {
+      "address": "0xC067Bb15D0f7c134916dC82949a9c4d27e6bbbC4",
+      "abi": "VaultBasedHandler.json"
+    },
+    "FlexibleAssetHandler": {
+      "address": "0x91374EF8d65846E2572C22AB5036eE8fF99a8Fd3",
+      "abi": "FlexibleAssetHandler.json"
+    },
+    "DynamicPriceRegistry": {
+      "address": "0x129De7FcB08AbDf575000dceBe17E75870e67442",
+      "abi": "DynamicPriceRegistry.json"
+    },
+    "LoanManagerAutomationAdapter": {
+      "address": "0x871c59bead5c7fb74ea240564f6e862009981e88",
+      "abi": "LoanManagerAutomationAdapter.json"
+    },
+    "PriceChangeLogTrigger": {
+      "address": "0xbdde4107b0bfafc9b7f474484e63563cb855e41d",
+      "abi": "PriceChangeLogTrigger.json"
+    }
+  }
+}
