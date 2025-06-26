@@ -1,100 +1,56 @@
-# 🚀 VCOP Collateral System - Enhanced Modular Makefile
+# 🚀 VCOP Collateral System - Production Makefile
 # ======================================================
-# Complete stack deployment with Chainlink automation
+# Streamlined version with essential commands only
 
 # Network configuration
 RPC_URL := https://sepolia.base.org
 MAINNET_RPC_URL := https://mainnet.base.org
 
-# Load modules
-include make/core.mk
-include make/automation.mk
-include make/testing.mk
-include make/utils.mk
-
-.PHONY: help build clean
+.PHONY: help build clean deploy status test
 
 # ========================================
-# 📚 HELP - Enhanced Commands
+# 📚 HELP - Essential Commands
 # ========================================
 
 help:
 	@echo ""
-	@echo "VCOP COLLATERAL SYSTEM - Enhanced Commands"
+	@echo "VCOP COLLATERAL SYSTEM - Essential Commands"
 	@echo "==========================================="
 	@echo ""
-	@echo "🎯 COMPLETE STACK DEPLOYMENT (RECOMMENDED)"
-	@echo "deploy-full-stack             - Complete system + Chainlink automation"
-	@echo "deploy-full-stack-mock        - Complete mock system + automation testing"
+	@echo "🚀 DEPLOYMENT"
+	@echo "deploy-full-stack        - Complete system + Chainlink automation"
+	@echo "deploy-core-only         - Core system only (no automation)"
 	@echo ""
-	@echo "🚀 CORE SYSTEM DEPLOYMENT"
-	@echo "deploy-complete               - Core system with real Oracle"
-	@echo "deploy-complete-mock          - Core system with MockOracle for testing"
+	@echo "🧪 TESTING"
+	@echo "create-test-loan         - Create test loan position"
+	@echo "crash-market             - Crash market prices to trigger liquidation"
+	@echo "increase-market          - Restore market prices to normal"
+	@echo "check-upkeep             - Check your Chainlink upkeep status"
 	@echo ""
-	@echo "🤖 CHAINLINK AUTOMATION"
-	@echo "deploy-automation-complete    - Complete Chainlink automation setup"
-	@echo "deploy-automation             - Deploy automation contracts only"
-	@echo "register-chainlink-upkeep     - Register with official Chainlink"
-	@echo "configure-forwarder           - Configure Forwarder security"
+	@echo "🔍 MONITORING"
+	@echo "status                   - Check deployment status"
+	@echo "check-chainlink          - Check Chainlink automation status"
+	@echo "show-addresses           - Show all contract addresses"
 	@echo ""
-	@echo "🔧 TROUBLESHOOTING & FIXES"
-	@echo "fix-vault-liquidity           - Fix 'ERC20InsufficientAllowance' error"
-	@echo "fix-vault-allowances          - Fix vault allowances for automation (NEW)"
-	@echo "configure-vault-automation    - Configure vault-funded liquidation"
-	@echo ""
-	@echo "🧪 TESTING & VERIFICATION"
-	@echo "test-automation-flow          - Complete automation test flow"
-	@echo "create-test-loan              - Create test loan position"
-	@echo "liquidate-position            - Liquidate test position"
-	@echo "crash-market                  - Crash market prices by 50% (NEW)"
-	@echo "increase-market               - Increase market prices by 50% (NEW)"
-	@echo ""
-	@echo "🔍 STATUS & MONITORING"
-	@echo "check-status                  - Check all deployment status"
-	@echo "check-chainlink-status        - Check Chainlink upkeep status"
-	@echo "check-addresses               - Show all contract addresses"
-	@echo "test-oracle                   - Test Oracle functionality"
-	@echo ""
-	@echo "✅ CONTRACT VERIFICATION"
-	@echo "verify-all-contracts-fixed    - ⭐ RECOMMENDED: Verify with correct constructor args"
-	@echo "verify-contracts-sepolia-fixed - ⭐ RECOMMENDED: Verify on Base Sepolia (fixed)"
-	@echo "verify-contracts-mainnet-fixed - ⭐ RECOMMENDED: Verify on Base Mainnet (fixed)"
-	@echo "verify-all-contracts          - Basic verification (may fail on some contracts)"
-	@echo "verify-contracts-sepolia      - Basic verification on Base Sepolia"
-	@echo "verify-contracts-mainnet      - Basic verification on Base Mainnet"
-	@echo "verify-contracts-custom       - Verify with JSON_FILE=path/to/file.json"
-	@echo "show-deployed-addresses       - Show all deployed contract addresses"
-	@echo "show-addresses-custom         - Show addresses with JSON_FILE=path/to/file.json"
+	@echo "✅ VERIFICATION"
+	@echo "verify-contracts         - Verify contracts on Base Sepolia"
 	@echo ""
 	@echo "🛠️ UTILITIES"
-	@echo "build                         - Smart compilation"
-	@echo "clean                         - Clean build artifacts"
-	@echo "check-gas                     - Check gas prices"
+	@echo "build                    - Compile contracts"
+	@echo "clean                    - Clean build artifacts"
 	@echo ""
-	@echo "📋 For detailed help: make help-[module]"
-	@echo "   help-core         - Core deployment commands"
-	@echo "   help-automation   - Automation commands"
-	@echo "   help-testing      - Testing commands"
-	@echo "   help-utils        - Utility commands"
-	@echo ""
-	@echo "🌟 QUICK START GUIDES:"
-	@echo "   Production:  make deploy-full-stack"
-	@echo "   Testing:     make deploy-full-stack-mock"
-	@echo "   Verification: make verify-all-contracts-fixed"
-	@echo ""
-	@echo "❗ TROUBLESHOOTING:"
-	@echo "   If upkeeps execute but positions don't liquidate:"
-	@echo "   → make fix-vault-allowances (recommended)"
-	@echo "   → make fix-vault-liquidity (alternative)"
-	@echo "   If contract verification fails:"
-	@echo "   → Use verify-all-contracts-fixed instead of verify-all-contracts"
+	@echo "🌟 QUICK START:"
+	@echo "   make deploy-full-stack   (for complete deployment)"
+	@echo "   make create-test-loan    (create test position)"
+	@echo "   make crash-market        (trigger automation)"
+	@echo "   make check-upkeep        (verify automation worked)"
 
 # ========================================
-# 🔨 BASIC BUILD COMMANDS
+# 🔨 BASIC COMMANDS
 # ========================================
 
 build:
-	@echo "🔨 Smart compilation..."
+	@echo "🔨 Compiling contracts..."
 	@forge build
 
 clean:
@@ -102,95 +58,191 @@ clean:
 	@forge clean
 
 # ========================================
-# 🚀 MAIN DEPLOYMENT SHORTCUTS
+# 🚀 DEPLOYMENT COMMANDS
 # ========================================
 
-# Main deployment with real oracle + automation
+# Complete deployment with automation
+deploy-full-stack:
+	@echo "🚀 DEPLOYING COMPLETE VCOP STACK"
+	@echo "================================"
+	@echo "This will deploy:"
+	@echo "1. Core VCOP lending system with Mock Oracle"
+	@echo "2. Chainlink Automation contracts"
+	@echo "3. Configure vault-funded liquidation"
+	@echo ""
+	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo ""
+	@echo "📦 Building contracts..."
+	@forge build
+	@echo ""
+	@echo "🚀 Step 1: Deploying core system..."
+	@forge script script/deploy/DeployUnifiedSystemMock.s.sol:DeployUnifiedSystemMock \
+		--rpc-url $(RPC_URL) --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "🔧 Step 2: Configuring Mock Oracle..."
+	@. ./.env && forge script script/config/ConfigureMockOracle.s.sol:ConfigureMockOracle \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "🔗 Step 3: Configuring Asset Handlers..."
+	@. ./.env && forge script script/test/ConfigureAssetHandlers.s.sol:ConfigureAssetHandlers \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "🤖 Step 4: Deploying Automation..."
+	@. ./.env && \
+	export ORACLE_ADDRESS=$$(jq -r '.vcopCollateral.mockVcopOracle' deployed-addresses-mock.json) && \
+	export FLEXIBLE_LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json) && \
+	export PRICE_REGISTRY_ADDRESS=$$(jq -r '.coreLending.dynamicPriceRegistry' deployed-addresses-mock.json) && \
+	forge script script/automation/DeployAutomationMock.s.sol:DeployAutomationMock \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "💰 Step 5: Adding vault liquidity..."
+	@. ./.env && forge script script/automation/AddVaultLiquidity.s.sol:AddVaultLiquidity \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "🔧 Step 6: Configuring vault automation..."
+	@. ./.env && forge script script/automation/AuthorizeKeeperInVault.s.sol:AuthorizeKeeperInVault \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo ""
+	@echo "✅ Step 7: Updating addresses..."
+	@chmod +x tools/update-automation-addresses-mock.sh && ./tools/update-automation-addresses-mock.sh
+	@echo ""
+	@echo "🎉 DEPLOYMENT COMPLETE!"
+	@echo "======================="
+	@echo "✅ System ready for automation testing"
+	@echo "📋 Your Chainlink Automation contract: $$(jq -r '.automation.automationKeeper' deployed-addresses-mock.json)"
+	@echo ""
+	@echo "🎯 NEXT STEPS:"
+	@echo "1. Register your automation contract at: https://automation.chain.link/"
+	@echo "2. Test with: make create-test-loan && make crash-market"
+	@echo "3. Verify contracts: make verify-contracts"
+
+# Core system only (no automation)
+deploy-core-only:
+	@echo "🚀 DEPLOYING CORE SYSTEM ONLY"
+	@echo "============================="
+	@forge build
+	@forge script script/deploy/DeployUnifiedSystemMock.s.sol:DeployUnifiedSystemMock \
+		--rpc-url $(RPC_URL) --broadcast --legacy --gas-price 2000000000 --slow
+	@. ./.env && forge script script/config/ConfigureMockOracle.s.sol:ConfigureMockOracle \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo "✅ Core system deployed!"
+
+# ========================================
+# 🧪 TESTING COMMANDS
+# ========================================
+
+# Create test loan position
+create-test-loan:
+	@echo "🧪 CREATING TEST LOAN POSITION"
+	@echo "============================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ System not deployed! Run: make deploy-full-stack"; \
+		exit 1; \
+	fi
+	@. ./.env && \
+	export LOAN_MANAGER_ADDRESS=$$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json) && \
+	export COLLATERAL_TOKEN_ADDRESS=$$(jq -r '.tokens.mockETH' deployed-addresses-mock.json) && \
+	export LOAN_TOKEN_ADDRESS=$$(jq -r '.tokens.mockUSDC' deployed-addresses-mock.json) && \
+	forge script script/test/CreateTestLoanPosition.s.sol \
+		--rpc-url $(RPC_URL) --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Test position created!"
+
+# Crash market prices to trigger automation
+crash-market:
+	@echo "💥 CRASHING MARKET PRICES"
+	@echo "========================"
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ System not deployed! Run: make deploy-full-stack"; \
+		exit 1; \
+	fi
+	@. ./.env && forge script script/test/CrashMarket.s.sol:CrashMarket \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Market crashed! Your automation should trigger in 1-2 minutes."
+
+# Restore market prices to normal
+increase-market:
+	@echo "📈 RESTORING MARKET PRICES"
+	@echo "========================="
+	@. ./.env && forge script script/test/IncreaseMarket.s.sol:IncreaseMarket \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --gas-price 2000000000
+	@echo "✅ Market prices restored!"
+
+# Check your Chainlink upkeep status
+check-upkeep:
+	@echo "🔍 CHECKING YOUR CHAINLINK UPKEEP"
+	@echo "================================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ System not deployed! Run: make deploy-full-stack"; \
+		exit 1; \
+	fi
+	@forge script script/test/CheckYourUpkeep.s.sol:CheckYourUpkeep --rpc-url $(RPC_URL) -vvv
+
+# ========================================
+# 🔍 MONITORING COMMANDS
+# ========================================
+
+# Check deployment status
+status:
+	@echo "🔍 CHECKING DEPLOYMENT STATUS"
+	@echo "============================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ deployed-addresses-mock.json not found"; \
+		echo "   Run: make deploy-full-stack"; \
+		exit 1; \
+	fi
+	@echo "✅ deployed-addresses-mock.json found"
+	@echo "📋 Key contracts:"
+	@echo "  FlexibleLoanManager: $$(jq -r '.coreLending.flexibleLoanManager' deployed-addresses-mock.json)"
+	@echo "  AutomationKeeper: $$(jq -r '.automation.automationKeeper' deployed-addresses-mock.json)"
+	@echo "  Mock Oracle: $$(jq -r '.vcopCollateral.mockVcopOracle' deployed-addresses-mock.json)"
+	@echo "  VaultBasedHandler: $$(jq -r '.coreLending.vaultBasedHandler' deployed-addresses-mock.json)"
+
+# Check Chainlink automation status
+check-chainlink:
+	@echo "🔗 CHAINLINK AUTOMATION STATUS"
+	@echo "==============================="
+	@echo "🌐 Official Chainlink Dashboard:"
+	@echo "   https://automation.chain.link/"
+	@echo "   (Select Base Sepolia network)"
+	@echo ""
+	@echo "💰 Get LINK tokens:"
+	@echo "   https://faucets.chain.link/"
+
+# Show all contract addresses
+show-addresses:
+	@echo "📋 CONTRACT ADDRESSES"
+	@echo "===================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ No deployment found"; \
+		exit 1; \
+	fi
+	@cat deployed-addresses-mock.json | jq .
+
+# ========================================
+# ✅ VERIFICATION COMMANDS
+# ========================================
+
+# Verify contracts on Base Sepolia
+verify-contracts:
+	@echo "🔍 VERIFYING CONTRACTS ON BASE SEPOLIA"
+	@echo "======================================"
+	@if [ ! -f "tools/verify-all-contracts-fixed.sh" ]; then \
+		echo "❌ Verification script not found"; \
+		exit 1; \
+	fi
+	@chmod +x tools/verify-all-contracts-fixed.sh
+	@CHAIN_ID=84532 ./tools/verify-all-contracts-fixed.sh
+	@echo "✅ Contract verification completed!"
+
+# ========================================
+# 🎯 SHORTCUTS FOR COMMON WORKFLOWS
+# ========================================
+
+# Quick deployment alias
 deploy: deploy-full-stack
 
-# Test deployment with mock oracle + automation
-deploy-test: deploy-full-stack-mock
+# Quick test flow
+test: create-test-loan crash-market check-upkeep
 
 # Quick status check
-status: check-status
-
-# Quick test
-test: test-automation-flow
-
-# Crash market prices
-crash-market:
-	@echo "💥 Crashing market prices..."
-	@eval $$(cat .env) && forge script script/test/CrashMarket.s.sol:CrashMarket \
-		--rpc-url $$RPC_URL \
-		--private-key $$PRIVATE_KEY \
-		--broadcast \
-		-vvv
-
-# Increase market prices
-increase-market:
-	@echo "📈 Increasing market prices..."
-	@eval $$(cat .env) && forge script script/test/IncreaseMarket.s.sol:IncreaseMarket \
-		--rpc-url $$RPC_URL \
-		--private-key $$PRIVATE_KEY \
-		--broadcast \
-		-vvv
-
-# ========================================
-# 🔍 VERIFICATION COMMANDS
-# ========================================
-
-# Verify all contracts dynamically from deployed-addresses-mock.json
-verify-all-contracts:
-	@echo "🔍 Verificando todos los contratos de forma dinámica..."
-	@chmod +x tools/verify-all-contracts.sh
-	@./tools/verify-all-contracts.sh
-
-# Verify all contracts with improved constructor arguments (RECOMMENDED)
-verify-all-contracts-fixed:
-	@echo "🔍 Verificando todos los contratos con argumentos mejorados..."
-	@chmod +x tools/verify-all-contracts-fixed.sh
-	@./tools/verify-all-contracts-fixed.sh
-
-# Verify contracts for Base Sepolia (testnet)
-verify-contracts-sepolia:
-	@echo "🔍 Verificando contratos en Base Sepolia..."
-	@CHAIN_ID=84532 ./tools/verify-all-contracts.sh
-
-# Verify contracts for Base Sepolia with fixed constructor args (RECOMMENDED)
-verify-contracts-sepolia-fixed:
-	@echo "🔍 Verificando contratos en Base Sepolia (versión mejorada)..."
-	@CHAIN_ID=84532 ./tools/verify-all-contracts-fixed.sh
-
-# Verify contracts for Base Mainnet
-verify-contracts-mainnet:
-	@echo "🔍 Verificando contratos en Base Mainnet..."
-	@CHAIN_ID=8453 ./tools/verify-all-contracts.sh
-
-# Verify contracts for Base Mainnet with fixed constructor args (RECOMMENDED)
-verify-contracts-mainnet-fixed:
-	@echo "🔍 Verificando contratos en Base Mainnet (versión mejorada)..."
-	@CHAIN_ID=8453 ./tools/verify-all-contracts-fixed.sh
-
-# Verify with custom JSON file
-verify-contracts-custom:
-	@echo "🔍 Verificando contratos desde archivo personalizado..."
-	@if [ -z "$(JSON_FILE)" ]; then \
-		echo "❌ Error: Especifica JSON_FILE=path/to/file.json"; \
-		exit 1; \
-	fi
-	@JSON_FILE=$(JSON_FILE) ./tools/verify-all-contracts.sh
-
-# Show all deployed addresses from JSON
-show-deployed-addresses:
-	@echo "📋 Mostrando todas las direcciones desplegadas..."
-	@chmod +x tools/show-deployed-addresses.sh
-	@./tools/show-deployed-addresses.sh
-
-# Show addresses from custom JSON file
-show-addresses-custom:
-	@echo "📋 Mostrando direcciones desde archivo personalizado..."
-	@if [ -z "$(JSON_FILE)" ]; then \
-		echo "❌ Error: Especifica JSON_FILE=path/to/file.json"; \
-		exit 1; \
-	fi
-	@JSON_FILE=$(JSON_FILE) ./tools/show-deployed-addresses.sh
+check: status
