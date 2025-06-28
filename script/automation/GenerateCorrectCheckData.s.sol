@@ -1,72 +1,84 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Script, console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {LoanAutomationKeeperOptimized} from "../../src/automation/core/LoanAutomationKeeperOptimized.sol";
 
 /**
  * @title GenerateCorrectCheckData
- * @notice Genera el checkData correcto para el nuevo upkeep registrado
+ * @notice Genera el checkData CORRECTO usando índices de array 0-based
  */
 contract GenerateCorrectCheckData is Script {
     
-    // DIRECCION CORRECTA del AutomationKeeper
-    address constant AUTOMATION_KEEPER = 0x15C7298Dd649DcDc17D281cB0dAE84E945573c93;
-    address constant FLEXIBLE_LOAN_MANAGER = 0xc8Bf18B4D6B459b17b9298D5Ed6B2feC1f0D9b3D;
-    
-    // NUEVO UPKEEP ID registrado
-    uint256 constant NEW_UPKEEP_ID = 30080302487183721719276887120007770146371663906276452133962259565200945405248;
-    
     function run() external view {
-        console.log("=== GENERANDO CHECKDATA CORRECTO ===");
-        console.log("Contrato CORRECTO registrado:", AUTOMATION_KEEPER);
-        console.log("Nuevo Upkeep ID:", NEW_UPKEEP_ID);
+        console.log("=== CORRECT CHECKDATA GENERATOR ===");
         console.log("");
         
-        // Instanciar el keeper correcto
-        LoanAutomationKeeperOptimized keeper = LoanAutomationKeeperOptimized(AUTOMATION_KEEPER);
+        // Load addresses
+        string memory json = vm.readFile("deployed-addresses-mock.json");
+        address automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
+        address loanAdapter = vm.parseJsonAddress(json, ".automation.loanAdapter");
         
-        // Generar checkData optimizado
-        bytes memory checkData = keeper.generateOptimizedCheckData(
-            FLEXIBLE_LOAN_MANAGER,  // loanManager
-            0,                      // startPositionId (auto-start desde 1)
-            0                       // batchSize (usa default 25)
+        console.log("AutomationKeeper:", automationKeeper);
+        console.log("LoanAdapter:", loanAdapter);
+        console.log("");
+        
+        LoanAutomationKeeperOptimized keeper = LoanAutomationKeeperOptimized(automationKeeper);
+        
+        // ========== GENERATE CORRECT CHECKDATA ==========
+        console.log("CORRECT CHECKDATA FOR CHAINLINK:");
+        console.log("=================================");
+        
+        // Use array indices: startIndex=0, batchSize=10
+        // This will search array indices 0-9, which includes position at index 0
+        bytes memory correctCheckData = keeper.generateOptimizedCheckData(
+            loanAdapter,  // LoanAdapter address
+            0,           // startIndex (array index, not position ID)
+            10           // batchSize (reasonable batch for array indices)
         );
         
-        console.log("CheckData generado:");
-        console.logBytes(checkData);
-        
-        // Convertir a hex string para la interfaz web
-        string memory hexCheckData = _bytesToHexString(checkData);
-        console.log("");
-        console.log("=== CHECKDATA PARA COPIAR EN CHAINLINK ===");
-        console.log(hexCheckData);
+        console.log("Target Contract (Keeper):");
+        console.log(automationKeeper);
         console.log("");
         
-        console.log("INSTRUCCIONES:");
-        console.log("1. Ve a: https://automation.chain.link/base-sepolia");
-        console.log("2. Busca tu nuevo upkeep ID:", NEW_UPKEEP_ID);
-        console.log("3. Haz click en 'Edit'");
-        console.log("4. Pega este checkData:");
-        console.log("   ", hexCheckData);
-        console.log("5. Guarda los cambios");
+        console.log("CORRECT CheckData (use this):");
+        console.logBytes(correctCheckData);
         console.log("");
-        console.log("AHORA SI FUNCIONARA porque:");
-        console.log("- Contrato correcto registrado");
-        console.log("- CheckData correcto");
-        console.log("- Sistema autorizado");
-        console.log("- Posiciones liquidables esperando");
-    }
-    
-    function _bytesToHexString(bytes memory data) internal pure returns (string memory) {
-        bytes memory alphabet = "0123456789abcdef";
-        bytes memory str = new bytes(2 + data.length * 2);
-        str[0] = "0";
-        str[1] = "x";
-        for (uint256 i = 0; i < data.length; i++) {
-            str[2 + i * 2] = alphabet[uint256(uint8(data[i] >> 4))];
-            str[3 + i * 2] = alphabet[uint256(uint8(data[i] & 0x0f))];
+        
+        // Verify this checkData works
+        console.log("VERIFICATION:");
+        console.log("=============");
+        
+        try keeper.checkUpkeep(correctCheckData) returns (bool upkeepNeeded, bytes memory performData) {
+            console.log("Upkeep Needed:", upkeepNeeded ? "YES - SUCCESS!" : "NO - Still broken");
+            console.log("PerformData Length:", performData.length);
+            
+            if (upkeepNeeded) {
+                console.log("");
+                console.log("SUCCESS! This checkData works!");
+                console.log("Your automation should now trigger!");
+            } else {
+                console.log("");
+                console.log("Still not working - there may be another issue");
+            }
+        } catch Error(string memory reason) {
+            console.log("checkUpkeep failed:", reason);
         }
-        return string(str);
+        
+        console.log("");
+        console.log("=== INSTRUCTIONS ===");
+        console.log("1. Copy the CheckData hex above");
+        console.log("2. Go to your Chainlink upkeep in the dashboard");
+        console.log("3. Update the Check Data with the correct hex");
+        console.log("4. Save and wait for automation to trigger");
+        
+        console.log("");
+        console.log("=== DASHBOARD LINKS ===");
+        console.log("Avalanche Fuji Dashboard:");
+        console.log("https://automation.chain.link/avalanche-fuji");
+        
+        console.log("");
+        console.log("=== GENERATION COMPLETE ===");
     }
 } 

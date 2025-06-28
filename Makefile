@@ -11,6 +11,7 @@ include make/core.mk
 include make/automation.mk
 include make/testing.mk
 include make/utils.mk
+include make/avalanche.mk
 
 .PHONY: help build clean
 
@@ -26,6 +27,27 @@ help:
 	@echo "🎯 COMPLETE STACK DEPLOYMENT (RECOMMENDED)"
 	@echo "deploy-full-stack             - Complete system + Chainlink automation"
 	@echo "deploy-full-stack-mock        - Complete mock system + automation testing"
+	@echo ""
+	@echo "🏔️ AVALANCHE FUJI DEPLOYMENT"
+	@echo "deploy-avalanche-full-stack-mock - Complete mock system on Avalanche Fuji"
+	@echo "deploy-avalanche-complete-mock-high-gas - High gas version (if stuck)"
+	@echo "deploy-avalanche-emergency-high-gas     - Emergency max gas version"
+	@echo "check-avalanche-status           - Check Avalanche deployment status"
+	@echo "check-avalanche-gas              - Check current gas prices"
+	@echo "show-avalanche-info              - Show Avalanche network information"
+	@echo ""
+	@echo "🏔️ AVALANCHE TESTING"
+	@echo "avalanche-quick-test             - ⭐ Complete test: mint tokens + create loan + crash market"
+	@echo "mint-avalanche-test-tokens       - Mint test tokens (100 ETH, 500k USDC, 10 WBTC)"
+	@echo "create-avalanche-test-loan       - Create test loan position (auto-mints tokens)"
+	@echo "crash-avalanche-market           - Crash market prices by 50% (trigger liquidation)"
+	@echo "increase-avalanche-market        - Increase market prices by 50% (reset test)"
+	@echo "liquidate-avalanche-position     - Manually liquidate position"
+	@echo "check-avalanche-balances         - Check your token balances"
+	@echo "test-avalanche-automation        - Test automation with MockOracle"
+	@echo "monitor-avalanche-automation     - Show automation dashboard links"
+	@echo "generate-avalanche-checkdata     - Generate checkData for Chainlink registration"
+	@echo "help-avalanche-testing           - Show detailed Avalanche testing help"
 	@echo ""
 	@echo "🚀 CORE SYSTEM DEPLOYMENT"
 	@echo "deploy-complete               - Core system with real Oracle"
@@ -76,11 +98,13 @@ help:
 	@echo "   help-automation   - Automation commands"
 	@echo "   help-testing      - Testing commands"
 	@echo "   help-utils        - Utility commands"
+	@echo "   help-avalanche    - Avalanche Fuji commands"
 	@echo ""
 	@echo "🌟 QUICK START GUIDES:"
-	@echo "   Production:  make deploy-full-stack"
-	@echo "   Testing:     make deploy-full-stack-mock"
-	@echo "   Verification: make verify-all-contracts-fixed"
+	@echo "   Base Sepolia:    make deploy-full-stack-mock"
+	@echo "   Avalanche Fuji:  make deploy-avalanche-full-stack-mock"
+	@echo "   Verification:    make verify-all-contracts-fixed"
+	@echo "   Test Avalanche:  make avalanche-quick-test"
 	@echo ""
 	@echo "❗ TROUBLESHOOTING:"
 	@echo "   If upkeeps execute but positions don't liquidate:"
@@ -88,6 +112,12 @@ help:
 	@echo "   → make fix-vault-liquidity (alternative)"
 	@echo "   If contract verification fails:"
 	@echo "   → Use verify-all-contracts-fixed instead of verify-all-contracts"
+	@echo "   If Avalanche deployment gets stuck with low gas:"
+	@echo "   → Cancel (Ctrl+C) and try: make deploy-avalanche-complete-mock-high-gas"
+	@echo "   → For emergency: make deploy-avalanche-emergency-high-gas"
+	@echo "   If test-automation-flow fails:"
+	@echo "   → Use avalanche-quick-test for Avalanche Fuji"
+	@echo "   → Use test-automation-flow for Base Sepolia only"
 
 # ========================================
 # 🔨 BASIC BUILD COMMANDS
@@ -194,3 +224,10 @@ show-addresses-custom:
 		exit 1; \
 	fi
 	@JSON_FILE=$(JSON_FILE) ./tools/show-deployed-addresses.sh
+
+# Generate checkData for Avalanche Chainlink registration
+generate-avalanche-checkdata:
+	@echo "🔗 Generating checkData for Avalanche Fuji Chainlink registration..."
+	@forge script script/automation/GenerateAvalancheCheckData.s.sol:GenerateAvalancheCheckData \
+		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
+		-vvv
