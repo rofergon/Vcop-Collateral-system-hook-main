@@ -56,6 +56,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     // Automation settings
     bool public automationEnabled = true;
     address public authorizedAutomationContract;
+    address public automationAdapter; // For automatic position tracking
     
     // Reward system
     RewardDistributor public rewardDistributor;
@@ -157,6 +158,9 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
             terms.collateralAmount,
             terms.loanAmount
         );
+        
+        // 🤖 AUTOMATIC POSITION TRACKING: Add position to automation adapter
+        _addPositionToAutomationTracking(positionId);
     }
     
     /**
@@ -915,9 +919,43 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
+     * @dev 🤖 NEW: Sets the automation adapter for automatic position tracking
+     */
+    function setAutomationAdapter(address _automationAdapter) external onlyOwner {
+        automationAdapter = _automationAdapter;
+    }
+    
+    /**
      * @dev Enables or disables automation
      */
     function setAutomationEnabled(bool enabled) external onlyOwner {
         automationEnabled = enabled;
+    }
+    
+    /**
+     * @dev 🤖 AUTOMATIC TRACKING: Internal function to add position to automation tracking
+     */
+    function _addPositionToAutomationTracking(uint256 positionId) internal {
+        if (address(automationAdapter) != address(0)) {
+            try this._callAutomationAdapter(positionId) {
+                // Position automatically tracked for liquidation monitoring
+            } catch {
+                // If tracking fails, position can be manually tracked later
+                // System continues to work normally
+            }
+        }
+    }
+    
+    /**
+     * @dev 🤖 AUTOMATIC TRACKING: External function to call automation adapter (bypasses interface)
+     */
+    function _callAutomationAdapter(uint256 positionId) external {
+        require(msg.sender == address(this), "Only self can call");
+        
+        // Use low-level call to avoid interface restrictions
+        (bool success,) = automationAdapter.call(
+            abi.encodeWithSignature("addPositionToTracking(uint256)", positionId)
+        );
+        require(success, "Automation adapter call failed");
     }
 } 

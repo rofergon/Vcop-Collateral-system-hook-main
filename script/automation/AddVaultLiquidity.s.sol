@@ -1,144 +1,114 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import "forge-std/Script.sol";
+import "forge-std/console.sol";
 import {VaultBasedHandler} from "../../src/core/VaultBasedHandler.sol";
+import {IERC20} from "v4-core/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title AddVaultLiquidity
- * @notice Adds USDC liquidity to the vault for automated liquidations
- * @dev Simple script that doesn't depend on automation contracts being deployed
+ * @notice Adds USDC liquidity to VaultBasedHandler to enable automated liquidations
  */
 contract AddVaultLiquidity is Script {
     
-    // Addresses loaded from deployed-addresses-mock.json
-    address public vaultBasedHandler;
-    address public mockUSDC;
+    // Contract addresses
+    address constant VAULT_BASED_HANDLER = 0x710c94fe37BA06a78478Ddd6231425152ce65b99;
+    address constant MOCK_USDC = 0x819B58A646CDd8289275A87653a2aA4902b14fe6;
     
-    // Liquidity configuration
-    uint256 public constant REQUIRED_USDC_LIQUIDITY = 200000 * 1e6; // 200,000 USDC
+    // Amount to provide (20,000 USDC should be more than enough)
+    uint256 constant LIQUIDITY_AMOUNT = 20000 * 1e6; // 20,000 USDC
     
     function run() external {
-        console.log("=== ADDING VAULT LIQUIDITY FOR AUTOMATION ===");
+        console.log("=== ADDING VAULT LIQUIDITY FOR AUTOMATED LIQUIDATIONS ===");
         console.log("");
         
-        loadAddresses();
-        checkCurrentLiquidity();
-        provideLiquidity();
-        verifyLiquidity();
+        vm.startBroadcast();
         
-        console.log("=== VAULT LIQUIDITY ADDED SUCCESSFULLY ===");
-    }
-    
-    function loadAddresses() internal {
-        console.log("Step 1: Loading addresses from deployed-addresses-mock.json...");
+        // Load contracts
+        VaultBasedHandler vaultHandler = VaultBasedHandler(VAULT_BASED_HANDLER);
+        IERC20 usdc = IERC20(MOCK_USDC);
         
-        string memory json = vm.readFile("deployed-addresses-mock.json");
-        
-        vaultBasedHandler = vm.parseJsonAddress(json, ".coreLending.vaultBasedHandler");
-        mockUSDC = vm.parseJsonAddress(json, ".tokens.mockUSDC");
-        
-        console.log("VaultBasedHandler:", vaultBasedHandler);
-        console.log("MockUSDC:", mockUSDC);
+        console.log("1. CONTRACT INFORMATION:");
+        console.log("   VaultBasedHandler:", VAULT_BASED_HANDLER);
+        console.log("   Mock USDC:", MOCK_USDC);
+        console.log("   Liquidity Provider:", msg.sender);
         console.log("");
         
-        require(vaultBasedHandler != address(0), "VaultBasedHandler not found!");
-        require(mockUSDC != address(0), "MockUSDC not found!");
-    }
-    
-    function checkCurrentLiquidity() internal view {
-        console.log("Step 2: Checking current vault liquidity...");
+        // Check current balances
+        uint256 userBalance = usdc.balanceOf(msg.sender);
+        uint256 currentVaultLiquidity = vaultHandler.getAvailableLiquidity(MOCK_USDC);
         
-        VaultBasedHandler vault = VaultBasedHandler(vaultBasedHandler);
+        console.log("2. CURRENT STATUS:");
+        console.log("   User USDC balance:", userBalance);
+        console.log("   User USDC balance (readable):", userBalance / 1e6);
+        console.log("   Current vault USDC liquidity:", currentVaultLiquidity);
+        console.log("   Current vault USDC (readable):", currentVaultLiquidity / 1e6);
+        console.log("");
         
-        // Check USDC balance in vault
-        uint256 vaultBalance = IERC20(mockUSDC).balanceOf(vaultBasedHandler);
-        console.log("Current vault USDC balance:", vaultBalance / 1e6, "USDC");
+        // Check if user has enough USDC
+        require(userBalance >= LIQUIDITY_AMOUNT, "Insufficient USDC balance");
         
-        // Check available liquidity for automation
-        try vault.getAutomationLiquidityStatus(mockUSDC) returns (
-            uint256 available, 
-            uint256 liquidations, 
-            uint256 recovered, 
+        console.log("3. ADDING LIQUIDITY:");
+        console.log("   Amount to provide:", LIQUIDITY_AMOUNT);
+        console.log("   Amount to provide (readable):", LIQUIDITY_AMOUNT / 1e6, "USDC");
+        
+        // Approve USDC for vault
+        console.log("   Approving USDC...");
+        usdc.approve(VAULT_BASED_HANDLER, LIQUIDITY_AMOUNT);
+        
+        // Provide liquidity to vault
+        console.log("   Providing liquidity to vault...");
+        vaultHandler.provideLiquidity(MOCK_USDC, LIQUIDITY_AMOUNT, msg.sender);
+        
+        console.log("   SUCCESS: Liquidity provided!");
+        console.log("");
+        
+        // Verify final state
+        uint256 finalUserBalance = usdc.balanceOf(msg.sender);
+        uint256 finalVaultLiquidity = vaultHandler.getAvailableLiquidity(MOCK_USDC);
+        
+        console.log("4. FINAL STATUS:");
+        console.log("   User USDC balance:", finalUserBalance);
+        console.log("   User USDC balance (readable):", finalUserBalance / 1e6);
+        console.log("   Final vault USDC liquidity:", finalVaultLiquidity);
+        console.log("   Final vault USDC (readable):", finalVaultLiquidity / 1e6);
+        console.log("");
+        
+        // Check automation status
+        (
+            uint256 availableForAutomation,
+            uint256 totalAutomationLiquidations,
+            uint256 totalRecovered,
             bool canLiquidate
-        ) {
-            console.log("Available for automation:", available / 1e6, "USDC");
-            console.log("Total liquidations executed:", liquidations);
-            console.log("Total recovered:", recovered / 1e6, "USDC");
-            console.log("Can liquidate:", canLiquidate);
-        } catch {
-            console.log("Note: Automation functions not available yet (will be configured later)");
-        }
+        ) = vaultHandler.getAutomationLiquidityStatus(MOCK_USDC);
         
+        console.log("5. AUTOMATION STATUS:");
+        console.log("   Available for automation:", availableForAutomation);
+        console.log("   Available for automation (readable):", availableForAutomation / 1e6);
+        console.log("   Can liquidate:", canLiquidate);
+        console.log("   Total automation liquidations:", totalAutomationLiquidations);
+        console.log("   Total recovered:", totalRecovered);
         console.log("");
-        
-        if (vaultBalance < 50000 * 1e6) { // Less than 50k USDC
-            console.log("WARNING: Insufficient liquidity for liquidations!");
-        }
-    }
-    
-    function provideLiquidity() internal {
-        console.log("Step 3: Providing sufficient USDC liquidity...");
-        
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(deployerPrivateKey);
-        
-        vm.startBroadcast(deployerPrivateKey);
-        
-        VaultBasedHandler vault = VaultBasedHandler(vaultBasedHandler);
-        IERC20 usdcToken = IERC20(mockUSDC);
-        
-        // Check deployer USDC balance
-        uint256 deployerBalance = usdcToken.balanceOf(deployer);
-        console.log("Deployer USDC balance:", deployerBalance / 1e6, "USDC");
-        
-        // Mint USDC if needed (works for mock tokens)
-        if (deployerBalance < REQUIRED_USDC_LIQUIDITY) {
-            uint256 toMint = REQUIRED_USDC_LIQUIDITY - deployerBalance + (100000 * 1e6); // Extra buffer
-            console.log("Minting", toMint / 1e6, "USDC for liquidity...");
-            
-            (bool success, ) = mockUSDC.call(
-                abi.encodeWithSignature("mint(address,uint256)", deployer, toMint)
-            );
-            require(success, "Failed to mint USDC");
-            
-            console.log("USDC minted successfully");
-        }
-        
-        // Approve and provide liquidity
-        console.log("Approving and providing", REQUIRED_USDC_LIQUIDITY / 1e6, "USDC liquidity...");
-        
-        usdcToken.approve(vaultBasedHandler, REQUIRED_USDC_LIQUIDITY);
-        vault.provideLiquidity(mockUSDC, REQUIRED_USDC_LIQUIDITY, deployer);
-        
-        console.log("USDC liquidity provided successfully!");
         
         vm.stopBroadcast();
-    }
-    
-    function verifyLiquidity() internal view {
-        console.log("Step 4: Verifying liquidity provision...");
         
-        VaultBasedHandler vault = VaultBasedHandler(vaultBasedHandler);
-        
-        // Final vault balance
-        uint256 finalBalance = IERC20(mockUSDC).balanceOf(vaultBasedHandler);
-        console.log("Final vault USDC balance:", finalBalance / 1e6, "USDC");
-        
-        console.log("");
-        
-        if (finalBalance >= 50000 * 1e6) {
-            console.log("SUCCESS: Vault has sufficient liquidity!");
-            console.log("   - USDC balance:", finalBalance / 1e6, "USDC");
-            console.log("   - Ready for automation configuration");
+        console.log("6. RESULT:");
+        if (canLiquidate && finalVaultLiquidity >= 8000 * 1e6) {
+            console.log("   SUCCESS: Vault now has sufficient liquidity for automated liquidations!");
+            console.log("   The automation system should now be able to liquidate positions.");
         } else {
-            console.log("ISSUE: Vault still has insufficient liquidity");
-            console.log("   - Current balance:", finalBalance / 1e6, "USDC");
-            console.log("   - Minimum required: 50,000 USDC");
+            console.log("   WARNING: May need more liquidity or check other issues.");
         }
-        
         console.log("");
-        console.log("NOTE: Automation authorization will be configured after automation deployment");
+        
+        console.log("7. NEXT STEPS:");
+        console.log("   1. Wait for next Chainlink Automation execution");
+        console.log("   2. Monitor positions 2, 4, 5, 6, 7 for automatic liquidation");
+        console.log("   3. Check that no more 'insufficient liquidity' errors occur");
+        console.log("   4. Verify liquidated positions are closed automatically");
+        console.log("");
+        
+        console.log("=== VAULT LIQUIDITY ADDITION COMPLETED ===");
     }
 } 

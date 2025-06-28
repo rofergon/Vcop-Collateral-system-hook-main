@@ -29,7 +29,7 @@ help:
 	@echo "deploy-full-stack-mock        - Complete mock system + automation testing"
 	@echo ""
 	@echo "🏔️ AVALANCHE FUJI DEPLOYMENT"
-	@echo "deploy-avalanche-full-stack-mock - Complete mock system on Avalanche Fuji"
+	@echo "deploy-avalanche-full-stack-mock - ⭐ Complete system + AUTOMATIC tracking!"
 	@echo "deploy-avalanche-complete-mock-high-gas - High gas version (if stuck)"
 	@echo "deploy-avalanche-emergency-high-gas     - Emergency max gas version"
 	@echo "check-avalanche-status           - Check Avalanche deployment status"

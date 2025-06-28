@@ -51,8 +51,20 @@ help-avalanche:
 	@echo "verify-avalanche-contracts             - Verify contracts on Snowtrace"
 	@echo "show-avalanche-info                    - Show network information"
 	@echo ""
+	@echo "🧪 TESTING:"
+	@echo "test-avalanche-liquidation-flow        - Test complete liquidation flow with diagnosis"
+	@echo ""
+	@echo "🔧 CHAINLINK AUTOMATION DIAGNOSIS:"
+	@echo "fix-avalanche-automation-complete      - ⭐ COMPLETE automation diagnosis & fix guide"
+	@echo "configure-avalanche-automation-complete - Configure LoanManager <-> Adapter integration"
+	@echo "sync-avalanche-positions               - Sync new positions to tracking"
+	@echo "diagnose-avalanche-chainlink           - Diagnose why automation doesn't execute"
+	@echo "test-avalanche-checkupkeep             - Test checkUpkeep manually"
+	@echo "generate-avalanche-checkdata           - Generate checkData for Chainlink registration"
+	@echo ""
 	@echo "💡 WORKFLOWS:"
 	@echo "   Complete test: make avalanche-quick-test"
+	@echo "   Fix automation: make fix-avalanche-automation-complete"
 	@echo "   Debug flow:    make help-avalanche-testing"
 
 # ========================================
@@ -63,37 +75,49 @@ help-avalanche:
 deploy-avalanche-full-stack-mock:
 	@echo "🏔️ DEPLOYING COMPLETE AVALANCHE STACK WITH AUTOMATION"
 	@echo "======================================================"
-	@echo "⚠️  Using 2 Gwei gas price (optimized for Avalanche Fuji)"
+	@echo "⚠️  Using 25 Gwei gas price (reliable for Avalanche Fuji)"
 	@echo ""
-	@echo "This will execute the complete 7-phase deployment:"
+	@echo "This will execute the complete 10-phase deployment:"
 	@echo "1. Deploy core system (deploy-avalanche-complete-mock)"
 	@echo "2. Deploy automation contracts (deploy-avalanche-automation-complete-mock-no-test)"
 	@echo "3. Configure vault automation (configure-avalanche-vault-automation)"
 	@echo "4. Configure default risk thresholds (configure-avalanche-default-risk-thresholds)"
 	@echo "5. Fix vault allowances (fix-avalanche-vault-allowances)"
-	@echo "6. Quick system check (quick-avalanche-system-check)"
-	@echo "7. Test automation flow (test-avalanche-automation-flow)"
+	@echo "6. Configure automation integration (configure-avalanche-automation-complete)"
+	@echo "7. Set automation adapter reference in FlexibleLoanManager"
+	@echo "8. Quick system check (quick-avalanche-system-check)"
+	@echo "9. Test automation flow (test-avalanche-automation-flow)"
+	@echo "10. Test complete liquidation flow (test-avalanche-liquidation-flow)"
 	@echo ""
-	@echo "📋 Phase 1/7: Deploying core system..."
+	@echo "📋 Phase 1/10: Deploying core system..."
 	@$(MAKE) deploy-avalanche-complete-mock
 	@echo ""
-	@echo "🤖 Phase 2/7: Deploying automation contracts..."
+	@echo "🤖 Phase 2/10: Deploying automation contracts..."
 	@$(MAKE) deploy-avalanche-automation-complete-mock-no-test
 	@echo ""
-	@echo "🔧 Phase 3/7: Configuring vault automation..."
+	@echo "🔧 Phase 3/10: Configuring vault automation..."
 	@$(MAKE) configure-avalanche-vault-automation
 	@echo ""
-	@echo "🎯 Phase 4/7: Configuring default risk thresholds..."
+	@echo "🎯 Phase 4/10: Configuring default risk thresholds..."
 	@$(MAKE) configure-avalanche-default-risk-thresholds
 	@echo ""
-	@echo "🔧 Phase 5/7: Fixing vault allowances..."
+	@echo "🔧 Phase 5/10: Fixing vault allowances..."
 	@$(MAKE) fix-avalanche-vault-allowances
 	@echo ""
-	@echo "⚡ Phase 6/7: Quick system check..."
+	@echo "🔗 Phase 6/10: Configuring automation integration..."
+	@$(MAKE) configure-avalanche-automation-complete
+	@echo ""
+	@echo "🤖 Phase 7/10: Setting automation adapter reference..."
+	@$(MAKE) configure-avalanche-automation-adapter-reference
+	@echo ""
+	@echo "⚡ Phase 8/10: Quick system check..."
 	@$(MAKE) quick-avalanche-system-check
 	@echo ""
-	@echo "🧪 Phase 7/7: Testing automation flow..."
+	@echo "🧪 Phase 9/10: Testing automation flow..."
 	@$(MAKE) test-avalanche-automation-flow
+	@echo ""
+	@echo "🔬 Phase 10/10: Testing complete liquidation flow..."
+	@$(MAKE) test-avalanche-liquidation-flow
 	@echo ""
 	@echo "🎉 COMPLETE AVALANCHE STACK DEPLOYMENT FINISHED!"
 	@echo "✅ All systems deployed and configured successfully!"
@@ -104,9 +128,12 @@ deploy-avalanche-full-stack-mock:
 	@echo "   - Automation: DEPLOYED & CONFIGURED"
 	@echo "   - Risk thresholds: SET TO DEFAULTS (100/95/90)"
 	@echo "   - Vault allowances: FIXED"
+	@echo "   - Automation adapter: CONFIGURED FOR AUTO-TRACKING"
 	@echo "   - System tested: PASSED"
+	@echo "   - Liquidation flow: DIAGNOSED & TESTED"
 	@echo ""
 	@echo "🚀 AVALANCHE FUJI DEPLOYMENT READY FOR USE!"
+	@echo "🤖 NEW POSITIONS WILL BE AUTOMATICALLY TRACKED!"
 	@echo "Next: make avalanche-quick-test"
 
 # ========================================
@@ -236,6 +263,23 @@ configure-avalanche-default-risk-thresholds:
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
 		--gas-price 2000000000 --priority-gas-price 2000000000 --slow --timeout 600
 	@echo "✅ Default risk thresholds configured for Avalanche!"
+
+# Test complete liquidation flow: create position, crash price, diagnose issues
+test-avalanche-liquidation-flow:
+	@echo "🧪 TESTING COMPLETE LIQUIDATION FLOW ON AVALANCHE"
+	@echo "=================================================="
+	@echo "This will:"
+	@echo "   1. Create a loan position (1 ETH collateral, 2000 USDC loan)"
+	@echo "   2. Crash ETH price by 70%"
+	@echo "   3. Diagnose automation system step by step"
+	@echo "   4. Fix configuration issues"
+	@echo "   5. Verify checkUpkeep works"
+	@echo ""
+	@echo "⚠️  Using low gas prices (2 Gwei)"
+	@. ./.env && forge script script/automation/CreatePositionCrashAndDiagnose.s.sol:CreatePositionCrashAndDiagnose \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 2000000000 --priority-gas-price 2000000000 --slow --timeout 600
+	@echo "✅ Liquidation flow test completed!"
 
 # Fix vault allowances for Avalanche
 fix-avalanche-vault-allowances:
@@ -513,6 +557,261 @@ monitor-avalanche-automation:
 	echo "   Adapter: https://testnet.snowtrace.io/address/$$ADAPTER"
 
 # Show Avalanche testing help
+# ========================================
+# 🔧 AVALANCHE CHAINLINK AUTOMATION DIAGNOSIS
+# ========================================
+
+# Diagnose why Chainlink Automation is not executing performUpkeep
+diagnose-avalanche-chainlink:
+	@echo "🔧 DIAGNOSING CHAINLINK AUTOMATION ISSUES"
+	@echo "=========================================="
+	@echo "This will check why Chainlink nodes are not executing performUpkeep automatically"
+	@echo ""
+	@. ./.env && forge script script/automation/DiagnoseAndFixChainlinkAutomation.s.sol:DiagnoseAndFixChainlinkAutomation \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo ""
+	@echo "✅ DIAGNOSIS COMPLETED!"
+	@echo "📋 Follow the step-by-step solutions shown above"
+
+# Diagnose VaultBasedHandler authorization issues preventing liquidations
+diagnose-avalanche-vault-auth:
+	@echo "🔍 DIAGNOSING VAULT AUTHORIZATION ISSUES"
+	@echo "========================================"
+	@echo "This will check why automated liquidations are failing with 'Unauthorized automation' errors"
+	@echo ""
+	@. ./.env && forge script script/automation/DiagnoseVaultAuthorizations.s.sol:DiagnoseVaultAuthorizations \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo ""
+	@echo "✅ VAULT AUTHORIZATION DIAGNOSIS COMPLETED!"
+	@echo "📋 Check the authorization status and required fixes shown above"
+
+# Fix VaultBasedHandler authorization issues preventing automated liquidations
+fix-avalanche-vault-auth:
+	@echo "🔧 FIXING VAULT AUTHORIZATION ISSUES"
+	@echo "===================================="
+	@echo "This will fix all authorization issues preventing automated liquidations"
+	@echo ""
+	@. ./.env && forge script script/automation/FixVaultAuthorizations.s.sol:FixVaultAuthorizations \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ VAULT AUTHORIZATION FIXES COMPLETED!"
+	@echo "🎯 Test automated liquidations with: make crash-avalanche-market"
+
+# Fix specific VaultBasedHandler authorization for FlexibleLoanManager
+fix-avalanche-vaulthandler-auth:
+	@echo "🔧 FIXING VAULTBASEDHANDLER AUTHORIZATION"
+	@echo "========================================"
+	@echo "This will specifically authorize FlexibleLoanManager in VaultBasedHandler"
+	@echo ""
+	@. ./.env && forge script script/automation/FixVaultBasedHandlerAuth.s.sol:FixVaultBasedHandlerAuth \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ VAULTBASEDHANDLER AUTHORIZATION FIXED!"
+	@echo "🎯 Test automated liquidations with: make crash-avalanche-market"
+
+# Diagnose why liquidations are not executing despite successful automation
+diagnose-avalanche-liquidation-issues:
+	@echo "🔍 DIAGNOSING LIQUIDATION ISSUES"
+	@echo "================================"
+	@echo "This will diagnose why liquidations are not executing despite successful automation"
+	@echo ""
+	@. ./.env && forge script script/automation/DiagnoseLiquidationIssues.s.sol:DiagnoseLiquidationIssues \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo ""
+	@echo "✅ LIQUIDATION DIAGNOSIS COMPLETED!"
+
+# Diagnose why ETH collateral positions are not being liquidated
+diagnose-avalanche-eth-liquidation:
+	@echo "🔍 DIAGNOSING ETH LIQUIDATION ISSUES"
+	@echo "===================================="
+	@echo "This will diagnose why ETH collateral positions are not being liquidated automatically"
+	@echo ""
+	@. ./.env && forge script script/automation/DiagnoseETHLiquidationIssues.s.sol:DiagnoseETHLiquidationIssues \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo ""
+	@echo "✅ ETH LIQUIDATION DIAGNOSIS COMPLETED!"
+
+# Test manual ETH liquidation to identify automation issues
+test-avalanche-eth-liquidation:
+	@echo "🧪 TESTING ETH LIQUIDATION MANUALLY"
+	@echo "==================================="
+	@echo "This will test manual liquidation of ETH positions to identify automation issues"
+	@echo ""
+	@. ./.env && forge script script/automation/TestETHLiquidation.s.sol:TestETHLiquidation \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ ETH LIQUIDATION TEST COMPLETED!"
+
+# Configure ETH in FlexibleAssetHandler to enable automated ETH liquidations
+configure-avalanche-eth-handler:
+	@echo "🔧 CONFIGURING ETH IN FLEXIBLEASSETHANDLER"
+	@echo "=========================================="
+	@echo "This will configure ETH to enable automated ETH liquidations"
+	@echo ""
+	@. ./.env && forge script script/automation/ConfigureETHInFlexibleHandler.s.sol:ConfigureETHInFlexibleHandler \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ ETH CONFIGURATION COMPLETED!"
+	@echo "🎯 ETH liquidations should now work automatically!"
+
+# Add USDC liquidity to VaultBasedHandler for automated liquidations
+add-avalanche-vault-liquidity:
+	@echo "💰 ADDING VAULT LIQUIDITY FOR AUTOMATED LIQUIDATIONS"
+	@echo "===================================================="
+	@echo "This will add 20,000 USDC liquidity to enable automated liquidations"
+	@echo ""
+	@. ./.env && forge script script/automation/AddVaultLiquidity.s.sol:AddVaultLiquidity \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ VAULT LIQUIDITY ADDED!"
+	@echo "🎯 Automated liquidations should now work!"
+
+# Mint USDC and add liquidity to VaultBasedHandler (simpler approach)
+mint-and-add-avalanche-liquidity:
+	@echo "💰 MINTING USDC AND ADDING VAULT LIQUIDITY"
+	@echo "=========================================="
+	@echo "This will mint 20,000 USDC and add it as vault liquidity"
+	@echo ""
+	@. ./.env && forge script script/automation/MintAndAddLiquidity.s.sol:MintAndAddLiquidity \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ USDC MINTED AND VAULT LIQUIDITY ADDED!"
+	@echo "🎯 Automated liquidations should now work!"
+
+# Test checkUpkeep manually with your deployed contracts
+test-avalanche-checkupkeep:
+	@echo "🧪 TESTING CHECKUPKEEP MANUALLY"
+	@echo "==============================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ deployed-addresses-mock.json not found!"; \
+		echo "   Run: make deploy-avalanche-full-stack-mock"; \
+		exit 1; \
+	fi
+	@AUTOMATION_KEEPER=$$(jq -r '.automation.automationKeeper // ""' deployed-addresses-mock.json) && \
+	LOAN_ADAPTER=$$(jq -r '.automation.loanAdapter // ""' deployed-addresses-mock.json) && \
+	if [ "$$AUTOMATION_KEEPER" = "" ] || [ "$$AUTOMATION_KEEPER" = "null" ]; then \
+		echo "❌ Automation contracts not found in deployed-addresses-mock.json"; \
+		echo "   Run: make deploy-avalanche-automation"; \
+		exit 1; \
+	fi && \
+	echo "Testing with:" && \
+	echo "  AutomationKeeper: $$AUTOMATION_KEEPER" && \
+	echo "  LoanAdapter: $$LOAN_ADAPTER" && \
+	echo "" && \
+	. ./.env && forge script script/automation/DiagnoseAndFixChainlinkAutomation.s.sol:DiagnoseAndFixChainlinkAutomation \
+		--sig "testCheckUpkeepManual(address,address)" $$AUTOMATION_KEEPER $$LOAN_ADAPTER \
+		--rpc-url $$RPC_URL --legacy --gas-price 2000000000
+	@echo "✅ CHECKUPKEEP TEST COMPLETED!"
+
+# Generate checkData for Chainlink registration
+generate-avalanche-checkdata:
+	@echo "📝 GENERATING CHECKDATA FOR CHAINLINK REGISTRATION"
+	@echo "=================================================="
+	@if [ ! -f "deployed-addresses-mock.json" ]; then \
+		echo "❌ deployed-addresses-mock.json not found!"; \
+		echo "   Run: make deploy-avalanche-full-stack-mock"; \
+		exit 1; \
+	fi
+	@LOAN_ADAPTER=$$(jq -r '.automation.loanAdapter // ""' deployed-addresses-mock.json) && \
+	if [ "$$LOAN_ADAPTER" = "" ] || [ "$$LOAN_ADAPTER" = "null" ]; then \
+		echo "❌ LoanAdapter not found in deployed-addresses-mock.json"; \
+		echo "   Run: make deploy-avalanche-automation"; \
+		exit 1; \
+	fi && \
+	echo "Generating checkData for LoanAdapter: $$LOAN_ADAPTER" && \
+	echo "" && \
+	. ./.env && forge script -vvv script/automation/DiagnoseAndFixChainlinkAutomation.s.sol:DiagnoseAndFixChainlinkAutomation \
+		--sig "_generateCheckData()" --rpc-url $$RPC_URL --legacy
+	@echo ""
+	@echo "✅ COPY THE CHECKDATA HEX ABOVE FOR CHAINLINK REGISTRATION!"
+	@echo "🌐 Register at: https://automation.chain.link/avalanche-fuji"
+
+# Sync new positions that are not yet tracked
+sync-avalanche-positions:
+	@echo "🔄 SYNCING NEW POSITIONS TO TRACKING"
+	@echo "===================================="
+	@echo "This will find and add any new positions that are not yet tracked"
+	@echo ""
+	@. ./.env && forge script script/automation/SyncNewPositions.s.sol:SyncNewPositions \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ POSITION SYNC COMPLETED!"
+	@echo "💡 Run this command after creating new loan positions"
+
+# Configure complete loan manager adapter integration
+configure-avalanche-automation-complete:
+	@echo "🔧 CONFIGURING COMPLETE AUTOMATION INTEGRATION"
+	@echo "=============================================="
+	@echo "This will configure the LoanManager <-> Adapter integration"
+	@echo ""
+	@. ./.env && forge script script/automation/ConfigureLoanManagerAdapter.s.sol:ConfigureLoanManagerAdapter \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ AUTOMATION INTEGRATION CONFIGURED!"
+
+# Configure automation adapter reference in FlexibleLoanManager for automatic tracking
+configure-avalanche-automation-adapter-reference:
+	@echo "🤖 CONFIGURING AUTOMATION ADAPTER REFERENCE"
+	@echo "==========================================="
+	@echo "This will set the adapter reference in FlexibleLoanManager for automatic position tracking"
+	@echo ""
+	@. ./.env && forge script script/automation/SetAutomationAdapterReference.s.sol:SetAutomationAdapterReference \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 25000000000 --priority-gas-price 25000000000
+	@echo ""
+	@echo "✅ AUTOMATION ADAPTER REFERENCE CONFIGURED!"
+	@echo "🎯 NEW POSITIONS WILL BE AUTOMATICALLY TRACKED!"
+
+# Complete automation diagnosis and setup guide
+fix-avalanche-automation-complete:
+	@echo "🚀 COMPLETE AUTOMATION DIAGNOSIS AND FIX"
+	@echo "========================================"
+	@echo "This will run a complete diagnosis and give you step-by-step instructions"
+	@echo ""
+	@echo "PHASE 1: Checking system status..."
+	@$(MAKE) diagnose-avalanche-chainlink
+	@echo ""
+	@echo "PHASE 2: Testing checkUpkeep manually..."
+	@$(MAKE) test-avalanche-checkupkeep
+	@echo ""
+	@echo "PHASE 3: Generating checkData for registration..."
+	@$(MAKE) generate-avalanche-checkdata
+	@echo ""
+	@echo "==========================================";
+	@echo "🎯 SUMMARY OF NEXT STEPS:"
+	@echo "==========================================";
+	@echo ""
+	@echo "If checkUpkeep works but automation doesn't execute:"
+	@echo "1. Your contracts are correctly configured ✅"
+	@echo "2. The problem is Chainlink registration/funding ❌"
+	@echo ""
+	@echo "SOLUTION:"
+	@echo "--------"
+	@echo "1. Go to: https://automation.chain.link/avalanche-fuji"
+	@echo "2. Register new upkeep with the checkData generated above"
+	@echo "3. Fund with 5-10 LINK tokens from https://faucets.chain.link/fuji"
+	@echo "4. Wait 1-2 minutes and test with: make crash-avalanche-market"
+	@echo ""
+	@echo "If checkUpkeep doesn't work:"
+	@echo "1. Run: make configure-avalanche-vault-automation"
+	@echo "2. Run: make configure-avalanche-default-risk-thresholds"
+	@echo "3. Run: make create-avalanche-test-loan"
+	@echo "4. Run: make crash-avalanche-market"
+	@echo "5. Try again: make test-avalanche-checkupkeep"
+	@echo ""
+	@echo "🔗 Useful links:"
+	@echo "  Dashboard: https://automation.chain.link/avalanche-fuji"
+	@echo "  LINK Faucet: https://faucets.chain.link/fuji"
+	@echo "  Docs: https://docs.chain.link/chainlink-automation"
+
 help-avalanche-testing:
 	@echo ""
 	@echo "🏔️ AVALANCHE TESTING COMMANDS"

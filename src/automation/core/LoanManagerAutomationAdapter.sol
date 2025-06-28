@@ -18,12 +18,12 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
     // ⚡ UPDATED: Automation settings for flexible liquidation
     bool public automationEnabled = true;
     address public authorizedAutomationContract;
-    uint256 public liquidationCooldown = 180; // Reduced to 3 minutes for faster liquidations
+    uint256 public liquidationCooldown = 60; // Reduced to 3 minutes for faster liquidations
     
     // ⚡ NEW: Dynamic risk thresholds
-    uint256 public criticalRiskThreshold = 95;  // Immediate liquidation
-    uint256 public dangerRiskThreshold = 85;    // High priority liquidation
-    uint256 public warningRiskThreshold = 75;   // Regular liquidation
+    uint256 public criticalRiskThreshold = 105;  // Immediate liquidation
+    uint256 public dangerRiskThreshold = 95;    // High priority liquidation
+    uint256 public warningRiskThreshold = 90;   // Regular liquidation
     
     // Liquidation tracking
     mapping(uint256 => uint256) public lastLiquidationAttempt;

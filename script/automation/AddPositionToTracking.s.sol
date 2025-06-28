@@ -7,41 +7,34 @@ import {LoanManagerAutomationAdapter} from "../../src/automation/core/LoanManage
 
 /**
  * @title AddPositionToTracking
- * @notice Agrega la nueva posición al tracking del automation adapter
+ * @notice Add position 30 to LoanAdapter tracking
  */
 contract AddPositionToTracking is Script {
     
     function run() external {
-        console.log("=== AGREGANDO POSICION AL TRACKING ===");
-        console.log("");
+        console.log("=== ADDING POSITION 30 TO TRACKING ===");
+        console.log("======================================");
         
-        // Load addresses
-        string memory json = vm.readFile("deployed-addresses-mock.json");
-        address loanAdapter = vm.parseJsonAddress(json, ".automation.loanAdapter");
+        // Load LoanAdapter address
+        string memory content = vm.readFile("deployed-addresses-mock.json");
+        address loanAdapter = vm.parseJsonAddress(content, ".automation.loanAdapter");
         
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
+        console.log("LoanAdapter:", loanAdapter);
+        console.log("Adding Position ID: 30");
+        
+        // Start broadcasting
+        vm.startBroadcast();
         
         LoanManagerAutomationAdapter adapter = LoanManagerAutomationAdapter(loanAdapter);
         
-        console.log("Adapter: ", loanAdapter);
-        console.log("Agregando posicion ID: 12");
-        console.log("");
-        
-        // Add position 12 to tracking
-        adapter.addPositionToTracking(12);
-        
-        console.log("SUCCESS: Posicion 12 agregada al tracking");
-        console.log("");
-        
-        // Verify tracking
-        (uint256 totalTracked,,,, ) = adapter.getTrackingStats();
-        console.log("Total posiciones tracked: ", totalTracked);
+        // Add position 30 to tracking
+        adapter.addPositionToTracking(30);
         
         vm.stopBroadcast();
         
-        console.log("===================================");
-        console.log("POSICION AGREGADA EXITOSAMENTE");
-        console.log("El automation ahora puede detectar la posicion 12");
+        console.log("SUCCESS: Position 30 added to tracking!");
+        console.log("");
+        console.log("Now test checkUpkeep again:");
+        console.log("make test-avalanche-checkupkeep");
     }
 } 
