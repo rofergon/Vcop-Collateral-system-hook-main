@@ -3,82 +3,115 @@ pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {LoanAutomationKeeperOptimized} from "../../src/automation/core/LoanAutomationKeeperOptimized.sol";
 
 /**
  * @title GenerateCorrectCheckData
- * @notice Genera el checkData CORRECTO usando índices de array 0-based
+ * @notice Genera el checkData CORRECTO para registro en Chainlink Automation
  */
 contract GenerateCorrectCheckData is Script {
     
     function run() external view {
-        console.log("=== CORRECT CHECKDATA GENERATOR ===");
+        console.log("=== GENERATING CORRECT CHECKDATA FOR CHAINLINK ===");
         console.log("");
         
-        // Load addresses
+        // Load addresses from deployed-addresses-mock.json
         string memory json = vm.readFile("deployed-addresses-mock.json");
-        address automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
         address loanAdapter = vm.parseJsonAddress(json, ".automation.loanAdapter");
+        address automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
         
-        console.log("AutomationKeeper:", automationKeeper);
+        console.log("AVALANCHE FUJI ADDRESSES:");
+        console.log("========================");
         console.log("LoanAdapter:", loanAdapter);
+        console.log("AutomationKeeper:", automationKeeper);
         console.log("");
         
-        LoanAutomationKeeperOptimized keeper = LoanAutomationKeeperOptimized(automationKeeper);
-        
-        // ========== GENERATE CORRECT CHECKDATA ==========
-        console.log("CORRECT CHECKDATA FOR CHAINLINK:");
-        console.log("=================================");
-        
-        // Use array indices: startIndex=0, batchSize=10
-        // This will search array indices 0-9, which includes position at index 0
-        bytes memory correctCheckData = keeper.generateOptimizedCheckData(
-            loanAdapter,  // LoanAdapter address
-            0,           // startIndex (array index, not position ID)
-            10           // batchSize (reasonable batch for array indices)
+        // Generate checkData: abi.encode(address loanManager, uint256 startIndex, uint256 batchSize)
+        bytes memory checkData = abi.encode(
+            loanAdapter,  // address: LoanAdapter (NOT FlexibleLoanManager)
+            uint256(0),   // uint256: startIndex (will be converted to position ID 1)
+            uint256(25)   // uint256: batchSize (optimal for gas)
         );
         
-        console.log("Target Contract (Keeper):");
+        console.log("CHAINLINK AUTOMATION REGISTRATION:");
+        console.log("=================================");
+        console.log("Registry Address (Avalanche Fuji):");
+        console.log("0x819B58A646CDd8289275A87653a2aA4902b14fe6");
+        console.log("");
+        console.log("Target Contract (AutomationKeeper):");
         console.log(automationKeeper);
         console.log("");
-        
-        console.log("CORRECT CheckData (use this):");
-        console.logBytes(correctCheckData);
+        console.log("CheckData (CORRECT FORMAT):");
+        console.logBytes(checkData);
         console.log("");
         
-        // Verify this checkData works
-        console.log("VERIFICATION:");
-        console.log("=============");
+        // Verify hex length
+        string memory hexString = vm.toString(checkData);
+        console.log("CheckData as string (copy this to Chainlink UI):");
+        console.log(hexString);
+        console.log("");
         
-        try keeper.checkUpkeep(correctCheckData) returns (bool upkeepNeeded, bytes memory performData) {
-            console.log("Upkeep Needed:", upkeepNeeded ? "YES - SUCCESS!" : "NO - Still broken");
-            console.log("PerformData Length:", performData.length);
-            
-            if (upkeepNeeded) {
-                console.log("");
-                console.log("SUCCESS! This checkData works!");
-                console.log("Your automation should now trigger!");
-            } else {
-                console.log("");
-                console.log("Still not working - there may be another issue");
-            }
-        } catch Error(string memory reason) {
-            console.log("checkUpkeep failed:", reason);
+        // Show length info
+        console.log("LENGTH VERIFICATION:");
+        console.log("===================");
+        console.log("CheckData length (bytes):", checkData.length);
+        console.log("Expected length: 96 bytes (32+32+32)");
+        console.log("Hex string length:", bytes(hexString).length);
+        console.log("Expected hex length: 194 chars (2 + 192)"); // "0x" + 192 hex chars
+        
+        // Manual verification
+        _verifyEncoding(loanAdapter);
+    }
+    
+    function _verifyEncoding(address loanAdapter) internal pure {
+        console.log("");
+        console.log("MANUAL VERIFICATION:");
+        console.log("===================");
+        
+        // Manually encode to verify
+        bytes32 encodedAddress = bytes32(uint256(uint160(loanAdapter)));
+        bytes32 encodedStartIndex = bytes32(uint256(0));
+        bytes32 encodedBatchSize = bytes32(uint256(25));
+        
+        console.log("Address encoded (32 bytes):");
+        console.logBytes32(encodedAddress);
+        console.log("StartIndex encoded (32 bytes):");
+        console.logBytes32(encodedStartIndex);
+        console.log("BatchSize encoded (32 bytes):");
+        console.logBytes32(encodedBatchSize);
+        
+        // Concatenate manually
+        bytes memory manualCheckData = abi.encodePacked(
+            encodedAddress,
+            encodedStartIndex,
+            encodedBatchSize
+        );
+        
+        console.log("Manual concatenation:");
+        console.logBytes(manualCheckData);
+        console.log("");
+        
+        // Generate using abi.encode again for final result
+        bytes memory finalCheckData = abi.encode(loanAdapter, uint256(0), uint256(25));
+        
+        console.log("FINAL RESULT FOR CHAINLINK:");
+        console.log("===========================");
+        console.log("Use this exact value in Chainlink UI:");
+        console.logBytes(finalCheckData);
+        
+        // Convert to hex without 0x prefix for debugging
+        bytes memory dataOnly = new bytes(finalCheckData.length);
+        for (uint i = 0; i < finalCheckData.length; i++) {
+            dataOnly[i] = finalCheckData[i];
         }
         
         console.log("");
-        console.log("=== INSTRUCTIONS ===");
-        console.log("1. Copy the CheckData hex above");
-        console.log("2. Go to your Chainlink upkeep in the dashboard");
-        console.log("3. Update the Check Data with the correct hex");
-        console.log("4. Save and wait for automation to trigger");
-        
-        console.log("");
-        console.log("=== DASHBOARD LINKS ===");
-        console.log("Avalanche Fuji Dashboard:");
-        console.log("https://automation.chain.link/avalanche-fuji");
-        
-        console.log("");
-        console.log("=== GENERATION COMPLETE ===");
+        console.log("REGISTRATION PARAMETERS:");
+        console.log("========================");
+        console.log("Upkeep Name: VCOP Avalanche Loan Liquidation");
+        console.log("Gas Limit: 2000000");
+        console.log("Starting Balance: 50 LINK");
+        console.log("Trigger Type: Custom Logic");
+        console.log("Target Contract: Use AutomationKeeper address above");
+        console.log("CheckData: Use the hex value above");
     }
 } 

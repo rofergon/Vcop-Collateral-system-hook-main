@@ -231,3 +231,58 @@ generate-avalanche-checkdata:
 	@forge script script/automation/GenerateAvalancheCheckData.s.sol:GenerateAvalancheCheckData \
 		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
 		-vvv
+
+# ========================================
+# 🔧 AVALANCHE AUTOMATION FIX COMMANDS
+# ========================================
+
+fix-avalanche-automation-config:
+	@echo "🔧 Fixing Avalanche automation configuration issues..."
+	@if [ ! -f .env ]; then echo "❌ Error: .env file not found"; exit 1; fi
+	@echo "📋 Loading environment variables..."
+	@export $$(cat .env | grep -v '^#' | xargs) && \
+	echo "✅ PRIVATE_KEY loaded: $${PRIVATE_KEY:0:10}..." && \
+	forge script script/automation/FixAvalancheAutomationConfig.s.sol:FixAvalancheAutomationConfig \
+		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
+		--private-key $$PRIVATE_KEY \
+		--broadcast \
+		--gas-price 25000000000 \
+		-vvv
+
+# Versión solo para verificar (sin broadcast)
+check-avalanche-automation-config:
+	@echo "🔍 Checking Avalanche automation configuration..."
+	@forge script script/automation/FixAvalancheAutomationConfig.s.sol:FixAvalancheAutomationConfig \
+		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
+		-vvv
+
+# Generar checkData correcto para Chainlink
+generate-correct-checkdata:
+	@echo "🔗 Generating CORRECT checkData for Chainlink registration..."
+	@forge script script/automation/GenerateCorrectCheckData.s.sol:GenerateCorrectCheckData \
+		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
+		-vvv
+
+# Arreglar decimales incorrectos que causan loop infinito
+fix-token-decimals:
+	@echo "🔧 Fixing token decimals configuration (CRITICAL FIX)..."
+	@if [ ! -f .env ]; then echo "❌ Error: .env file not found"; exit 1; fi
+	@echo "📋 Loading environment variables..."
+	@set -a && source .env && set +a && \
+	echo "✅ PRIVATE_KEY loaded: $${PRIVATE_KEY:0:10}..." && \
+	forge script script/automation/FixTokenDecimals.s.sol:FixTokenDecimals \
+		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
+		--private-key $$PRIVATE_KEY \
+		--broadcast \
+		--gas-price 25000000000 \
+		-vvv
+
+# Versión alternativa usando variable directa
+fix-token-decimals-direct:
+	@echo "🔧 Fixing token decimals configuration (DIRECT VERSION)..."
+	@forge script script/automation/FixTokenDecimals.s.sol:FixTokenDecimals \
+		--rpc-url https://api.avax-test.network/ext/bc/C/rpc \
+		--private-key 0x5c07cca48c3afe197620d6217363a1d9f0aaecca739fdbd94f6a763a3dd12c3b \
+		--broadcast \
+		--gas-price 25000000000 \
+		-vvv

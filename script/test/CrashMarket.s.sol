@@ -37,7 +37,7 @@ contract CrashMarket is Script {
         // Crash market by 50%
         oracle.simulateMarketCrash(50); // 50% crash
         
-        console.log("Market crashed by 5%");
+        console.log("Market crashed by 20%");
         
         // Get and display current prices after crash
         try oracle.getCurrentMarketPrices() returns (

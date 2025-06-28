@@ -137,8 +137,8 @@ contract DiagnosePerformUpkeepFlow is Script {
         
         console.log("CheckData encoded for:");
         console.log("  Loan Manager:", automationAdapter);
-        console.log("  Start Index:", 0);
-        console.log("  Batch Size:", 25);
+        console.log("  Start Index:", uint256(0));
+        console.log("  Batch Size:", uint256(25));
         console.log("");
         
         try keeper.checkUpkeep(checkData) returns (bool upkeepNeeded, bytes memory performData) {
