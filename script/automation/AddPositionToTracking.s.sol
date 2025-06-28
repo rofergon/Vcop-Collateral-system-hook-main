@@ -7,37 +7,41 @@ import {LoanManagerAutomationAdapter} from "../../src/automation/core/LoanManage
 
 /**
  * @title AddPositionToTracking
- * @notice Agrega la posición 3 al tracking del adapter para que el automation la detecte
+ * @notice Agrega la nueva posición al tracking del automation adapter
  */
 contract AddPositionToTracking is Script {
     
-    uint256 constant POSITION_ID = 3; // Position created by avalanche-quick-test
-    
     function run() external {
-        console.log("=== ADDING POSITION TO AUTOMATION TRACKING ===");
+        console.log("=== AGREGANDO POSICION AL TRACKING ===");
         console.log("");
         
-        // Load deployed addresses
+        // Load addresses
         string memory json = vm.readFile("deployed-addresses-mock.json");
         address loanAdapter = vm.parseJsonAddress(json, ".automation.loanAdapter");
         
-        console.log("LoanAdapter:", loanAdapter);
-        console.log("Position ID to track:", POSITION_ID);
-        console.log("");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
         
         LoanManagerAutomationAdapter adapter = LoanManagerAutomationAdapter(loanAdapter);
         
-        vm.startBroadcast();
+        console.log("Adapter: ", loanAdapter);
+        console.log("Agregando posicion ID: 12");
+        console.log("");
         
-        // Add position to tracking
-        console.log("Adding position to tracking...");
-        adapter.addPositionToTracking(POSITION_ID);
+        // Add position 12 to tracking
+        adapter.addPositionToTracking(12);
+        
+        console.log("SUCCESS: Posicion 12 agregada al tracking");
+        console.log("");
+        
+        // Verify tracking
+        (uint256 totalTracked,,,, ) = adapter.getTrackingStats();
+        console.log("Total posiciones tracked: ", totalTracked);
         
         vm.stopBroadcast();
         
-        console.log("SUCCESS: Position", POSITION_ID, "added to tracking!");
-        console.log("");
-        console.log("Now the automation should detect this liquidatable position.");
-        console.log("Check the Chainlink dashboard within 1-2 minutes for execution.");
-    } 
+        console.log("===================================");
+        console.log("POSICION AGREGADA EXITOSAMENTE");
+        console.log("El automation ahora puede detectar la posicion 12");
+    }
 } 

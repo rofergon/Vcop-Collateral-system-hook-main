@@ -46,6 +46,7 @@ help-avalanche:
 	@echo ""
 	@echo "🔧 CONFIGURATION:"
 	@echo "configure-avalanche-vault-automation   - Configure vault automation"
+	@echo "configure-avalanche-default-risk-thresholds - Configure default risk thresholds"
 	@echo "fix-avalanche-vault-allowances         - Fix vault allowances (2 Gwei)"
 	@echo "verify-avalanche-contracts             - Verify contracts on Snowtrace"
 	@echo "show-avalanche-info                    - Show network information"
@@ -64,30 +65,34 @@ deploy-avalanche-full-stack-mock:
 	@echo "======================================================"
 	@echo "⚠️  Using 2 Gwei gas price (optimized for Avalanche Fuji)"
 	@echo ""
-	@echo "This will execute the complete 6-phase deployment:"
+	@echo "This will execute the complete 7-phase deployment:"
 	@echo "1. Deploy core system (deploy-avalanche-complete-mock)"
 	@echo "2. Deploy automation contracts (deploy-avalanche-automation-complete-mock-no-test)"
 	@echo "3. Configure vault automation (configure-avalanche-vault-automation)"
-	@echo "4. Fix vault allowances (fix-avalanche-vault-allowances)"
-	@echo "5. Quick system check (quick-avalanche-system-check)"
-	@echo "6. Test automation flow (test-avalanche-automation-flow)"
+	@echo "4. Configure default risk thresholds (configure-avalanche-default-risk-thresholds)"
+	@echo "5. Fix vault allowances (fix-avalanche-vault-allowances)"
+	@echo "6. Quick system check (quick-avalanche-system-check)"
+	@echo "7. Test automation flow (test-avalanche-automation-flow)"
 	@echo ""
-	@echo "📋 Phase 1/6: Deploying core system..."
+	@echo "📋 Phase 1/7: Deploying core system..."
 	@$(MAKE) deploy-avalanche-complete-mock
 	@echo ""
-	@echo "🤖 Phase 2/6: Deploying automation contracts..."
+	@echo "🤖 Phase 2/7: Deploying automation contracts..."
 	@$(MAKE) deploy-avalanche-automation-complete-mock-no-test
 	@echo ""
-	@echo "🔧 Phase 3/6: Configuring vault automation..."
+	@echo "🔧 Phase 3/7: Configuring vault automation..."
 	@$(MAKE) configure-avalanche-vault-automation
 	@echo ""
-	@echo "🔧 Phase 4/6: Fixing vault allowances..."
+	@echo "🎯 Phase 4/7: Configuring default risk thresholds..."
+	@$(MAKE) configure-avalanche-default-risk-thresholds
+	@echo ""
+	@echo "🔧 Phase 5/7: Fixing vault allowances..."
 	@$(MAKE) fix-avalanche-vault-allowances
 	@echo ""
-	@echo "⚡ Phase 5/6: Quick system check..."
+	@echo "⚡ Phase 6/7: Quick system check..."
 	@$(MAKE) quick-avalanche-system-check
 	@echo ""
-	@echo "🧪 Phase 6/6: Testing automation flow..."
+	@echo "🧪 Phase 7/7: Testing automation flow..."
 	@$(MAKE) test-avalanche-automation-flow
 	@echo ""
 	@echo "🎉 COMPLETE AVALANCHE STACK DEPLOYMENT FINISHED!"
@@ -97,6 +102,7 @@ deploy-avalanche-full-stack-mock:
 	@echo "   - Mock oracle: CONFIGURED"
 	@echo "   - Asset handlers: CONFIGURED"
 	@echo "   - Automation: DEPLOYED & CONFIGURED"
+	@echo "   - Risk thresholds: SET TO DEFAULTS (100/95/90)"
 	@echo "   - Vault allowances: FIXED"
 	@echo "   - System tested: PASSED"
 	@echo ""
@@ -214,6 +220,22 @@ configure-avalanche-vault-automation:
 		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
 		--gas-price 2000000000 --priority-gas-price 2000000000 --slow --timeout 600
 	@echo "✅ Vault automation configured for Avalanche!"
+
+# Configure risk thresholds to default values on Avalanche
+configure-avalanche-default-risk-thresholds:
+	@echo "🎯 CONFIGURING DEFAULT RISK THRESHOLDS ON AVALANCHE"
+	@echo "===================================================="
+	@echo "This will set risk thresholds to default values:"
+	@echo "   Critical: 100 (immediate liquidation)"
+	@echo "   Danger: 95 (high priority liquidation)"
+	@echo "   Warning: 90 (regular liquidation)"
+	@echo "   MinRiskThreshold: 85 (automation detection)"
+	@echo ""
+	@echo "⚠️  Using low gas prices (2 Gwei)"
+	@. ./.env && forge script script/automation/ConfigureDefaultRiskThresholds.s.sol:ConfigureDefaultRiskThresholds \
+		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy \
+		--gas-price 2000000000 --priority-gas-price 2000000000 --slow --timeout 600
+	@echo "✅ Default risk thresholds configured for Avalanche!"
 
 # Fix vault allowances for Avalanche
 fix-avalanche-vault-allowances:

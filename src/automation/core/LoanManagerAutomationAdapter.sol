@@ -101,22 +101,21 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
         isAtRisk = loanManager.canLiquidate(positionId);
         
         // ⚡ ENHANCED: Calculate risk level based on collateralization ratio
+        // USER REQUIREMENT: Liquidate ONLY when LTV > 95% (ratio < 105.26%)
         try loanManager.getCollateralizationRatio(positionId) returns (uint256 ratio) {
             if (ratio == type(uint256).max) {
                 // No debt, completely safe
                 riskLevel = 0;
-            } else if (ratio <= 1050000) { // Below 105% - critical
+            } else if (ratio < 1052000) { // Below 105.2% = LTV > 95% - LIQUIDABLE
                 riskLevel = 100;
-            } else if (ratio <= 1100000) { // Below 110% - immediate danger
-                riskLevel = 95;
-            } else if (ratio <= 1200000) { // Below 120% - danger
+            } else if (ratio < 1100000) { // Below 110% = LTV > 90.9% - HIGH RISK
                 riskLevel = 85;
-            } else if (ratio <= 1350000) { // Below 135% - warning
-                riskLevel = 75;
-            } else if (ratio <= 1500000) { // Below 150% - caution
-                riskLevel = 50;
+            } else if (ratio < 1200000) { // Below 120% = LTV > 83.3% - MEDIUM RISK
+                riskLevel = 60;
+            } else if (ratio < 1250000) { // Below 125% = LTV > 80% - LOW RISK  
+                riskLevel = 40;
             } else {
-                riskLevel = 25; // Healthy but monitored
+                riskLevel = 10; // Safe (LTV ≤ 80%)
             }
         } catch {
             // If ratio calculation fails, consider it risky
