@@ -217,41 +217,8 @@ criticalThreshold = 150000      // 15% - Critical level
 volatilityBoostThreshold = 100000 // 10% - Volatility mode
 ```
 
-## 🚀 Step-by-Step Deployment
 
-### 1. Environment Setup
-
-```bash
-# Clone and configure
-git clone <repo>
-cd Vcop-Collateral-system-hook-main
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your values
-
-# Configure deployed contract addresses
-export FLEXIBLE_LOAN_MANAGER=0x...
-export DYNAMIC_PRICE_REGISTRY=0x...
-```
-
-### 2. Deploy Automation System
-
-```bash
-# Option A: Complete clean deployment
-forge script script/automation/DeployAutomationClean.s.sol \
-    --broadcast \
-    --verify \
-    --rpc-url $RPC_URL
-
-# Option B: Standard deployment
-forge script script/automation/DeployAutomation.s.sol \
-    --broadcast \
-    --verify \
-    --rpc-url $RPC_URL
-```
-
-### 3. Configure in Chainlink Automation UI
+### Configure in Chainlink Automation UI
 
 #### Custom Logic Upkeep
 ```bash
@@ -556,14 +523,7 @@ loanAdapter.syncPositionTracking();
 
 - **Metrics**: Track liquidation success rate
 - **Volatility**: Adjust parameters based on market conditions
-- **Funding**: Maintain adequate LINK balance
 - **Updates**: Synchronize positions periodically
-## 📚 Additional Resources
-
-- [Chainlink Automation Documentation](https://docs.chain.link/chainlink-automation)
-- [FlexibleLoanManager Guide](../core/README.md)
-- [DynamicPriceRegistry Documentation](../interfaces/IPriceRegistry.sol)
-- [ILoanAutomation Interface](./interfaces/ILoanAutomation.sol)
 
 ---
 
@@ -582,7 +542,7 @@ loanAdapter.syncPositionTracking();
 
 ### System Limits
 - **Max Batch Size**: 200 positions
-- **Max Gas per Upkeep**: 5,000,000
+- **Max Gas per Upkeep**: 2,000,000
 - **Min Cooldown**: 60 seconds
 - **Max Managers**: Unlimited (gas permitting)
 
@@ -621,15 +581,8 @@ loanAdapter.syncPositionTracking();
 | **PriceChangeLogTrigger** | ✅ Advanced | Log automation with volatility detection and internal registry |
 | **Deployment Scripts** | ✅ Functional | Automated deployment scripts |
 | **Configuration Tools** | ✅ Available | Complete configuration functions |
-| **Chainlink Integration** | ✅ Official | Uses official AutomationCompatible and ILogAutomation interfaces |
 
-### Recommended Next Steps
 
-1. **Deployment**: Use `DeployAutomationClean.s.sol` for complete deployment
-2. **Configuration**: Configure thresholds according to specific market conditions
-3. **Registration**: Register upkeeps in Chainlink Automation UI
-4. **Monitoring**: Implement alerts based on system metrics
-5. **Testing**: Run tests with sample positions before production
-6. **Optimization**: Adjust parameters based on real performance
+
 
 The system is designed for maximum efficiency, security and flexibility in automated liquidation handling for the lending protocol.
