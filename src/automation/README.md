@@ -4,6 +4,31 @@
 
 Complete automation system using **Chainlink Automation v2.25.0** with support for `FlexibleLoanManager`, `DynamicPriceRegistry` and intelligent automated liquidations. The system implements both **Custom Logic Automation** and **Log Trigger Automation** for maximum efficiency.
 
+## 🌐 Deployed Contracts - Avalanche Fuji
+
+| Contract | Address | Block Explorer |
+|----------|---------|----------------|
+| **Automation Registry** | `0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3) |
+| **Automation Keeper** | `0x53abd121c7ce56ff25d22f2154af94c581fbf039` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x53abd121c7ce56ff25d22f2154af94c581fbf039) |
+| **Loan Adapter** | `0xe0f46e266af2f95b14537c3319a0f46cb53ab035` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xe0f46e266af2f95b14537c3319a0f46cb53ab035) |
+| **Price Trigger** | `0xab2b902b73d3315d0fed9e9d50102275017dc501` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xab2b902b73d3315d0fed9e9d50102275017dc501) |
+
+### 📋 Contract Descriptions
+
+| Contract | Main Function | Automation Type |
+|----------|---------------|-----------------|
+| **Automation Registry** | Chainlink Automation central registry | Core Registry |
+| **Automation Keeper** | Main liquidation executor | Custom Logic Automation |
+| **Loan Adapter** | Interface with FlexibleLoanManager | Adapter Contract |
+| **Price Trigger** | Automatic response to price changes | Log Trigger Automation |
+
+### 🔗 Network & Links
+
+- **Network**: Avalanche Fuji Testnet
+- **Explorer**: [Snowtrace Testnet](https://testnet.snowtrace.io/)
+- **RPC**: `https://api.avax-test.network/ext/bc/C/rpc`
+- **Chain ID**: `43113`
+
 ## 🏗️ System Architecture
 
 ### Main Components
