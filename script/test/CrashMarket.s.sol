@@ -35,7 +35,7 @@ contract CrashMarket is Script {
         }
         
         // Crash market by 50%
-        oracle.simulateMarketCrash(50); // 50% crash
+        oracle.simulateMarketCrash(80); // 50% crash
         
         console.log("Market crashed by 20%");
         
