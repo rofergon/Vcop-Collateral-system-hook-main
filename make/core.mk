@@ -174,13 +174,11 @@ deploy-complete-mock:
 	@forge script script/deploy/DeployUnifiedSystemMock.s.sol:DeployUnifiedSystemMock \
 		--rpc-url $(RPC_URL) --broadcast --legacy --gas-price 2000000000 --slow
 	@echo ""
-	@echo "🔧 Step 2: Configuring Mock Oracle with realistic prices..."
-	@. ./.env && forge script script/config/ConfigureMockOracle.s.sol:ConfigureMockOracle \
-		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo "🔧 Step 2: Mock Oracle configuration completed during deployment..."
+	@echo "✅ MockOracle already configured with realistic 2025 prices"
 	@echo ""
-	@echo "💰 Step 3: Setting VCOP Price in Mock..."
-	@. ./.env && forge script script/config/ConfigureMockVCOPPrice.s.sol:ConfigureMockVCOPPrice \
-		--rpc-url $$RPC_URL --private-key $$PRIVATE_KEY --broadcast --legacy --gas-price 2000000000 --slow
+	@echo "💰 Step 3: VCOP Price configuration completed during deployment..."
+	@echo "✅ VCOP price already set to $1.00 USD"
 	@echo ""
 	@echo "🔗 Step 4: Configuring Asset Handlers with initial liquidity..."
 	@. ./.env && forge script script/test/ConfigureAssetHandlers.s.sol:ConfigureAssetHandlers \

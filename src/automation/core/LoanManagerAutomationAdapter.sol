@@ -18,12 +18,12 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
     // ⚡ UPDATED: Automation settings for flexible liquidation
     bool public automationEnabled = true;
     address public authorizedAutomationContract;
-    uint256 public liquidationCooldown = 180; // Reduced to 3 minutes for faster liquidations
+    uint256 public liquidationCooldown = 60; // Reduced to 1 minutes for faster liquidations
     
     // ⚡ NEW: Dynamic risk thresholds
-    uint256 public criticalRiskThreshold = 95;  // Immediate liquidation
-    uint256 public dangerRiskThreshold = 85;    // High priority liquidation
-    uint256 public warningRiskThreshold = 75;   // Regular liquidation
+    uint256 public criticalRiskThreshold = 105;  // Immediate liquidation
+    uint256 public dangerRiskThreshold = 95;    // High priority liquidation
+    uint256 public warningRiskThreshold = 90;   // Regular liquidation
     
     // Liquidation tracking
     mapping(uint256 => uint256) public lastLiquidationAttempt;
@@ -101,22 +101,21 @@ contract LoanManagerAutomationAdapter is ILoanAutomation, Ownable {
         isAtRisk = loanManager.canLiquidate(positionId);
         
         // ⚡ ENHANCED: Calculate risk level based on collateralization ratio
+        // USER REQUIREMENT: Liquidate ONLY when LTV > 95% (ratio < 105.26%)
         try loanManager.getCollateralizationRatio(positionId) returns (uint256 ratio) {
             if (ratio == type(uint256).max) {
                 // No debt, completely safe
                 riskLevel = 0;
-            } else if (ratio <= 1050000) { // Below 105% - critical
+            } else if (ratio < 1052000) { // Below 105.2% = LTV > 95% - LIQUIDABLE
                 riskLevel = 100;
-            } else if (ratio <= 1100000) { // Below 110% - immediate danger
-                riskLevel = 95;
-            } else if (ratio <= 1200000) { // Below 120% - danger
+            } else if (ratio < 1100000) { // Below 110% = LTV > 90.9% - HIGH RISK
                 riskLevel = 85;
-            } else if (ratio <= 1350000) { // Below 135% - warning
-                riskLevel = 75;
-            } else if (ratio <= 1500000) { // Below 150% - caution
-                riskLevel = 50;
+            } else if (ratio < 1200000) { // Below 120% = LTV > 83.3% - MEDIUM RISK
+                riskLevel = 60;
+            } else if (ratio < 1250000) { // Below 125% = LTV > 80% - LOW RISK  
+                riskLevel = 40;
             } else {
-                riskLevel = 25; // Healthy but monitored
+                riskLevel = 10; // Safe (LTV ≤ 80%)
             }
         } catch {
             // If ratio calculation fails, consider it risky

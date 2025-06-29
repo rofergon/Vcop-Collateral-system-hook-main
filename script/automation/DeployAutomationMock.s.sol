@@ -11,13 +11,17 @@ import {PriceChangeLogTrigger} from "../../src/automation/core/PriceChangeLogTri
  * @title DeployAutomationMock
  * @notice Mock deployment script using official Chainlink infrastructure
  * @dev Deploys automation contracts that connect to official Chainlink registry
+ * @dev Supports both Base Sepolia and Avalanche Fuji networks
  */
 contract DeployAutomationMock is Script {
     
-    // Official Chainlink addresses for Base Sepolia
-    address constant CHAINLINK_AUTOMATION_REGISTRY = 0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3;
-    address constant CHAINLINK_AUTOMATION_REGISTRAR = 0xf28D56F3A707E25B71Ce529a21AF388751E1CF2A;
-    address constant CHAINLINK_LINK_TOKEN = 0xE4aB69C077896252FAFBD49EFD26B5D171A32410;
+    // Network-specific Chainlink addresses
+    struct ChainlinkAddresses {
+        address registry;
+        address registrar;
+        address linkToken;
+        string networkName;
+    }
     
     // Configuration parameters
     struct AutomationConfig {
@@ -36,8 +40,12 @@ contract DeployAutomationMock is Script {
     
     // Configuration
     AutomationConfig public config;
+    ChainlinkAddresses public chainlinkAddresses;
     
     function run() external {
+        // Determine network and set Chainlink addresses
+        _setChainlinkAddresses();
+        
         // Load configuration from environment
         _loadConfiguration();
         
@@ -48,13 +56,14 @@ contract DeployAutomationMock is Script {
         console.log("DEPLOYING MOCK AUTOMATION WITH CHAINLINK");
         console.log("===============================================");
         console.log("Using OFFICIAL Chainlink Infrastructure");
-        console.log("Network: Base Sepolia");
+        console.log("Network:", chainlinkAddresses.networkName);
+        console.log("Chain ID:", block.chainid);
         console.log("Deployer:", vm.addr(deployerPrivateKey));
         console.log("");
         console.log("Official Chainlink Addresses:");
-        console.log("   Registry:  ", CHAINLINK_AUTOMATION_REGISTRY);
-        console.log("   Registrar: ", CHAINLINK_AUTOMATION_REGISTRAR);
-        console.log("   LINK Token:", CHAINLINK_LINK_TOKEN);
+        console.log("   Registry:  ", chainlinkAddresses.registry);
+        console.log("   Registrar: ", chainlinkAddresses.registrar);
+        console.log("   LINK Token:", chainlinkAddresses.linkToken);
         console.log("");
         console.log("Target Contracts:");
         console.log("   FlexibleLoanManager:", config.flexibleLoanManager);
@@ -78,8 +87,36 @@ contract DeployAutomationMock is Script {
         
         console.log("SUCCESS: Mock Automation Contracts Deployed with Chainlink!");
         console.log("Next Steps:");
-        console.log("   1. Register upkeep: make register-chainlink-upkeep");
-        console.log("   2. Configure Forwarder: make configure-forwarder");
+        console.log("   1. Update JSON: ./tools/update-automation-addresses.sh");
+        console.log("   2. Register upkeep: make register-chainlink-upkeep");
+        console.log("   3. Configure Forwarder: make configure-forwarder");
+    }
+    
+    /**
+     * @dev Set Chainlink addresses based on current network
+     */
+    function _setChainlinkAddresses() internal {
+        uint256 chainId = block.chainid;
+        
+        if (chainId == 84532) {
+            // Base Sepolia
+            chainlinkAddresses = ChainlinkAddresses({
+                registry: 0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3,
+                registrar: 0xf28D56F3A707E25B71Ce529a21AF388751E1CF2A,
+                linkToken: 0xE4aB69C077896252FAFBD49EFD26B5D171A32410,
+                networkName: "Base Sepolia"
+            });
+        } else if (chainId == 43113) {
+            // Avalanche Fuji
+            chainlinkAddresses = ChainlinkAddresses({
+                registry: 0x819B58A646CDd8289275A87653a2aA4902b14fe6,
+                registrar: 0xD23D3D1b81711D75E1012211f1b65Cc7dBB474e2,
+                linkToken: 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846,
+                networkName: "Avalanche Fuji"
+            });
+        } else {
+            revert("Unsupported network. Use Base Sepolia (84532) or Avalanche Fuji (43113)");
+        }
     }
     
     /**
@@ -144,7 +181,7 @@ contract DeployAutomationMock is Script {
     function _deployLoanKeeper() internal {
         console.log("Deploying LoanAutomationKeeperOptimized...");
         // Use official Chainlink registry address
-        loanKeeper = new LoanAutomationKeeperOptimized(CHAINLINK_AUTOMATION_REGISTRY);
+        loanKeeper = new LoanAutomationKeeperOptimized(chainlinkAddresses.registry);
         console.log("   LoanAutomationKeeperOptimized deployed at:", address(loanKeeper));
     }
     
@@ -218,12 +255,12 @@ contract DeployAutomationMock is Script {
         console.log("");
         console.log("=== MOCK AUTOMATION ADDRESSES FOR JSON UPDATE ===");
         console.log("AUTOMATION_EXTRACT_START");
-        console.log("AUTOMATION_REGISTRY:", CHAINLINK_AUTOMATION_REGISTRY);  // Official Chainlink Registry
+        console.log("AUTOMATION_REGISTRY:", chainlinkAddresses.registry);  // Official Chainlink Registry
         console.log("AUTOMATION_KEEPER:", address(loanKeeper));
         console.log("LOAN_ADAPTER:", address(loanAdapter));
         console.log("PRICE_TRIGGER:", address(priceLogTrigger));
-        console.log("CHAINLINK_REGISTRAR:", CHAINLINK_AUTOMATION_REGISTRAR);
-        console.log("CHAINLINK_LINK_TOKEN:", CHAINLINK_LINK_TOKEN);
+        console.log("CHAINLINK_REGISTRAR:", chainlinkAddresses.registrar);
+        console.log("CHAINLINK_LINK_TOKEN:", chainlinkAddresses.linkToken);
         console.log("AUTOMATION_EXTRACT_END");
         console.log("=== END MOCK AUTOMATION ADDRESSES ===");
     }
@@ -236,13 +273,14 @@ contract DeployAutomationMock is Script {
         console.log("=================================================");
         console.log("MOCK AUTOMATION DEPLOYMENT WITH CHAINLINK");
         console.log("=================================================");
-        console.log("Network: Base Sepolia");
+        console.log("Network:", chainlinkAddresses.networkName);
+        console.log("Chain ID:", block.chainid);
         console.log("Deployer:", msg.sender);
         console.log("");
         console.log("OFFICIAL CHAINLINK INFRASTRUCTURE:");
-        console.log("   Registry:  ", CHAINLINK_AUTOMATION_REGISTRY);
-        console.log("   Registrar: ", CHAINLINK_AUTOMATION_REGISTRAR);
-        console.log("   LINK Token:", CHAINLINK_LINK_TOKEN);
+        console.log("   Registry:  ", chainlinkAddresses.registry);
+        console.log("   Registrar: ", chainlinkAddresses.registrar);
+        console.log("   LINK Token:", chainlinkAddresses.linkToken);
         console.log("");
         console.log("YOUR DEPLOYED CONTRACTS:");
         console.log("   LoanAutomationKeeper:    ", address(loanKeeper));
