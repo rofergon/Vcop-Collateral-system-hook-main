@@ -32,7 +32,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     // Dynamic price registry (replaces hardcoded addresses)
     IPriceRegistry public priceRegistry;
     
-    // ⚡ NEW: Emergency registry for centralized liquidation coordination
+    // Emergency registry for centralized liquidation coordination
     IEmergencyRegistry public emergencyRegistry;
     
     // Loan positions
@@ -103,26 +103,26 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
      * No ratio limits! Only basic validations to prevent math errors.
      */
     function createLoan(LoanTerms calldata terms) external override whenNotPaused returns (uint256 positionId) {
-        // ✅ ONLY BASIC MATH VALIDATIONS
+        //  ONLY BASIC MATH VALIDATIONS
         require(terms.collateralAmount > 0, "Collateral amount must be positive");
         require(terms.loanAmount > 0, "Loan amount must be positive");
         require(terms.collateralAsset != terms.loanAsset, "Assets must be different");
         require(terms.interestRate < 1000000000, "Interest rate too high (prevents overflow)");
         
-        // ✅ VERIFY ASSETS ARE SUPPORTED
+        //  VERIFY ASSETS ARE SUPPORTED
         IAssetHandler collateralHandler = _getAssetHandler(terms.collateralAsset);
         IAssetHandler loanHandler = _getAssetHandler(terms.loanAsset);
         
         require(collateralHandler.isAssetSupported(terms.collateralAsset), "Collateral asset not supported");
         require(loanHandler.isAssetSupported(terms.loanAsset), "Loan asset not supported");
         
-        // ✅ CHECK LIQUIDITY AVAILABILITY ONLY
+        //  CHECK LIQUIDITY AVAILABILITY ONLY
         require(
             loanHandler.getAvailableLiquidity(terms.loanAsset) >= terms.loanAmount,
             "Insufficient liquidity"
         );
         
-        // ✅ NO RATIO CHECKS! User can create ANY ratio they want
+        //  NO RATIO CHECKS! User can create ANY ratio they want
         // Frontend will warn about risky ratios, but contracts allow them
         
         // Transfer collateral from user
@@ -195,7 +195,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
         require(amount <= position.collateralAmount, "Amount exceeds available collateral");
         require(amount > 0, "Amount must be positive");
         
-        // ✅ NO RATIO CHECKS! User can withdraw to ANY ratio
+        //  NO RATIO CHECKS! User can withdraw to ANY ratio
         // Frontend will warn about liquidation risk, but contract allows it
         
         // Update rewards for collateral withdrawal
@@ -221,14 +221,14 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
         // Update interest before increasing loan
         updateInterest(positionId);
         
-        // ✅ ONLY CHECK LIQUIDITY AVAILABILITY
+        //  ONLY CHECK LIQUIDITY AVAILABILITY
         IAssetHandler loanHandler = _getAssetHandler(position.loanAsset);
         require(
             loanHandler.getAvailableLiquidity(position.loanAsset) >= additionalAmount,
             "Insufficient liquidity"
         );
         
-        // ✅ NO RATIO CHECKS! User can leverage to ANY level
+        //  NO RATIO CHECKS! User can leverage to ANY level
         
         // Update position
         position.loanAmount += additionalAmount;
@@ -294,7 +294,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
         // Update interest before liquidation check
         updateInterest(positionId);
         
-        // ✅ FLEXIBLE LIQUIDATION - Use asset config but allow override
+        //  FLEXIBLE LIQUIDATION - Use asset config but allow override
         require(canLiquidate(positionId), "Position not liquidatable by current rules");
         
         uint256 totalDebt = getTotalDebt(positionId);
@@ -329,7 +329,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
-     * @dev ⚡ ENHANCED: Centralized liquidation check with emergency coordination
+     * @dev  ENHANCED: Centralized liquidation check with emergency coordination
      */
     function canLiquidate(uint256 positionId) public view override returns (bool) {
         LoanPosition memory position = positions[positionId];
@@ -337,12 +337,12 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
             return false;
         }
         
-        // ⚡ PRIORITY 1: Check emergency registry first (centralized control)
+        //  PRIORITY 1: Check emergency registry first (centralized control)
         if (address(emergencyRegistry) != address(0)) {
             (bool isEmergency, uint256 emergencyRatio) = emergencyRegistry.isAssetInEmergency(position.collateralAsset);
             
             if (isEmergency) {
-                // 🚨 EMERGENCY MODE: Use emergency ratio for liquidation
+                //  EMERGENCY MODE: Use emergency ratio for liquidation
                 try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
                     return currentRatio < emergencyRatio;
                 } catch {
@@ -352,13 +352,13 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
             }
         }
         
-        // ⚡ PRIORITY 2: Normal liquidation check using asset handler
+        //  PRIORITY 2: Normal liquidation check using asset handler
         try this.getCollateralizationRatio(positionId) returns (uint256 currentRatio) {
             // Get liquidation threshold from asset handler
             IAssetHandler collateralHandler = _getAssetHandler(position.collateralAsset);
             IAssetHandler.AssetConfig memory config = collateralHandler.getAssetConfig(position.collateralAsset);
             
-            // ⚡ ENHANCED: Use emergency registry for effective ratio calculation
+            //  ENHANCED: Use emergency registry for effective ratio calculation
             uint256 effectiveRatio = config.liquidationRatio;
             if (address(emergencyRegistry) != address(0)) {
                 effectiveRatio = emergencyRegistry.getEffectiveLiquidationRatio(
@@ -367,7 +367,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
                 );
             }
             
-            // ✅ ENHANCED: Additional safety check for minimum ratio
+            //  ENHANCED: Additional safety check for minimum ratio
             require(effectiveRatio > 0, "Invalid liquidation ratio");
             
             // Use effective threshold (considers emergency states)
@@ -431,7 +431,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
         address loanAsset,
         uint256 /* collateralAmount */
     ) external view override returns (uint256) {
-        // ✅ NO RATIO LIMITS! Return available liquidity only
+        //  NO RATIO LIMITS! Return available liquidity only
         IAssetHandler loanHandler = _getAssetHandler(loanAsset);
         return loanHandler.getAvailableLiquidity(loanAsset);
     }
@@ -499,7 +499,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
             }
         }
         
-        // 🎯 PRIORITY 2: Try oracle for real-time prices
+        //  PRIORITY 2: Try oracle for real-time prices
         if (address(oracle) != address(0)) {
             try oracle.getPrice(asset, address(0)) returns (uint256 price) {
                 if (price > 0) {
@@ -512,7 +512,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
             }
         }
         
-        // 🎯 PRIORITY 3: Emergency fallback - assume 1:1 ratio
+        //  PRIORITY 3: Emergency fallback - assume 1:1 ratio
         // This should only happen in extreme cases
         return amount;
     }
@@ -567,14 +567,14 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
-     * @dev ⚡ NEW: Sets emergency registry (for centralized emergency coordination)
+     * @dev  NEW: Sets emergency registry (for centralized emergency coordination)
      */
     function setEmergencyRegistry(address _emergencyRegistry) external onlyOwner {
         emergencyRegistry = IEmergencyRegistry(_emergencyRegistry);
     }
     
     /**
-     * @dev ⚡ NEW: Emergency function to activate emergency mode for multiple assets
+     * @dev  NEW: Emergency function to activate emergency mode for multiple assets
      * This coordinates with VaultBasedHandler emergency modes!
      */
     function activateEmergencyMode(
@@ -595,7 +595,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
-     * @dev ⚡ NEW: Emergency function to resolve emergency mode for multiple assets
+     * @dev  NEW: Emergency function to resolve emergency mode for multiple assets
      */
     function resolveEmergencyMode(
         address[] calldata assets,
@@ -919,7 +919,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
-     * @dev 🤖 NEW: Sets the automation adapter for automatic position tracking
+     * @dev  Sets the automation adapter for automatic position tracking
      */
     function setAutomationAdapter(address _automationAdapter) external onlyOwner {
         automationAdapter = _automationAdapter;
@@ -933,7 +933,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
-     * @dev 🤖 AUTOMATIC TRACKING: Internal function to add position to automation tracking
+     * @dev  AUTOMATIC TRACKING: Internal function to add position to automation tracking
      */
     function _addPositionToAutomationTracking(uint256 positionId) internal {
         if (address(automationAdapter) != address(0)) {
@@ -947,7 +947,7 @@ contract FlexibleLoanManager is ILoanManager, IRewardable, ILoanAutomation, Owna
     }
     
     /**
-     * @dev 🤖 AUTOMATIC TRACKING: External function to call automation adapter (bypasses interface)
+     * @dev  AUTOMATIC TRACKING: External function to call automation adapter (bypasses interface)
      */
     function _callAutomationAdapter(uint256 positionId) external {
         require(msg.sender == address(this), "Only self can call");
