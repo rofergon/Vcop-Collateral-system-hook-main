@@ -8,23 +8,23 @@ Complete automation system using **Chainlink Automation v2.25.0** with support f
 
 | Contract | Address | Block Explorer |
 |----------|---------|----------------|
+| **[Automation Keeper](core/LoanAutomationKeeperOptimized.sol)** | `0x328433a99f182a80341946b2d8379e6df548234b` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x328433a99f182a80341946b2d8379e6df548234b) |
+| **[Loan Adapter](core/LoanManagerAutomationAdapter.sol)** | `0xca2cc8a23f1950bc2610187ac00615dc285362ac` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xca2cc8a23f1950bc2610187ac00615dc285362ac) |
+| **[Price Trigger](core/PriceChangeLogTrigger.sol)** | `0x96b1b83df95da5dd0c81cfd30e4d0d83b54ab3ff` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x96b1b83df95da5dd0c81cfd30e4d0d83b54ab3ff) |
 | **[FlexibleLoanManager](../core/FlexibleLoanManager.sol)** | `0x99681e9d661b5432BC3f989A109804b9932941fF` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x99681e9d661b5432BC3f989A109804b9932941fF) |
 | **[VaultBasedHandler](../core/VaultBasedHandler.sol)** | `0x23c794293569BC293bb0BaBfc96F89600182c7dd` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x23c794293569BC293bb0BaBfc96F89600182c7dd) |
 | **[FlexibleAssetHandler](../core/FlexibleAssetHandler.sol)** | `0x06FBe093ecD740Bb6c7928E178b7Fc8E6f916520` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x06FBe093ecD740Bb6c7928E178b7Fc8E6f916520) |
-| **Automation Keeper** | `0x328433a99f182a80341946b2d8379e6df548234b` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x328433a99f182a80341946b2d8379e6df548234b) |
-| **Loan Adapter** | `0xca2cc8a23f1950bc2610187ac00615dc285362ac` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xca2cc8a23f1950bc2610187ac00615dc285362ac) |
-| **Price Trigger** | `0x96b1b83df95da5dd0c81cfd30e4d0d83b54ab3ff` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x96b1b83df95da5dd0c81cfd30e4d0d83b54ab3ff) |
 
 ### 📋 Contract Descriptions
 
 | Contract | Main Function | Type |
 |----------|---------------|------|
+| **[Automation Keeper](core/LoanAutomationKeeperOptimized.sol)** | Main liquidation executor | Custom Logic Automation |
+| **[Loan Adapter](core/LoanManagerAutomationAdapter.sol)** | Interface with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol) | Adapter Contract |
+| **[Price Trigger](core/PriceChangeLogTrigger.sol)** | Automatic response to price changes | Log Trigger Automation |
 | **[FlexibleLoanManager](../core/FlexibleLoanManager.sol)** | Core lending protocol with ultra-flexible ratios | Core Protocol |
 | **[VaultBasedHandler](../core/VaultBasedHandler.sol)** | Handles vault-based assets (ETH, WBTC, USDC) | Asset Handler |
 | **[FlexibleAssetHandler](../core/FlexibleAssetHandler.sol)** | Universal handler for mintable/burnable assets | Asset Handler |
-| **Automation Keeper** | Main liquidation executor | Custom Logic Automation |
-| **Loan Adapter** | Interface with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol) | Adapter Contract |
-| **Price Trigger** | Automatic response to price changes | Log Trigger Automation |
 
 ### 🔗 Network & Links
 
@@ -37,19 +37,19 @@ Complete automation system using **Chainlink Automation v2.25.0** with support f
 
 | Contract | Address | Block Explorer |
 |----------|---------|----------------|
+| **[Automation Keeper](core/LoanAutomationKeeperOptimized.sol)** | `0x53abd121c7ce56ff25d22f2154af94c581fbf039` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x53abd121c7ce56ff25d22f2154af94c581fbf039) |
+| **[Loan Adapter](core/LoanManagerAutomationAdapter.sol)** | `0xe0f46e266af2f95b14537c3319a0f46cb53ab035` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xe0f46e266af2f95b14537c3319a0f46cb53ab035) |
+| **[Price Trigger](core/PriceChangeLogTrigger.sol)** | `0xab2b902b73d3315d0fed9e9d50102275017dc501` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xab2b902b73d3315d0fed9e9d50102275017dc501) |
 | **Automation Registry** | `0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3) |
-| **Automation Keeper** | `0x53abd121c7ce56ff25d22f2154af94c581fbf039` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x53abd121c7ce56ff25d22f2154af94c581fbf039) |
-| **Loan Adapter** | `0xe0f46e266af2f95b14537c3319a0f46cb53ab035` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xe0f46e266af2f95b14537c3319a0f46cb53ab035) |
-| **Price Trigger** | `0xab2b902b73d3315d0fed9e9d50102275017dc501` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xab2b902b73d3315d0fed9e9d50102275017dc501) |
 
 ### 📋 Contract Descriptions
 
 | Contract | Main Function | Automation Type |
 |----------|---------------|-----------------|
+| **[Automation Keeper](core/LoanAutomationKeeperOptimized.sol)** | Main liquidation executor | Custom Logic Automation |
+| **[Loan Adapter](core/LoanManagerAutomationAdapter.sol)** | Interface with FlexibleLoanManager | Adapter Contract |
+| **[Price Trigger](core/PriceChangeLogTrigger.sol)** | Automatic response to price changes | Log Trigger Automation |
 | **Automation Registry** | Chainlink Automation central registry | Core Registry |
-| **Automation Keeper** | Main liquidation executor | Custom Logic Automation |
-| **Loan Adapter** | Interface with FlexibleLoanManager | Adapter Contract |
-| **Price Trigger** | Automatic response to price changes | Log Trigger Automation |
 
 ### 🔗 Network & Links
 
