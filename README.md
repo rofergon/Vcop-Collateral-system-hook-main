@@ -20,7 +20,7 @@ VCOP features an advanced **automated liquidation system** that protects the pro
 
 **🤖 [chainlink automation deployment directory→](https://github.com/rofergon/Vcop-Collateral-system-hook-main/tree/main/src/automation)**
 
-Chainlink upkeep ID  https://automation.chain.link/fuji/89357913212392754032676463092533081794653514582216481438918372876400233416330 Avalanche
+Chainlink upkeep ID  https://automation.chain.link/fuji/97089639364816243919913587083827994184217029587051624471430177225095950763757 Avalanche
 
 ## System Overview
 
