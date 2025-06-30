@@ -2,7 +2,36 @@
 
 ## 🚀 Overview
 
-Complete automation system using **Chainlink Automation v2.25.0** with support for `FlexibleLoanManager`, `DynamicPriceRegistry` and intelligent automated liquidations. The system implements both **Custom Logic Automation** and **Log Trigger Automation** for maximum efficiency.
+Complete automation system using **Chainlink Automation v2.25.0** with support for [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol), [`DynamicPriceRegistry`](../core/DynamicPriceRegistry.sol) and intelligent automated liquidations. The system implements both **Custom Logic Automation** and **Log Trigger Automation** for maximum efficiency.
+
+## 🌐 Deployed Contracts - Avalanche Fuji
+
+| Contract | Address | Block Explorer |
+|----------|---------|----------------|
+| **[FlexibleLoanManager](../core/FlexibleLoanManager.sol)** | `0x99681e9d661b5432BC3f989A109804b9932941fF` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x99681e9d661b5432BC3f989A109804b9932941fF) |
+| **[VaultBasedHandler](../core/VaultBasedHandler.sol)** | `0x23c794293569BC293bb0BaBfc96F89600182c7dd` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x23c794293569BC293bb0BaBfc96F89600182c7dd) |
+| **[FlexibleAssetHandler](../core/FlexibleAssetHandler.sol)** | `0x06FBe093ecD740Bb6c7928E178b7Fc8E6f916520` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x06FBe093ecD740Bb6c7928E178b7Fc8E6f916520) |
+| **Automation Keeper** | `0x328433a99f182a80341946b2d8379e6df548234b` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x328433a99f182a80341946b2d8379e6df548234b) |
+| **Loan Adapter** | `0xca2cc8a23f1950bc2610187ac00615dc285362ac` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xca2cc8a23f1950bc2610187ac00615dc285362ac) |
+| **Price Trigger** | `0x96b1b83df95da5dd0c81cfd30e4d0d83b54ab3ff` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x96b1b83df95da5dd0c81cfd30e4d0d83b54ab3ff) |
+
+### 📋 Contract Descriptions
+
+| Contract | Main Function | Type |
+|----------|---------------|------|
+| **[FlexibleLoanManager](../core/FlexibleLoanManager.sol)** | Core lending protocol with ultra-flexible ratios | Core Protocol |
+| **[VaultBasedHandler](../core/VaultBasedHandler.sol)** | Handles vault-based assets (ETH, WBTC, USDC) | Asset Handler |
+| **[FlexibleAssetHandler](../core/FlexibleAssetHandler.sol)** | Universal handler for mintable/burnable assets | Asset Handler |
+| **Automation Keeper** | Main liquidation executor | Custom Logic Automation |
+| **Loan Adapter** | Interface with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol) | Adapter Contract |
+| **Price Trigger** | Automatic response to price changes | Log Trigger Automation |
+
+### 🔗 Network & Links
+
+- **Network**: Avalanche Fuji Testnet
+- **Explorer**: [Snowtrace Testnet](https://testnet.snowtrace.io/)
+- **RPC**: `https://api.avax-test.network/ext/bc/C/rpc`
+- **Chain ID**: `43113`
 
 ## 🏗️ System Architecture
 
@@ -21,14 +50,14 @@ Complete automation system using **Chainlink Automation v2.25.0** with support f
   - Integrated performance metrics
 
 ### 2. **LoanManagerAutomationAdapter** 🔗
-**Function**: Adapter for FlexibleLoanManager
+**Function**: Adapter for [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol)
 - **Location**: `src/automation/core/LoanManagerAutomationAdapter.sol`
 - **Purpose**: Interface between automation and lending protocol
 - **Features**:
   - Implements `ILoanAutomation` interface
   - Efficient tracking of active positions
   - Dynamic risk assessment
-  - Direct integration with `FlexibleLoanManager`
+  - Direct integration with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol)
 
 ### 3. **PriceChangeLogTrigger** 📈
 **Function**: Price event-based trigger (Log Automation)
@@ -40,7 +69,7 @@ Complete automation system using **Chainlink Automation v2.25.0** with support f
   - Real-time volatility detection
   - Multiple urgency levels (4 levels)
   - Temporary volatility mode
-  - Direct integration with `DynamicPriceRegistry`
+  - Direct integration with [`DynamicPriceRegistry`](../core/DynamicPriceRegistry.sol)
 
 ## 🔄 Detailed Workflow
 
@@ -57,7 +86,7 @@ The current system works as follows:
 
 - **LoanAutomationKeeperOptimized**: Manages its own registry of loan managers with `registeredManagers` and `managersList`
 - **PriceChangeLogTrigger**: Maintains its own list of loan managers with `registeredLoanManagers` and `loanManagersList`  
-- **LoanManagerAutomationAdapter**: Implements `ILoanAutomation` and connects directly with `FlexibleLoanManager`
+- **LoanManagerAutomationAdapter**: Implements `ILoanAutomation` and connects directly with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol)
 - **Official Interfaces**: Uses `AutomationCompatible` and `ILogAutomation` from Chainlink v2.25.0
 
 ### Custom Logic Automation Cycle
@@ -158,8 +187,8 @@ flowchart TB
 
 ```bash
 # Required contracts
-FLEXIBLE_LOAN_MANAGER=0x...        # FlexibleLoanManager address
-DYNAMIC_PRICE_REGISTRY=0x...       # DynamicPriceRegistry address
+FLEXIBLE_LOAN_MANAGER=0x...        # [FlexibleLoanManager](../core/FlexibleLoanManager.sol) address
+DYNAMIC_PRICE_REGISTRY=0x...       # [DynamicPriceRegistry](../core/DynamicPriceRegistry.sol) address
 PRIVATE_KEY=0x...                  # Deployer private key
 
 # Automation configuration
@@ -384,7 +413,7 @@ function getAssetPriceData(address asset) external view returns (
 
 ### FlexibleLoanManager Integration
 
-The system is specifically designed to work with `FlexibleLoanManager` using these functions:
+The system is specifically designed to work with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol) using these functions:
 
 ```solidity
 // 🔍 Risk Assessment
@@ -551,8 +580,8 @@ loanAdapter.syncPositionTracking();
 
 ### Compatibility
 - **Solidity**: ^0.8.24 - ^0.8.26
-- **FlexibleLoanManager**: ✅ Fully integrated
-- **DynamicPriceRegistry**: ✅ Native support
+- **[FlexibleLoanManager](../core/FlexibleLoanManager.sol)**: ✅ Fully integrated
+- **[DynamicPriceRegistry](../core/DynamicPriceRegistry.sol)**: ✅ Native support
 - **Multi-Asset**: ✅ Full support
 
 ### System Limits
@@ -569,8 +598,8 @@ loanAdapter.syncPositionTracking();
 
 ✅ **Chainlink Automation v2.25.0** - Latest version with `AutomationCompatible` and `ILogAutomation`  
 ✅ **Dual Trigger System** - Custom Logic + Log Triggers for complete coverage  
-✅ **FlexibleLoanManager Integration** - Native integration with optimized liquidations  
-✅ **Dynamic Price Monitoring** - Immediate response to `DynamicPriceRegistry` changes  
+✅ **[FlexibleLoanManager](../core/FlexibleLoanManager.sol) Integration** - Native integration with optimized liquidations  
+✅ **Dynamic Price Monitoring** - Immediate response to [`DynamicPriceRegistry`](../core/DynamicPriceRegistry.sol) changes  
 ✅ **Multi-tier Risk Assessment** - 4 urgency levels with differentiated strategies  
 ✅ **Volatility Detection** - Special mode for high market volatility  
 ✅ **Gas Optimization** - Smart batching and efficient gas management  
@@ -592,7 +621,7 @@ loanAdapter.syncPositionTracking();
 | Component | Status | Functionality |
 |------------|--------|---------------|
 | **LoanAutomationKeeper** | ✅ Optimized | Custom logic automation with batching and internal registry |
-| **LoanManagerAdapter** | ✅ Integrated | Interface with FlexibleLoanManager |
+| **LoanManagerAdapter** | ✅ Integrated | Interface with [`FlexibleLoanManager`](../core/FlexibleLoanManager.sol) |
 | **PriceChangeLogTrigger** | ✅ Advanced | Log automation with volatility detection and internal registry |
 | **Deployment Scripts** | ✅ Functional | Automated deployment scripts |
 | **Configuration Tools** | ✅ Available | Complete configuration functions |
