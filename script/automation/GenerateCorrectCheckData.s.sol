@@ -1,72 +1,117 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Script, console} from "forge-std/Script.sol";
-import {LoanAutomationKeeperOptimized} from "../../src/automation/core/LoanAutomationKeeperOptimized.sol";
+import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 
 /**
  * @title GenerateCorrectCheckData
- * @notice Genera el checkData correcto para el nuevo upkeep registrado
+ * @notice Genera el checkData CORRECTO para registro en Chainlink Automation
  */
 contract GenerateCorrectCheckData is Script {
     
-    // DIRECCION CORRECTA del AutomationKeeper
-    address constant AUTOMATION_KEEPER = 0x15C7298Dd649DcDc17D281cB0dAE84E945573c93;
-    address constant FLEXIBLE_LOAN_MANAGER = 0xc8Bf18B4D6B459b17b9298D5Ed6B2feC1f0D9b3D;
-    
-    // NUEVO UPKEEP ID registrado
-    uint256 constant NEW_UPKEEP_ID = 30080302487183721719276887120007770146371663906276452133962259565200945405248;
-    
     function run() external view {
-        console.log("=== GENERANDO CHECKDATA CORRECTO ===");
-        console.log("Contrato CORRECTO registrado:", AUTOMATION_KEEPER);
-        console.log("Nuevo Upkeep ID:", NEW_UPKEEP_ID);
+        console.log("=== GENERATING CORRECT CHECKDATA FOR CHAINLINK ===");
         console.log("");
         
-        // Instanciar el keeper correcto
-        LoanAutomationKeeperOptimized keeper = LoanAutomationKeeperOptimized(AUTOMATION_KEEPER);
+        // Load addresses from deployed-addresses-mock.json
+        string memory json = vm.readFile("deployed-addresses-mock.json");
+        address loanAdapter = vm.parseJsonAddress(json, ".automation.loanAdapter");
+        address automationKeeper = vm.parseJsonAddress(json, ".automation.automationKeeper");
         
-        // Generar checkData optimizado
-        bytes memory checkData = keeper.generateOptimizedCheckData(
-            FLEXIBLE_LOAN_MANAGER,  // loanManager
-            0,                      // startPositionId (auto-start desde 1)
-            0                       // batchSize (usa default 25)
+        console.log("AVALANCHE FUJI ADDRESSES:");
+        console.log("========================");
+        console.log("LoanAdapter:", loanAdapter);
+        console.log("AutomationKeeper:", automationKeeper);
+        console.log("");
+        
+        // Generate checkData: abi.encode(address loanManager, uint256 startIndex, uint256 batchSize)
+        bytes memory checkData = abi.encode(
+            loanAdapter,  // address: LoanAdapter (NOT FlexibleLoanManager)
+            uint256(0),   // uint256: startIndex (will be converted to position ID 1)
+            uint256(25)   // uint256: batchSize (optimal for gas)
         );
         
-        console.log("CheckData generado:");
+        console.log("CHAINLINK AUTOMATION REGISTRATION:");
+        console.log("=================================");
+        console.log("Registry Address (Avalanche Fuji):");
+        console.log("0x819B58A646CDd8289275A87653a2aA4902b14fe6");
+        console.log("");
+        console.log("Target Contract (AutomationKeeper):");
+        console.log(automationKeeper);
+        console.log("");
+        console.log("CheckData (CORRECT FORMAT):");
         console.logBytes(checkData);
-        
-        // Convertir a hex string para la interfaz web
-        string memory hexCheckData = _bytesToHexString(checkData);
-        console.log("");
-        console.log("=== CHECKDATA PARA COPIAR EN CHAINLINK ===");
-        console.log(hexCheckData);
         console.log("");
         
-        console.log("INSTRUCCIONES:");
-        console.log("1. Ve a: https://automation.chain.link/base-sepolia");
-        console.log("2. Busca tu nuevo upkeep ID:", NEW_UPKEEP_ID);
-        console.log("3. Haz click en 'Edit'");
-        console.log("4. Pega este checkData:");
-        console.log("   ", hexCheckData);
-        console.log("5. Guarda los cambios");
+        // Verify hex length
+        string memory hexString = vm.toString(checkData);
+        console.log("CheckData as string (copy this to Chainlink UI):");
+        console.log(hexString);
         console.log("");
-        console.log("AHORA SI FUNCIONARA porque:");
-        console.log("- Contrato correcto registrado");
-        console.log("- CheckData correcto");
-        console.log("- Sistema autorizado");
-        console.log("- Posiciones liquidables esperando");
+        
+        // Show length info
+        console.log("LENGTH VERIFICATION:");
+        console.log("===================");
+        console.log("CheckData length (bytes):", checkData.length);
+        console.log("Expected length: 96 bytes (32+32+32)");
+        console.log("Hex string length:", bytes(hexString).length);
+        console.log("Expected hex length: 194 chars (2 + 192)"); // "0x" + 192 hex chars
+        
+        // Manual verification
+        _verifyEncoding(loanAdapter);
     }
     
-    function _bytesToHexString(bytes memory data) internal pure returns (string memory) {
-        bytes memory alphabet = "0123456789abcdef";
-        bytes memory str = new bytes(2 + data.length * 2);
-        str[0] = "0";
-        str[1] = "x";
-        for (uint256 i = 0; i < data.length; i++) {
-            str[2 + i * 2] = alphabet[uint256(uint8(data[i] >> 4))];
-            str[3 + i * 2] = alphabet[uint256(uint8(data[i] & 0x0f))];
+    function _verifyEncoding(address loanAdapter) internal pure {
+        console.log("");
+        console.log("MANUAL VERIFICATION:");
+        console.log("===================");
+        
+        // Manually encode to verify
+        bytes32 encodedAddress = bytes32(uint256(uint160(loanAdapter)));
+        bytes32 encodedStartIndex = bytes32(uint256(0));
+        bytes32 encodedBatchSize = bytes32(uint256(25));
+        
+        console.log("Address encoded (32 bytes):");
+        console.logBytes32(encodedAddress);
+        console.log("StartIndex encoded (32 bytes):");
+        console.logBytes32(encodedStartIndex);
+        console.log("BatchSize encoded (32 bytes):");
+        console.logBytes32(encodedBatchSize);
+        
+        // Concatenate manually
+        bytes memory manualCheckData = abi.encodePacked(
+            encodedAddress,
+            encodedStartIndex,
+            encodedBatchSize
+        );
+        
+        console.log("Manual concatenation:");
+        console.logBytes(manualCheckData);
+        console.log("");
+        
+        // Generate using abi.encode again for final result
+        bytes memory finalCheckData = abi.encode(loanAdapter, uint256(0), uint256(25));
+        
+        console.log("FINAL RESULT FOR CHAINLINK:");
+        console.log("===========================");
+        console.log("Use this exact value in Chainlink UI:");
+        console.logBytes(finalCheckData);
+        
+        // Convert to hex without 0x prefix for debugging
+        bytes memory dataOnly = new bytes(finalCheckData.length);
+        for (uint i = 0; i < finalCheckData.length; i++) {
+            dataOnly[i] = finalCheckData[i];
         }
-        return string(str);
+        
+        console.log("");
+        console.log("REGISTRATION PARAMETERS:");
+        console.log("========================");
+        console.log("Upkeep Name: VCOP Avalanche Loan Liquidation");
+        console.log("Gas Limit: 2000000");
+        console.log("Starting Balance: 50 LINK");
+        console.log("Trigger Type: Custom Logic");
+        console.log("Target Contract: Use AutomationKeeper address above");
+        console.log("CheckData: Use the hex value above");
     }
 } 

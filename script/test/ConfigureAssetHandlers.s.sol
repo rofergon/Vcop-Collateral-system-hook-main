@@ -3,19 +3,16 @@ pragma solidity ^0.8.24;
 
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
-import {FlexibleLoanManager} from "../../src/core/FlexibleLoanManager.sol";
-import {VaultBasedHandler} from "../../src/core/VaultBasedHandler.sol";
-import {IAssetHandler} from "../../src/interfaces/IAssetHandler.sol";
 
 /**
  * @title ConfigureAssetHandlers
- * @notice Configures asset handlers in FlexibleLoanManager for mock tokens
+ * @notice Simplified version to debug deployment issues
  */
 contract ConfigureAssetHandlers is Script {
     
     function run() external {
-        console.log("CONFIGURING ASSET HANDLERS FOR MOCK TOKENS");
-        console.log("==========================================");
+        console.log("DEBUGGING ASSET HANDLERS CONFIGURATION");
+        console.log("=======================================");
         
         // Read addresses from JSON
         string memory json = vm.readFile("deployed-addresses-mock.json");
@@ -25,100 +22,53 @@ contract ConfigureAssetHandlers is Script {
         address vaultBasedHandler = vm.parseJsonAddress(json, ".coreLending.vaultBasedHandler");
         address mintableBurnableHandler = vm.parseJsonAddress(json, ".coreLending.mintableBurnableHandler");
         
-        address mockETH = vm.parseJsonAddress(json, ".tokens.mockETH");
-        address mockUSDC = vm.parseJsonAddress(json, ".tokens.mockUSDC");
-        address mockWBTC = vm.parseJsonAddress(json, ".tokens.mockWBTC");
-        
+        console.log("Contract addresses from JSON:");
         console.log("FlexibleLoanManager:", flexibleLoanManager);
         console.log("FlexibleAssetHandler:", flexibleAssetHandler);
         console.log("VaultBasedHandler:", vaultBasedHandler);
+        console.log("MintableBurnableHandler:", mintableBurnableHandler);
         
-        vm.startBroadcast();
+        // Use deployer private key
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerPrivateKey);
+        console.log("Deployer address:", deployer);
         
-        FlexibleLoanManager loanManager = FlexibleLoanManager(flexibleLoanManager);
+        // Check if contracts have code
+        console.log("Checking contract deployments...");
+        console.log("FlexibleLoanManager code size:", flexibleLoanManager.code.length);
+        console.log("FlexibleAssetHandler code size:", flexibleAssetHandler.code.length);
+        console.log("VaultBasedHandler code size:", vaultBasedHandler.code.length);
+        console.log("MintableBurnableHandler code size:", mintableBurnableHandler.code.length);
         
-        // Set asset handlers
-        console.log("Setting asset handlers...");
-        loanManager.setAssetHandler(IAssetHandler.AssetType.MINTABLE_BURNABLE, mintableBurnableHandler);
-        loanManager.setAssetHandler(IAssetHandler.AssetType.VAULT_BASED, vaultBasedHandler);
-        loanManager.setAssetHandler(IAssetHandler.AssetType.REBASING, flexibleAssetHandler);
+        // Basic deployment validation
+        if (flexibleLoanManager.code.length == 0) {
+            console.log("ERROR: FlexibleLoanManager not deployed properly!");
+            return;
+        }
         
-        // Configure mock tokens in handlers
-        console.log("Configuring mock tokens...");
+        if (vaultBasedHandler.code.length == 0) {
+            console.log("ERROR: VaultBasedHandler not deployed properly!");
+            return;
+        }
         
-        // Configure ETH as vault-based (external asset)
-        VaultBasedHandler(vaultBasedHandler).configureAsset(
-            mockETH,
-            1300000, // 130% collateral ratio
-            1100000, // 110% liquidation ratio  
-            1000 * 1e18, // 1000 ETH max loan
-            80000 // 8% interest rate
-        );
+        console.log("SUCCESS: All contracts have code, proceeding with basic configuration test...");
         
-        // Configure USDC as vault-based (for testing)
-        VaultBasedHandler(vaultBasedHandler).configureAsset(
-            mockUSDC,
-            1100000, // 110% collateral ratio
-            1050000, // 105% liquidation ratio
-            1000000 * 1e6, // 1M USDC max loan
-            40000 // 4% interest rate
-        );
+        vm.startBroadcast(deployerPrivateKey);
         
-        // Configure WBTC as vault-based (external asset)
-        VaultBasedHandler(vaultBasedHandler).configureAsset(
-            mockWBTC,
-            1400000, // 140% collateral ratio
-            1150000, // 115% liquidation ratio
-            50 * 1e8, // 50 BTC max loan
-            75000 // 7.5% interest rate
-        );
+        // Try basic call without revert handling to see raw error
+        console.log("Testing basic contract call...");
         
-        // Provide initial liquidity to vault-based assets
-        console.log("Providing initial liquidity...");
-        
-        // Mint tokens to provide liquidity
-        (bool success, ) = mockETH.call(
-            abi.encodeWithSignature("mint(address,uint256)", msg.sender, 100 * 1e18)
-        );
-        require(success, "Failed to mint ETH");
-        
-        (success, ) = mockWBTC.call(
-            abi.encodeWithSignature("mint(address,uint256)", msg.sender, 10 * 1e8)
-        );
-        require(success, "Failed to mint WBTC");
-        
-        // Mint USDC for liquidity (THIS WAS MISSING!)
-        (success, ) = mockUSDC.call(
-            abi.encodeWithSignature("mint(address,uint256)", msg.sender, 1000000 * 1e6)
-        );
-        require(success, "Failed to mint USDC");
-        
-        // Approve and provide liquidity for all tokens
-        (success, ) = mockETH.call(
-            abi.encodeWithSignature("approve(address,uint256)", vaultBasedHandler, 50 * 1e18)
-        );
-        require(success, "Failed to approve ETH");
-        
-        VaultBasedHandler(vaultBasedHandler).provideLiquidity(mockETH, 50 * 1e18, msg.sender);
-        
-        (success, ) = mockWBTC.call(
-            abi.encodeWithSignature("approve(address,uint256)", vaultBasedHandler, 5 * 1e8)
-        );
-        require(success, "Failed to approve WBTC");
-        
-        VaultBasedHandler(vaultBasedHandler).provideLiquidity(mockWBTC, 5 * 1e8, msg.sender);
-        
-        // Provide USDC liquidity (THIS WAS MISSING!)
-        (success, ) = mockUSDC.call(
-            abi.encodeWithSignature("approve(address,uint256)", vaultBasedHandler, 100000 * 1e6)
-        );
-        require(success, "Failed to approve USDC");
-        
-        VaultBasedHandler(vaultBasedHandler).provideLiquidity(mockUSDC, 100000 * 1e6, msg.sender);
+        // Simple check - try to call a view function first
+        (bool success, bytes memory data) = flexibleLoanManager.staticcall(abi.encodeWithSignature("nextPositionId()"));
+        if (success) {
+            uint256 nextId = abi.decode(data, (uint256));
+            console.log("FlexibleLoanManager nextPositionId:", nextId);
+        } else {
+            console.log("Failed to call nextPositionId()");
+        }
         
         vm.stopBroadcast();
         
-        console.log("Asset handlers configured successfully!");
-        console.log("Mock tokens are now supported by FlexibleLoanManager");
+        console.log("Basic configuration test completed!");
     }
 } 

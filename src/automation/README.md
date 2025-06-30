@@ -33,6 +33,31 @@ Complete automation system using **Chainlink Automation v2.25.0** with support f
 - **RPC**: `https://api.avax-test.network/ext/bc/C/rpc`
 - **Chain ID**: `43113`
 
+## 🌐 Deployed Contracts - Avalanche Fuji
+
+| Contract | Address | Block Explorer |
+|----------|---------|----------------|
+| **Automation Registry** | `0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3) |
+| **Automation Keeper** | `0x53abd121c7ce56ff25d22f2154af94c581fbf039` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x53abd121c7ce56ff25d22f2154af94c581fbf039) |
+| **Loan Adapter** | `0xe0f46e266af2f95b14537c3319a0f46cb53ab035` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xe0f46e266af2f95b14537c3319a0f46cb53ab035) |
+| **Price Trigger** | `0xab2b902b73d3315d0fed9e9d50102275017dc501` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xab2b902b73d3315d0fed9e9d50102275017dc501) |
+
+### 📋 Contract Descriptions
+
+| Contract | Main Function | Automation Type |
+|----------|---------------|-----------------|
+| **Automation Registry** | Chainlink Automation central registry | Core Registry |
+| **Automation Keeper** | Main liquidation executor | Custom Logic Automation |
+| **Loan Adapter** | Interface with FlexibleLoanManager | Adapter Contract |
+| **Price Trigger** | Automatic response to price changes | Log Trigger Automation |
+
+### 🔗 Network & Links
+
+- **Network**: Avalanche Fuji Testnet
+- **Explorer**: [Snowtrace Testnet](https://testnet.snowtrace.io/)
+- **RPC**: `https://api.avax-test.network/ext/bc/C/rpc`
+- **Chain ID**: `43113`
+
 ## 🏗️ System Architecture
 
 ### Main Components
@@ -221,41 +246,8 @@ criticalThreshold = 150000      // 15% - Critical level
 volatilityBoostThreshold = 100000 // 10% - Volatility mode
 ```
 
-## 🚀 Step-by-Step Deployment
 
-### 1. Environment Setup
-
-```bash
-# Clone and configure
-git clone <repo>
-cd Vcop-Collateral-system-hook-main
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your values
-
-# Configure deployed contract addresses
-export FLEXIBLE_LOAN_MANAGER=0x...
-export DYNAMIC_PRICE_REGISTRY=0x...
-```
-
-### 2. Deploy Automation System
-
-```bash
-# Option A: Complete clean deployment
-forge script script/automation/DeployAutomationClean.s.sol \
-    --broadcast \
-    --verify \
-    --rpc-url $RPC_URL
-
-# Option B: Standard deployment
-forge script script/automation/DeployAutomation.s.sol \
-    --broadcast \
-    --verify \
-    --rpc-url $RPC_URL
-```
-
-### 3. Configure in Chainlink Automation UI
+### Configure in Chainlink Automation UI
 
 #### Custom Logic Upkeep
 ```bash
@@ -560,14 +552,7 @@ loanAdapter.syncPositionTracking();
 
 - **Metrics**: Track liquidation success rate
 - **Volatility**: Adjust parameters based on market conditions
-- **Funding**: Maintain adequate LINK balance
 - **Updates**: Synchronize positions periodically
-## 📚 Additional Resources
-
-- [Chainlink Automation Documentation](https://docs.chain.link/chainlink-automation)
-- [FlexibleLoanManager Guide](../core/README.md)
-- [DynamicPriceRegistry Documentation](../interfaces/IPriceRegistry.sol)
-- [ILoanAutomation Interface](./interfaces/ILoanAutomation.sol)
 
 ---
 
@@ -586,7 +571,7 @@ loanAdapter.syncPositionTracking();
 
 ### System Limits
 - **Max Batch Size**: 200 positions
-- **Max Gas per Upkeep**: 5,000,000
+- **Max Gas per Upkeep**: 2,000,000
 - **Min Cooldown**: 60 seconds
 - **Max Managers**: Unlimited (gas permitting)
 
@@ -625,15 +610,8 @@ loanAdapter.syncPositionTracking();
 | **PriceChangeLogTrigger** | ✅ Advanced | Log automation with volatility detection and internal registry |
 | **Deployment Scripts** | ✅ Functional | Automated deployment scripts |
 | **Configuration Tools** | ✅ Available | Complete configuration functions |
-| **Chainlink Integration** | ✅ Official | Uses official AutomationCompatible and ILogAutomation interfaces |
 
-### Recommended Next Steps
 
-1. **Deployment**: Use `DeployAutomationClean.s.sol` for complete deployment
-2. **Configuration**: Configure thresholds according to specific market conditions
-3. **Registration**: Register upkeeps in Chainlink Automation UI
-4. **Monitoring**: Implement alerts based on system metrics
-5. **Testing**: Run tests with sample positions before production
-6. **Optimization**: Adjust parameters based on real performance
+
 
 The system is designed for maximum efficiency, security and flexibility in automated liquidation handling for the lending protocol.

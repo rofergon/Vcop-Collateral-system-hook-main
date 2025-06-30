@@ -36,15 +36,22 @@ import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
  * @title DeployUnifiedSystemMock
  * @notice Unified deployment script using MockVCOPOracle for easier liquidation testing
  * @dev Identical to DeployUnifiedSystem but uses MockVCOPOracle with price manipulation features
+ * @dev Supports multiple networks: Base Sepolia, Avalanche Fuji
  */
 contract DeployUnifiedSystemMock is Script {
     
-    // Network configuration - Base Sepolia testnet
-    address constant POOL_MANAGER_ADDRESS = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;
-    address constant CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
-    uint24 constant POOL_FEE = 3000; // 0.3%
-    int24 constant TICK_SPACING = 60;
-    uint256 constant INITIAL_USD_TO_COP_RATE = 4200 * 1e6; // 4200 COP per USD
+    // Network configuration struct
+    struct NetworkConfig {
+        address poolManager;
+        address create2Deployer;
+        uint24 poolFee;
+        int24 tickSpacing;
+        uint256 initialUsdToCopRate;
+        string networkName;
+    }
+    
+    // Current network configuration
+    NetworkConfig public networkConfig;
     
     // Token addresses
     address public mockETH;
@@ -74,10 +81,14 @@ contract DeployUnifiedSystemMock is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
         
+        // Set network configuration based on chain ID
+        _setNetworkConfig();
+        
         console.log("=== DEPLOYING UNIFIED VCOP SYSTEM WITH MOCK ORACLE ===");
         console.log("Deployer address:", deployer);
-        console.log("Network: Base Sepolia");
-        console.log("Pool Manager:", POOL_MANAGER_ADDRESS);
+        console.log("Network:", networkConfig.networkName);
+        console.log("Chain ID:", block.chainid);
+        console.log("Pool Manager:", networkConfig.poolManager);
         console.log("ORACLE TYPE: MockVCOPOracle (for easy liquidation testing)");
         
         vm.startBroadcast(deployerPrivateKey);
@@ -108,6 +119,37 @@ contract DeployUnifiedSystemMock is Script {
         _saveDeploymentAddresses();
         
         _printDeploymentSummary();
+    }
+    
+    /**
+     * @dev Set network configuration based on current chain ID
+     */
+    function _setNetworkConfig() internal {
+        uint256 chainId = block.chainid;
+        
+        if (chainId == 84532) {
+            // Base Sepolia
+            networkConfig = NetworkConfig({
+                poolManager: 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408,
+                create2Deployer: 0x4e59b44847b379578588920cA78FbF26c0B4956C,
+                poolFee: 3000, // 0.3%
+                tickSpacing: 60,
+                initialUsdToCopRate: 4200 * 1e6, // 4200 COP per USD
+                networkName: "Base Sepolia"
+            });
+        } else if (chainId == 43113) {
+            // Avalanche Fuji
+            networkConfig = NetworkConfig({
+                poolManager: 0x0000000000000000000000000000000000000000, // TODO: Update when available
+                create2Deployer: 0x4e59b44847b379578588920cA78FbF26c0B4956C, // Standard CREATE2 deployer
+                poolFee: 3000, // 0.3%
+                tickSpacing: 60,
+                initialUsdToCopRate: 4200 * 1e6, // 4200 COP per USD
+                networkName: "Avalanche Fuji"
+            });
+        } else {
+            revert("Unsupported network. Use Base Sepolia (84532) or Avalanche Fuji (43113)");
+        }
     }
     
     function _deployMockTokens() internal {
@@ -141,13 +183,13 @@ contract DeployUnifiedSystemMock is Script {
         // Deploy Price Calculator
         console.log("Deploying VCOP Price Calculator...");
         vcopPriceCalculator = address(new VCOPPriceCalculator(
-            POOL_MANAGER_ADDRESS,
+            networkConfig.poolManager,
             vcopToken,
             mockUSDC,
-            POOL_FEE,
-            TICK_SPACING,
+            networkConfig.poolFee,
+            networkConfig.tickSpacing,
             address(0), // Will update later
-            INITIAL_USD_TO_COP_RATE
+            networkConfig.initialUsdToCopRate
         ));
         console.log("VCOP Price Calculator deployed at:", vcopPriceCalculator);
         
@@ -167,6 +209,17 @@ contract DeployUnifiedSystemMock is Script {
     function _deployHookWithCorrectAddress() internal {
         address deployer = msg.sender;
         
+        // Check if Pool Manager is available
+        if (networkConfig.poolManager == address(0)) {
+            console.log("WARNING: Pool Manager not available on this network");
+            console.log("   Deploying simplified collateral manager without hook");
+            
+            // For Avalanche Fuji, we'll skip the hook deployment if Pool Manager is not available
+            vcopCollateralHook = address(0);
+            console.log("VCOP Collateral Hook: SKIPPED (no Pool Manager)");
+            return;
+        }
+        
         // Define hook flags (same as in DeployVCOPCollateralHook.s.sol)
         uint160 hookFlags = uint160(
             Hooks.BEFORE_SWAP_FLAG | 
@@ -178,7 +231,7 @@ contract DeployUnifiedSystemMock is Script {
         
         // Encode constructor arguments
         bytes memory constructorArgs = abi.encode(
-            IPoolManager(POOL_MANAGER_ADDRESS),
+            IPoolManager(networkConfig.poolManager),
             vcopCollateralManager,
             mockVcopOracle,  // Using mock oracle here too
             Currency.wrap(vcopToken),
@@ -191,7 +244,7 @@ contract DeployUnifiedSystemMock is Script {
         
         // Use HookMiner to find a valid address
         (address hookAddress, bytes32 salt) = HookMiner.find(
-            CREATE2_DEPLOYER,
+            networkConfig.create2Deployer,
             hookFlags,
             type(VCOPCollateralHook).creationCode,
             constructorArgs
@@ -203,7 +256,7 @@ contract DeployUnifiedSystemMock is Script {
         // Deploy the hook using CREATE2
         vcopCollateralHook = address(
             new VCOPCollateralHook{salt: salt}(
-                IPoolManager(POOL_MANAGER_ADDRESS),
+                IPoolManager(networkConfig.poolManager),
                 vcopCollateralManager,
                 address(mockVcopOracle),  // Cast to address
                 Currency.wrap(vcopToken),
@@ -327,9 +380,9 @@ contract DeployUnifiedSystemMock is Script {
             '    "dynamicPriceRegistry": "', vm.toString(dynamicPriceRegistry), '"\n',
             '  },\n',
             '  "config": {\n',
-            '    "poolManager": "', vm.toString(POOL_MANAGER_ADDRESS), '",\n',
+            '    "poolManager": "', vm.toString(networkConfig.poolManager), '",\n',
             '    "feeCollector": "', vm.toString(feeCollector), '",\n',
-            '    "usdToCopRate": "', vm.toString(INITIAL_USD_TO_COP_RATE), '"\n',
+            '    "usdToCopRate": "', vm.toString(networkConfig.initialUsdToCopRate), '"\n',
             '  }\n',
             '}'
         ));
@@ -364,7 +417,7 @@ contract DeployUnifiedSystemMock is Script {
             'address constant DYNAMIC_PRICE_REGISTRY_ADDRESS = ', vm.toString(dynamicPriceRegistry), ';\n',
             '\n',
             '// System Configuration\n',
-            'address constant POOL_MANAGER_ADDRESS = ', vm.toString(POOL_MANAGER_ADDRESS), ';\n',
+            'address constant POOL_MANAGER_ADDRESS = ', vm.toString(networkConfig.poolManager), ';\n',
             'address constant FEE_COLLECTOR_ADDRESS = ', vm.toString(feeCollector), ';\n'
         ));
         
@@ -400,8 +453,8 @@ contract DeployUnifiedSystemMock is Script {
         console.log("");
         console.log("SYSTEM CONFIGURATION:");
         console.log("Fee Collector:          ", feeCollector);
-        console.log("Pool Manager:           ", POOL_MANAGER_ADDRESS);
-        console.log("USD/COP Rate:           ", INITIAL_USD_TO_COP_RATE);
+        console.log("Pool Manager:           ", networkConfig.poolManager);
+        console.log("USD/COP Rate:           ", networkConfig.initialUsdToCopRate);
         console.log("");
         console.log("LIQUIDATION TESTING FEATURES:");
         console.log("- setMockPrice(token, quote, price) - Set any price");
