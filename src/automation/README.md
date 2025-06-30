@@ -33,23 +33,6 @@ Complete automation system using **Chainlink Automation v2.25.0** with support f
 - **RPC**: `https://api.avax-test.network/ext/bc/C/rpc`
 - **Chain ID**: `43113`
 
-## 🌐 Deployed Contracts - Avalanche Fuji
-
-| Contract | Address | Block Explorer |
-|----------|---------|----------------|
-| **[Automation Keeper](core/LoanAutomationKeeperOptimized.sol)** | `0x53abd121c7ce56ff25d22f2154af94c581fbf039` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x53abd121c7ce56ff25d22f2154af94c581fbf039) |
-| **[Loan Adapter](core/LoanManagerAutomationAdapter.sol)** | `0xe0f46e266af2f95b14537c3319a0f46cb53ab035` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xe0f46e266af2f95b14537c3319a0f46cb53ab035) |
-| **[Price Trigger](core/PriceChangeLogTrigger.sol)** | `0xab2b902b73d3315d0fed9e9d50102275017dc501` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xab2b902b73d3315d0fed9e9d50102275017dc501) |
-| **Automation Registry** | `0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x91D4a4C3D448c7f3CB477332B1c7D420a5810aC3) |
-
-### 📋 Contract Descriptions
-
-| Contract | Main Function | Automation Type |
-|----------|---------------|-----------------|
-| **[Automation Keeper](core/LoanAutomationKeeperOptimized.sol)** | Main liquidation executor | Custom Logic Automation |
-| **[Loan Adapter](core/LoanManagerAutomationAdapter.sol)** | Interface with FlexibleLoanManager | Adapter Contract |
-| **[Price Trigger](core/PriceChangeLogTrigger.sol)** | Automatic response to price changes | Log Trigger Automation |
-| **Automation Registry** | Chainlink Automation central registry | Core Registry |
 
 ### 🔗 Network & Links
 
